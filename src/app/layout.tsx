@@ -3,7 +3,6 @@ import { Geist } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Toaster } from "react-hot-toast";
 import { PWAInstallPrompt } from "@/components/pwa-install";
-import Script from "next/script";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -23,31 +22,19 @@ export const metadata: Metadata = {
   title: "KidCoach AI - ผู้ช่วย AI พัฒนาการเด็ก",
   description:
     "แพลตฟอร์ม AI ช่วยผู้ปกครองพัฒนาศักยภาพเด็ก เด็กพูดช้า เด็กพัฒนาการช้า เด็กออทิสติก ด้วย AI Coach ส่วนตัว",
-  keywords: [
-    "พัฒนาการเด็ก",
-    "AI Coach",
-    "เด็กพูดช้า",
-    "เด็กออทิสติก",
-    "กิจกรรมบำบัด",
-    "KidCoach AI",
-  ],
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
     title: "KidCoach AI",
-    startupImage: "/icons/icon-512x512.png",
   },
   icons: {
     icon: [
-      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
-      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
       { url: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512x512.png", sizes: "512x512", type: "image/png" },
     ],
-    apple: [
-      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
-    ],
-    shortcut: "/favicon-32x32.png",
+    apple: "/icons/icon-192x192.png",
+    shortcut: "/icons/icon-192x192.png",
   },
   openGraph: {
     title: "KidCoach AI - ผู้ช่วย AI พัฒนาการเด็ก",
@@ -71,24 +58,33 @@ export default function RootLayout({
         lang="th"
         className={`${geistSans.variable} h-full antialiased`}
       >
+        <head>
+          <meta name="mobile-web-app-capable" content="yes" />
+          <meta name="apple-mobile-web-app-capable" content="yes" />
+          <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+          <meta name="apple-mobile-web-app-title" content="KidCoach AI" />
+          <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+          <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192x192.png" />
+          <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512x512.png" />
+        </head>
         <body className="min-h-full flex flex-col font-sans">
           {children}
           <Toaster position="top-center" toastOptions={{ duration: 3000 }} />
           <PWAInstallPrompt />
-          <Script
-            id="pwa-capture"
-            strategy="beforeInteractive"
-            dangerouslySetInnerHTML={{
-              __html: `window.__pwaPrompt=null;window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();window.__pwaPrompt=e;});`,
-            }}
-          />
-          <Script
-            id="sw-register"
-            strategy="afterInteractive"
-            dangerouslySetInnerHTML={{
-              __html: `if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/sw.js'); }`,
-            }}
-          />
+          <script dangerouslySetInnerHTML={{
+            __html: `
+              window.__pwaPrompt = null;
+              window.addEventListener('beforeinstallprompt', function(e) {
+                e.preventDefault();
+                window.__pwaPrompt = e;
+              });
+              if ('serviceWorker' in navigator) {
+                window.addEventListener('load', function() {
+                  navigator.serviceWorker.register('/sw.js').catch(function(){});
+                });
+              }
+            `
+          }} />
         </body>
       </html>
     </ClerkProvider>
