@@ -62,7 +62,9 @@ export default function RootLayout({
           <meta name="apple-mobile-web-app-capable" content="yes" />
           <meta name="apple-mobile-web-app-status-bar-style" content="default" />
           <meta name="apple-mobile-web-app-title" content="KidCoach AI" />
-          <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+          <link rel="icon" href="/logo-icon.png" type="image/png" />
+          <link rel="shortcut icon" href="/logo-icon.png" type="image/png" />
+          <link rel="apple-touch-icon" href="/logo-icon.png" />
           <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192x192.png" />
           <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512x512.png" />
         </head>

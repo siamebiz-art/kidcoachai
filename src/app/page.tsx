@@ -364,13 +364,10 @@ export default function LandingPage() {
       <footer className="py-12 px-4 bg-gray-900 text-gray-400">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <Image
-              src="/logo.png"
-              alt="KidCoach AI"
-              width={130}
-              height={40}
-              className="h-9 w-auto object-contain brightness-0 invert"
-            />
+            <div className="flex items-center gap-2">
+              <Image src="/logo-icon.png" alt="KidCoach AI" width={36} height={36} className="h-9 w-auto" />
+              <span className="text-white font-bold text-lg">KidCoach AI</span>
+            </div>
             <p className="text-sm text-center">
               © 2024 KidCoach AI. ผู้ช่วยฝึกพัฒนาการเด็ก ไม่ใช่เครื่องมือการแพทย์
             </p>
