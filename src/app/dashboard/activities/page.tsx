@@ -9,18 +9,22 @@ import { Search, Star, Clock, CheckCircle2, Sparkles, Gamepad2 } from "lucide-re
 import toast from "react-hot-toast";
 import { FlashcardGame } from "./flashcard-game";
 import { MemoryMatchGame } from "./memory-game";
+import { PictureQuizGame } from "./picture-quiz";
+import { CountingGame } from "./counting-game";
+import { SortingGame } from "./sorting-game";
 
 const categories = ["ทั้งหมด", "ภาษา", "การสื่อสาร", "สมาธิ", "กล้ามเนื้อ", "การเรียนรู้"];
 
 const ACTIVITIES = [
-  { id: 1, title: "เกมชี้รูปภาพ",         category: "ภาษา",        duration: "10 นาที",    age: "2-6 ปี",  difficulty: "ง่าย",     emoji: "👆", color: "from-orange-400 to-amber-500",  description: "ฝึกให้เด็กชี้และบอกชื่อสิ่งของในภาพ พัฒนาคลังคำศัพท์และการรับรู้ภาษา",            starred: true,  materials: ["บัตรรูปภาพ", "หนังสือนิทานมีรูป"],  interactive: null },
+  { id: 1, title: "เกมชี้รูปภาพ",         category: "ภาษา",        duration: "10 นาที",    age: "2-6 ปี",  difficulty: "ง่าย",     emoji: "👆", color: "from-orange-400 to-amber-500",  description: "ดูคำแล้วแตะรูปที่ถูกต้อง ฝึกการเชื่อมคำกับภาพ พัฒนาคลังคำศัพท์",                starred: true,  materials: [],                                   interactive: "picture-quiz" as const },
   { id: 2, title: "บัตรคำศัพท์",           category: "ภาษา",        duration: "10 นาที",    age: "2-8 ปี",  difficulty: "ง่าย",     emoji: "🃏", color: "from-blue-400 to-cyan-500",     description: "แตะการ์ดเพื่อพลิกดูคำ ฝึกจำคำศัพท์สัตว์ ผลไม้ และสิ่งของรอบตัว",                   starred: true,  materials: [],                                   interactive: "flashcard" as const },
   { id: 3, title: "นิทานพัฒนาภาษา",        category: "ภาษา",        duration: "10-15 นาที", age: "1-8 ปี",  difficulty: "ง่าย",     emoji: "📖", color: "from-pink-400 to-rose-500",     description: "อ่านนิทานพร้อมชี้รูป ตั้งคำถามง่ายๆ กระตุ้นให้เด็กตอบและเล่าตาม",                   starred: true,  materials: ["หนังสือนิทาน"],                     interactive: null },
   { id: 4, title: "เกมจับคู่ภาพ",          category: "การเรียนรู้", duration: "10 นาที",    age: "3-7 ปี",  difficulty: "ปานกลาง", emoji: "🧩", color: "from-purple-400 to-violet-500", description: "พลิกการ์ดบนหน้าจอเพื่อหาคู่ที่เหมือนกัน ฝึกความจำและสมาธิ",                         starred: false, materials: [],                                   interactive: "memory" as const },
   { id: 5, title: "เกมเลียนแบบท่าทาง",     category: "การสื่อสาร", duration: "10 นาที",    age: "1-6 ปี",  difficulty: "ง่าย",     emoji: "🤸", color: "from-green-400 to-emerald-500", description: "ผู้ปกครองทำท่าทางให้เด็กเลียนแบบ เช่น โบกมือ ปรบมือ ส่งเสริมการสื่อสาร",           starred: false, materials: ["ไม่ต้องใช้อุปกรณ์"],               interactive: null },
   { id: 6, title: "ร้องเพลงพร้อมท่าทาง",   category: "ภาษา",        duration: "5-10 นาที",  age: "1-6 ปี",  difficulty: "ง่าย",     emoji: "🎵", color: "from-yellow-400 to-orange-500", description: "ร้องเพลงเด็กง่ายๆ พร้อมท่าทางประกอบ เช่น หัวไหล่เข่าเท้า พัฒนาภาษาและกล้ามเนื้อ", starred: false, materials: ["เพลงเด็ก (YouTube)"],               interactive: null },
-  { id: 7, title: "เกมฝึกสมาธิ Puzzle",    category: "สมาธิ",       duration: "10-15 นาที", age: "3-8 ปี",  difficulty: "ปานกลาง", emoji: "🎯", color: "from-red-400 to-rose-500",      description: "ต่อ Puzzle ชิ้นเล็กๆ ฝึกสมาธิ ความอดทน และการแก้ปัญหา",                           starred: false, materials: ["Puzzle 4-12 ชิ้น"],                 interactive: null },
+  { id: 7, title: "เกมนับจำนวน",           category: "การเรียนรู้", duration: "10 นาที",    age: "2-6 ปี",  difficulty: "ง่าย",     emoji: "🔢", color: "from-red-400 to-rose-500",      description: "นับของแล้วแตะตัวเลขที่ถูกต้อง ฝึกทักษะตัวเลขและการนับ",                           starred: false, materials: [],                                   interactive: "counting" as const },
   { id: 8, title: "ระบายสี",                category: "กล้ามเนื้อ", duration: "15 นาที",    age: "2-8 ปี",  difficulty: "ง่าย",     emoji: "🎨", color: "from-indigo-400 to-purple-500", description: "ระบายสีในแบบที่กำหนด ฝึกกล้ามเนื้อมัดเล็ก การจับดินสอ และสมาธิ",                   starred: false, materials: ["สีเทียน", "กระดาษระบายสี"],         interactive: null },
+  { id: 9, title: "เกมจัดหมวดหมู่",        category: "การเรียนรู้", duration: "10 นาที",    age: "3-7 ปี",  difficulty: "ง่าย",     emoji: "🗂️", color: "from-teal-400 to-green-500",    description: "แยกสิ่งของใส่หมวดหมู่ที่ถูกต้อง ฝึกการคิดแบบจัดกลุ่มและแยกแยะ",                  starred: false, materials: [],                                   interactive: "sorting" as const },
 ];
 
 const difficultyColor: Record<string, string> = {
@@ -81,6 +85,33 @@ export default function ActivitiesPage() {
   if (selected?.interactive === "memory") {
     return (
       <MemoryMatchGame
+        onBack={() => setSelected(null)}
+        onComplete={() => handleComplete(selected)}
+      />
+    );
+  }
+
+  if (selected?.interactive === "picture-quiz") {
+    return (
+      <PictureQuizGame
+        onBack={() => setSelected(null)}
+        onComplete={() => handleComplete(selected)}
+      />
+    );
+  }
+
+  if (selected?.interactive === "counting") {
+    return (
+      <CountingGame
+        onBack={() => setSelected(null)}
+        onComplete={() => handleComplete(selected)}
+      />
+    );
+  }
+
+  if (selected?.interactive === "sorting") {
+    return (
+      <SortingGame
         onBack={() => setSelected(null)}
         onComplete={() => handleComplete(selected)}
       />
