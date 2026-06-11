@@ -12,6 +12,7 @@ import toast from "react-hot-toast";
 import {
   RadarChart, PolarGrid, PolarAngleAxis, Radar, ResponsiveContainer,
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
+  LineChart, Line, Legend,
 } from "recharts";
 import { TrendingUp, Calendar, Plus, Loader2, Sparkles } from "lucide-react";
 
@@ -25,8 +26,8 @@ const milestoneCategories = ["ภาษา", "การสื่อสาร", "
 export default function ProgressPage() {
   const router = useRouter();
   const {
-    isLoaded, childProfile, childAge, latestAssessment, weeklyPlan,
-    activityLog, milestones, addMilestone,
+    isLoaded, childProfile, childAge, latestAssessment, assessmentHistory,
+    weeklyPlan, activityLog, milestones, addMilestone,
   } = useProfile();
 
   const [newEvent, setNewEvent] = useState("");
@@ -180,6 +181,38 @@ export default function ProgressPage() {
             </div>
           </Card>
         </div>
+      )}
+
+      {/* Trend Line Chart (multi-assessment history) */}
+      {assessmentHistory.length >= 2 && (
+        <Card className="p-5 border-gray-100 shadow-sm mb-6">
+          <h2 className="font-bold text-gray-900 mb-1">แนวโน้มพัฒนาการ</h2>
+          <p className="text-xs text-gray-400 mb-3">เปรียบเทียบผลประเมินทั้ง {assessmentHistory.length} ครั้ง</p>
+          <ResponsiveContainer width="100%" height={220}>
+            <LineChart
+              data={assessmentHistory.map((a) => ({
+                date: new Date(a.date).toLocaleDateString("th-TH", { day: "numeric", month: "short" }),
+                ภาษา: a.scores.ภาษา,
+                สื่อสาร: a.scores.การสื่อสาร,
+                เรียนรู้: a.scores.การเรียนรู้,
+                สมาธิ: a.scores.สมาธิ,
+                กล้ามเนื้อ: a.scores.กล้ามเนื้อ,
+              }))}
+              margin={{ top: 5, right: 10, left: -20, bottom: 0 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+              <XAxis dataKey="date" tick={{ fontSize: 11 }} />
+              <YAxis tick={{ fontSize: 11 }} domain={[0, 100]} />
+              <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8 }} />
+              <Legend wrapperStyle={{ fontSize: 12 }} />
+              <Line type="monotone" dataKey="ภาษา"    stroke="#10B981" strokeWidth={2} dot={{ r: 3 }} />
+              <Line type="monotone" dataKey="สื่อสาร"  stroke="#3B82F6" strokeWidth={2} dot={{ r: 3 }} />
+              <Line type="monotone" dataKey="เรียนรู้" stroke="#8B5CF6" strokeWidth={2} dot={{ r: 3 }} />
+              <Line type="monotone" dataKey="สมาธิ"   stroke="#F97316" strokeWidth={2} dot={{ r: 3 }} />
+              <Line type="monotone" dataKey="กล้ามเนื้อ" stroke="#EC4899" strokeWidth={2} dot={{ r: 3 }} />
+            </LineChart>
+          </ResponsiveContainer>
+        </Card>
       )}
 
       {/* Weekly Activity Bar */}

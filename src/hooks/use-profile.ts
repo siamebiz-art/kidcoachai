@@ -24,6 +24,9 @@ export function useProfile() {
   const childAge = childProfile?.birthdate ? calculateAge(childProfile.birthdate) : "";
   const milestones = metadata.milestones ?? [];
   const bookmarkedArticles = metadata.bookmarkedArticles ?? [];
+  const assessmentHistory = metadata.assessmentHistory ?? [];
+  const subscriptionTier = metadata.subscriptionTier ?? "free";
+  const isPremium = subscriptionTier === "premium" || subscriptionTier === "pro";
 
   const displayName =
     parentProfile?.displayName ||
@@ -38,7 +41,14 @@ export function useProfile() {
   }
 
   async function saveAssessment(result: AssessmentResult) {
-    await user?.update({ unsafeMetadata: { ...metadata, latestAssessment: result } });
+    const history = [...assessmentHistory, result].slice(-12); // keep last 12
+    await user?.update({
+      unsafeMetadata: {
+        ...metadata,
+        latestAssessment: result,
+        assessmentHistory: history,
+      },
+    });
   }
 
   async function saveWeeklyPlan(plan: WeeklyPlan) {
@@ -71,10 +81,13 @@ export function useProfile() {
     parentProfile,
     displayName,
     latestAssessment,
+    assessmentHistory,
     weeklyPlan,
     activityLog,
     milestones,
     bookmarkedArticles,
+    subscriptionTier,
+    isPremium,
     updateChildProfile,
     updateParentProfile,
     saveAssessment,

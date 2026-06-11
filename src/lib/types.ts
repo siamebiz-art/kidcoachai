@@ -62,8 +62,17 @@ export interface UserMetadata {
   childProfile?: ChildProfile;
   parentProfile?: ParentProfile;
   latestAssessment?: AssessmentResult;
+  assessmentHistory?: AssessmentResult[];
   weeklyPlan?: WeeklyPlan;
   activityLog?: Record<string, boolean>;
   milestones?: Milestone[];
   bookmarkedArticles?: number[];
+  // Subscription
+  subscriptionTier?: "free" | "premium" | "pro";
+  subscriptionStatus?: "active" | "trialing" | "past_due" | "canceled";
+  stripeCustomerId?: string;
+  stripeSubscriptionId?: string;
+  // Usage
+  aiChatCount?: number;
+  aiChatResetDate?: string;
 }

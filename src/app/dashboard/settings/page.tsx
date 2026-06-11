@@ -30,7 +30,9 @@ function SettingsContent() {
     trainingReminder: true, dailyRecord: true, weeklyReport: false, community: true, email: false,
   });
 
-  const { isLoaded, childProfile, parentProfile, user, updateChildProfile, updateParentProfile } = useProfile();
+  const { isLoaded, childProfile, parentProfile, user, subscriptionTier, isPremium, updateChildProfile, updateParentProfile } = useProfile();
+  const [isCheckingOut, setIsCheckingOut] = useState<"premium" | "pro" | null>(null);
+  const [isPortaling, setIsPortaling] = useState(false);
 
   // Parent form
   const [parentName, setParentName] = useState("");
@@ -289,46 +291,110 @@ function SettingsContent() {
           {/* Billing Tab */}
           {activeTab === "billing" && (
             <div className="space-y-4">
+              {/* Current plan */}
               <Card className="p-5 border-gray-100 shadow-sm">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="font-bold text-gray-900">แผนปัจจุบัน</div>
-                  <Badge className="bg-gray-100 text-gray-700 border-gray-200">ฟรี</Badge>
-                </div>
-                <p className="text-sm text-gray-500 mb-4">คุณใช้งานแผนฟรี บางฟีเจอร์อาจถูกจำกัด</p>
-              </Card>
-              <div className="grid md:grid-cols-2 gap-4">
-                {[
-                  {
-                    name: "Premium", price: "299", color: "border-purple-500",
-                    features: ["AI Coach ไม่จำกัด", "แผนฝึกรายวัน", "ติดตามผล", "กิจกรรม 500+", "Notification"],
-                  },
-                  {
-                    name: "Pro", price: "599", color: "border-gray-200",
-                    features: ["ทุกอย่างใน Premium", "วิเคราะห์วิดีโอ", "วิเคราะห์การพูด", "รายงาน PDF", "Priority Support"],
-                  },
-                ].map((plan) => (
-                  <Card key={plan.name} className={`p-5 border-2 ${plan.color} shadow-sm`}>
-                    <div className="flex items-center gap-2 mb-1">
-                      <Crown className="w-5 h-5 text-amber-500" />
-                      <span className="font-bold text-gray-900">{plan.name}</span>
+                <h2 className="font-bold text-gray-900 mb-4">แผนปัจจุบัน</h2>
+                <div className="flex items-center justify-between flex-wrap gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isPremium ? "bg-amber-100" : "bg-gray-100"}`}>
+                      <Crown className={`w-5 h-5 ${isPremium ? "text-amber-500" : "text-gray-400"}`} />
                     </div>
-                    <div className="text-3xl font-bold text-gray-900 mb-4">
-                      ฿{plan.price}<span className="text-base font-normal text-gray-400">/เดือน</span>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-gray-900 capitalize">{subscriptionTier === "free" ? "ฟรี" : subscriptionTier}</span>
+                        <Badge className={isPremium ? "bg-amber-100 text-amber-700 border-amber-200" : "bg-gray-100 text-gray-600 border-gray-200"}>
+                          {subscriptionTier === "free" ? "ฟรี" : "ใช้งานอยู่"}
+                        </Badge>
+                      </div>
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        {isPremium ? "ฟีเจอร์ทั้งหมดพร้อมใช้งาน" : "AI Chat 10 ครั้ง/เดือน · แผน 3 วัน"}
+                      </p>
                     </div>
-                    <ul className="space-y-2 mb-5">
-                      {plan.features.map((f) => (
-                        <li key={f} className="flex items-center gap-2 text-sm text-gray-700">
-                          <Check className="w-4 h-4 text-green-500 shrink-0" />
-                          {f}
-                        </li>
-                      ))}
-                    </ul>
-                    <Button className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0 rounded-xl">
-                      อัปเกรดเป็น {plan.name}
+                  </div>
+                  {isPremium && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={isPortaling}
+                      onClick={async () => {
+                        setIsPortaling(true);
+                        try {
+                          const res = await fetch("/api/customer-portal", { method: "POST" });
+                          const data = await res.json();
+                          if (data.url) window.location.href = data.url;
+                          else toast.error("ไม่สามารถเปิดหน้าจัดการได้");
+                        } catch { toast.error("เกิดข้อผิดพลาด"); }
+                        finally { setIsPortaling(false); }
+                      }}
+                      className="border-gray-200 text-gray-700 gap-2"
+                    >
+                      {isPortaling ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                      จัดการ Subscription
                     </Button>
-                  </Card>
-                ))}
-              </div>
+                  )}
+                </div>
+              </Card>
+
+              {/* Upgrade plans (shown only for free users) */}
+              {!isPremium && (
+                <div className="grid md:grid-cols-2 gap-4">
+                  {([
+                    {
+                      tier: "premium" as const,
+                      name: "Premium",
+                      price: "299",
+                      color: "border-purple-500",
+                      features: ["AI Coach ไม่จำกัด", "แผนฝึกรายวัน 7 วัน", "ติดตามผลพัฒนาการ", "กิจกรรม 500+ รายการ", "การแจ้งเตือนรายวัน"],
+                    },
+                    {
+                      tier: "pro" as const,
+                      name: "Pro",
+                      price: "599",
+                      color: "border-gray-200",
+                      features: ["ทุกอย่างใน Premium", "วิเคราะห์วิดีโอการฝึก", "วิเคราะห์การพูด", "รายงาน PDF", "Priority Support"],
+                    },
+                  ] as const).map((plan) => (
+                    <Card key={plan.name} className={`p-5 border-2 ${plan.color} shadow-sm`}>
+                      <div className="flex items-center gap-2 mb-1">
+                        <Crown className="w-5 h-5 text-amber-500" />
+                        <span className="font-bold text-gray-900">{plan.name}</span>
+                      </div>
+                      <div className="text-3xl font-bold text-gray-900 mb-4">
+                        ฿{plan.price}<span className="text-base font-normal text-gray-400">/เดือน</span>
+                      </div>
+                      <ul className="space-y-2 mb-5">
+                        {plan.features.map((f) => (
+                          <li key={f} className="flex items-center gap-2 text-sm text-gray-700">
+                            <Check className="w-4 h-4 text-green-500 shrink-0" />
+                            {f}
+                          </li>
+                        ))}
+                      </ul>
+                      <Button
+                        disabled={isCheckingOut !== null}
+                        onClick={async () => {
+                          setIsCheckingOut(plan.tier);
+                          try {
+                            const res = await fetch("/api/create-checkout", {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ tier: plan.tier }),
+                            });
+                            const data = await res.json();
+                            if (data.url) window.location.href = data.url;
+                            else toast.error("ไม่สามารถเปิดหน้าชำระเงินได้");
+                          } catch { toast.error("เกิดข้อผิดพลาด"); }
+                          finally { setIsCheckingOut(null); }
+                        }}
+                        className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0 rounded-xl gap-2"
+                      >
+                        {isCheckingOut === plan.tier ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                        อัปเกรดเป็น {plan.name}
+                      </Button>
+                    </Card>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
