@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -36,7 +36,7 @@ const difficultyColor: Record<string, string> = {
 
 type Activity = (typeof ACTIVITIES)[0];
 
-export default function ActivitiesPage() {
+function ActivitiesContent() {
   const { latestAssessment, activityLog, toggleActivity } = useProfile();
   const searchParams = useSearchParams();
   const [selectedCat, setSelectedCat] = useState("ทั้งหมด");
@@ -278,6 +278,14 @@ export default function ActivitiesPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function ActivitiesPage() {
+  return (
+    <Suspense>
+      <ActivitiesContent />
+    </Suspense>
   );
 }
 

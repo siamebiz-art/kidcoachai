@@ -372,6 +372,11 @@ export default function DashboardPage() {
                       <Mic className="w-4 h-4" /> พูดคุยกับ AI
                     </button>
                   </Link>
+                  <Link href="/dashboard/kido" className="flex-1 lg:flex-none">
+                    <button className="w-full lg:w-44 bg-amber-400/20 text-amber-200 font-semibold text-sm px-4 py-3 rounded-2xl flex items-center justify-center gap-2 hover:bg-amber-400/30 transition-colors border border-amber-300/30">
+                      🤖 Kido Mode (เด็กเล่น)
+                    </button>
+                  </Link>
                 </div>
               </div>
             </div>
