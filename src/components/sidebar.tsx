@@ -104,22 +104,42 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
 
         {/* Upgrade banner */}
         <div className="mx-3 mb-2">
-          <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-100 rounded-2xl px-3 py-2.5">
-            <div className="flex items-center justify-between mb-1.5">
-              <div className="flex items-center gap-1">
-                <Crown className="w-3.5 h-3.5 text-amber-500" />
-                <span className="text-xs font-bold text-amber-600">Premium</span>
-                <Sparkles className="w-3 h-3 text-amber-400" />
+          {subscriptionTier === "free" && (
+            <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-100 rounded-2xl px-3 py-2.5">
+              <div className="flex items-center justify-between mb-1.5">
+                <div className="flex items-center gap-1">
+                  <Crown className="w-3.5 h-3.5 text-amber-500" />
+                  <span className="text-xs font-bold text-amber-600">Premium</span>
+                  <Sparkles className="w-3 h-3 text-amber-400" />
+                </div>
+                <span className="text-[9px] text-gray-400">ไม่จำกัด</span>
               </div>
-              <span className="text-[9px] text-gray-400">ไม่จำกัด</span>
+              <Link href="/dashboard/settings?tab=billing" onClick={onClose}>
+                <Button size="sm"
+                  className="w-full text-xs bg-gradient-to-r from-pink-500 to-rose-500 text-white border-0 rounded-xl h-7 font-bold shadow-sm">
+                  อัปเกรดเลย
+                </Button>
+              </Link>
             </div>
-            <Link href="/dashboard/settings?tab=billing" onClick={onClose}>
-              <Button size="sm"
-                className="w-full text-xs bg-gradient-to-r from-pink-500 to-rose-500 text-white border-0 rounded-xl h-7 font-bold shadow-sm">
-                อัปเกรดเลย
-              </Button>
-            </Link>
-          </div>
+          )}
+          {subscriptionTier === "premium" && (
+            <div className="bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-100 rounded-2xl px-3 py-2.5">
+              <div className="flex items-center justify-between mb-1.5">
+                <div className="flex items-center gap-1">
+                  <Crown className="w-3.5 h-3.5 text-purple-500" />
+                  <span className="text-xs font-bold text-purple-600">Pro</span>
+                  <Sparkles className="w-3 h-3 text-purple-400" />
+                </div>
+                <span className="text-[9px] text-gray-400">อัปเกรด</span>
+              </div>
+              <Link href="/dashboard/settings?tab=billing" onClick={onClose}>
+                <Button size="sm"
+                  className="w-full text-xs bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0 rounded-xl h-7 font-bold shadow-sm">
+                  อัปเกรดเป็น Pro
+                </Button>
+              </Link>
+            </div>
+          )}
         </div>
 
         {/* User info */}
