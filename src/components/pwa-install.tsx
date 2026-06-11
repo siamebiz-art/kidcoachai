@@ -1,146 +1,140 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { X, Download, Share } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import Image from "next/image";
+import { Download, X, Share, Plus } from "lucide-react";
 
-interface BeforeInstallPromptEvent extends Event {
+type InstallEvent = Event & {
   prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
-}
-
-type Platform = "android" | "ios" | "desktop" | null;
+  userChoice: Promise<{ outcome: string }>;
+};
 
 export function PWAInstallPrompt() {
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [showBanner, setShowBanner] = useState(false);
-  const [platform, setPlatform] = useState<Platform>(null);
+  const [deferredPrompt, setDeferredPrompt] = useState<InstallEvent | null>(null);
+  const [show, setShow] = useState(false);
+  const [isIOS, setIsIOS] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
-    // Already installed as PWA
-    if (window.matchMedia("(display-mode: standalone)").matches) return;
+    if (typeof window === "undefined") return;
 
-    // Dismissed recently (7 days)
-    const dismissed = localStorage.getItem("pwa-install-dismissed");
-    if (dismissed && Date.now() - parseInt(dismissed) < 7 * 24 * 60 * 60 * 1000) return;
+    // Already dismissed recently (7 days)
+    const lastDismissed = localStorage.getItem("pwa-dismiss");
+    if (lastDismissed && Date.now() - Number(lastDismissed) < 7 * 24 * 60 * 60 * 1000) return;
+
+    // Already installed
+    if (window.matchMedia("(display-mode: standalone)").matches) return;
+    if ((window.navigator as Navigator & { standalone?: boolean }).standalone) return;
 
     const ua = navigator.userAgent;
-    const isIOS = /iphone|ipad|ipod/i.test(ua) && !(window as unknown as { MSStream?: unknown }).MSStream;
-    const isMac = /macintosh/i.test(ua) && navigator.maxTouchPoints === 0;
-    const isDesktop = !isIOS && (isMac || !/android|mobile/i.test(ua));
+    const ios = /iphone|ipad|ipod/i.test(ua) && !(window as unknown as { MSStream?: unknown }).MSStream;
+    setIsIOS(ios);
 
-    // Android / Desktop: wait for browser beforeinstallprompt
-    const handler = (e: Event) => {
-      e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
-      setPlatform(isDesktop ? "desktop" : "android");
-      // Show after 8s of engagement
-      setTimeout(() => setShowBanner(true), 8000);
-    };
-    window.addEventListener("beforeinstallprompt", handler);
-
-    // iOS: show manual instructions after 5s
-    if (isIOS) {
-      const timer = setTimeout(() => {
-        setPlatform("ios");
-        setShowBanner(true);
-      }, 5000);
-      return () => {
-        window.removeEventListener("beforeinstallprompt", handler);
-        clearTimeout(timer);
-      };
+    if (ios) {
+      const t = setTimeout(() => setShow(true), 4000);
+      return () => clearTimeout(t);
     }
 
+    // Chrome / Edge / Android — show 4s after beforeinstallprompt fires
+    const handler = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e as InstallEvent);
+      setTimeout(() => setShow(true), 4000);
+    };
+    window.addEventListener("beforeinstallprompt", handler);
     return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
 
-  const handleInstall = async () => {
+  function dismiss() {
+    setShow(false);
+    setDismissed(true);
+    localStorage.setItem("pwa-dismiss", String(Date.now()));
+  }
+
+  async function install() {
     if (!deferredPrompt) return;
     await deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
-    setShowBanner(false);
+    if (outcome === "accepted") setShow(false);
     setDeferredPrompt(null);
-    if (outcome === "accepted") {
-      localStorage.setItem("pwa-install-dismissed", Date.now().toString());
-    }
-  };
+  }
 
-  const handleDismiss = () => {
-    setShowBanner(false);
-    localStorage.setItem("pwa-install-dismissed", Date.now().toString());
-  };
-
-  if (!showBanner || !platform) return null;
+  if (!show || dismissed) return null;
 
   return (
-    <div className="fixed bottom-safe-area-inset-bottom bottom-4 left-4 right-4 z-50 max-w-sm mx-auto animate-in slide-in-from-bottom-4 duration-300">
-      <div className="bg-white rounded-2xl shadow-2xl border border-purple-100 overflow-hidden">
-        {/* Header strip */}
-        <div className="bg-gradient-to-r from-purple-600 to-pink-600 px-4 py-2 flex items-center justify-between">
-          <span className="text-white text-xs font-semibold">
-            {platform === "ios" ? "ติดตั้งบน iPhone / iPad" : platform === "desktop" ? "ติดตั้งบนคอมพิวเตอร์" : "ติดตั้งบนมือถือ"}
-          </span>
-          <button onClick={handleDismiss} className="text-white/70 hover:text-white">
-            <X className="w-4 h-4" />
-          </button>
-        </div>
+    <>
+      <div
+        onClick={dismiss}
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9998]"
+      />
 
-        <div className="p-4 flex items-start gap-3">
-          {/* App icon */}
-          <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 border border-purple-100">
-            <Image src="/icons/icon-192x192.png" alt="KidCoach AI" width={48} height={48} className="w-full h-full object-cover" />
+      <div className="fixed bottom-5 left-1/2 -translate-x-1/2 w-[min(380px,calc(100vw-32px))] z-[9999] animate-in slide-in-from-bottom-6 duration-300">
+        <div className="bg-white rounded-2xl shadow-2xl border border-purple-100 overflow-hidden">
+          {/* Header */}
+          <div className="bg-gradient-to-r from-purple-600 to-pink-500 px-5 py-4 flex items-start gap-3">
+            <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center text-2xl shrink-0">
+              🧠
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-white font-bold text-base">KidCoach AI</p>
+              <p className="text-white/80 text-xs mt-0.5 leading-relaxed">
+                เปิดได้เร็วกว่าจาก Home Screen ใช้งานได้ทุกวัน
+              </p>
+            </div>
+            <button onClick={dismiss} className="text-white/60 hover:text-white shrink-0 mt-0.5">
+              <X size={18} />
+            </button>
           </div>
 
-          <div className="flex-1 min-w-0">
-            <p className="font-bold text-gray-900 text-sm">KidCoach AI</p>
+          {/* Badges */}
+          <div className="flex gap-2 px-5 pt-4 flex-wrap">
+            {["เปิดเร็ว", "เหมือนแอป", "ฟรี 100%"].map((f) => (
+              <span
+                key={f}
+                className="bg-purple-50 border border-purple-100 text-purple-700 text-[10px] font-bold px-3 py-1 rounded-full"
+              >
+                {f}
+              </span>
+            ))}
+          </div>
 
-            {/* iOS instructions */}
-            {platform === "ios" && (
-              <div className="mt-1 space-y-1.5">
-                <p className="text-xs text-gray-600 leading-relaxed">
-                  ติดตั้งเป็นแอปบนหน้าจอหลัก ใช้งานได้เหมือนแอปทั่วไป
+          <div className="px-5 pb-5 pt-3">
+            {isIOS ? (
+              <div className="bg-gray-50 rounded-xl p-4 mb-3">
+                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-3">
+                  วิธีติดตั้งบน iPhone / iPad
                 </p>
-                <div className="flex items-center gap-1.5 text-xs text-blue-600 font-medium">
-                  <span className="bg-blue-50 rounded px-1.5 py-0.5 flex items-center gap-1">
-                    <Share className="w-3 h-3" /> กด Share
-                  </span>
-                  <span className="text-gray-400">→</span>
-                  <span className="bg-gray-50 rounded px-1.5 py-0.5 text-gray-700">Add to Home Screen</span>
-                </div>
+                {[
+                  { icon: <Share size={13} className="text-purple-600" />, text: 'กดปุ่ม Share (กล่องมีลูกศรขึ้น) ใน Safari' },
+                  { icon: <Plus size={13} className="text-purple-600" />, text: 'เลือก "Add to Home Screen"' },
+                  { icon: <span className="text-purple-600 text-sm">✓</span>, text: 'กด "Add" เพื่อยืนยัน' },
+                ].map((s, i) => (
+                  <div key={i} className={`flex items-start gap-2.5 ${i < 2 ? "mb-2.5" : ""}`}>
+                    <div className="w-6 h-6 rounded-lg bg-purple-100 flex items-center justify-center shrink-0 mt-0.5">
+                      {s.icon}
+                    </div>
+                    <span className="text-xs text-gray-700 leading-relaxed">{s.text}</span>
+                  </div>
+                ))}
               </div>
+            ) : (
+              <button
+                onClick={install}
+                className="w-full py-3.5 bg-gradient-to-r from-purple-600 to-pink-500 text-white font-bold text-sm rounded-xl flex items-center justify-center gap-2 mb-2.5 shadow-lg shadow-purple-200"
+              >
+                <Download size={15} />
+                ติดตั้งแอป — ฟรี
+              </button>
             )}
 
-            {/* Android / Desktop */}
-            {(platform === "android" || platform === "desktop") && (
-              <div className="mt-1">
-                <p className="text-xs text-gray-500 leading-relaxed mb-2">
-                  {platform === "desktop"
-                    ? "ติดตั้งเป็นแอปบน Desktop เข้าใช้ได้เร็วขึ้น"
-                    : "ติดตั้งบนหน้าจอหลัก ใช้งานได้แม้ไม่มีสัญญาณ"}
-                </p>
-                <Button
-                  onClick={handleInstall}
-                  size="sm"
-                  className="h-8 text-xs bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0 rounded-xl gap-1.5"
-                >
-                  <Download className="w-3.5 h-3.5" />
-                  ติดตั้งเลย — ฟรี
-                </Button>
-              </div>
-            )}
+            <button
+              onClick={dismiss}
+              className="w-full py-2.5 text-gray-400 text-xs border border-gray-100 rounded-xl hover:bg-gray-50"
+            >
+              ไม่ใช่ตอนนี้
+            </button>
           </div>
         </div>
-
-        {/* iOS bottom hint arrow */}
-        {platform === "ios" && (
-          <div className="bg-gray-50 border-t border-gray-100 px-4 py-2 text-center">
-            <p className="text-[11px] text-gray-500">
-              👇 กดปุ่ม <strong>Share</strong> ที่ toolbar ด้านล่างเบราว์เซอร์
-            </p>
-          </div>
-        )}
       </div>
-    </div>
+    </>
   );
 }
