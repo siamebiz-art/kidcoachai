@@ -97,7 +97,7 @@ export default function DashboardPage() {
   // AI recommendation card (template-based)
   const aiRec = (() => {
     if (!childProfile || !latestAssessment) return null;
-    const sc = latestAssessment.scores as Record<string, number>;
+    const sc = latestAssessment.scores as unknown as Record<string, number>;
     const sorted = Object.entries(sc).sort(([, a], [, b]) => a - b);
     const weakest = sorted[0][0];
     const strongest = sorted[sorted.length - 1][0];
