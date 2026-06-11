@@ -46,16 +46,17 @@ function SettingsContent() {
 
   const [isSaving, setIsSaving] = useState(false);
 
-  // Reload Clerk user data after returning from Stripe checkout
+  // Reload Clerk user data after returning from Stripe checkout (run once only)
+  const reloadedRef = useState(false);
   useEffect(() => {
-    if (!isLoaded || !user) return;
+    if (!isLoaded || !user || reloadedRef[0]) return;
     const success = searchParams.get("success");
     if (success === "1") {
-      user.reload().then(() => {
-        toast.success("อัปเกรดสำเร็จ! 🎉");
-      });
+      reloadedRef[1](true);
+      user.reload().then(() => toast.success("อัปเกรดสำเร็จ! 🎉"));
     }
-  }, [isLoaded, user, searchParams]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoaded]);
 
   useEffect(() => {
     if (!isLoaded) return;
@@ -346,8 +347,8 @@ function SettingsContent() {
                 </div>
               </Card>
 
-              {/* Upgrade plans (shown only for free users) */}
-              {!isPremium && (
+              {/* Upgrade plans */}
+              {subscriptionTier !== "pro" && (
                 <div className="grid md:grid-cols-2 gap-4">
                   {([
                     {
@@ -356,15 +357,17 @@ function SettingsContent() {
                       price: "299",
                       color: "border-purple-500",
                       features: ["AI Coach ไม่จำกัด", "แผนฝึกรายวัน 7 วัน", "ติดตามผลพัฒนาการ", "กิจกรรม 500+ รายการ", "การแจ้งเตือนรายวัน"],
+                      hidden: subscriptionTier === "premium",
                     },
                     {
                       tier: "pro" as const,
                       name: "Pro",
                       price: "599",
-                      color: "border-gray-200",
+                      color: "border-amber-400",
                       features: ["ทุกอย่างใน Premium", "วิเคราะห์วิดีโอการฝึก", "วิเคราะห์การพูด", "รายงาน PDF", "Priority Support"],
+                      hidden: false,
                     },
-                  ] as const).map((plan) => (
+                  ] as const).filter((p) => !p.hidden).map((plan) => (
                     <Card key={plan.name} className={`p-5 border-2 ${plan.color} shadow-sm`}>
                       <div className="flex items-center gap-2 mb-1">
                         <Crown className="w-5 h-5 text-amber-500" />
