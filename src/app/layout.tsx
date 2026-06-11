@@ -76,6 +76,13 @@ export default function RootLayout({
           <Toaster position="top-center" toastOptions={{ duration: 3000 }} />
           <PWAInstallPrompt />
           <Script
+            id="pwa-capture"
+            strategy="beforeInteractive"
+            dangerouslySetInnerHTML={{
+              __html: `window.__pwaPrompt=null;window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();window.__pwaPrompt=e;});`,
+            }}
+          />
+          <Script
             id="sw-register"
             strategy="afterInteractive"
             dangerouslySetInnerHTML={{

@@ -8,6 +8,12 @@ type InstallEvent = Event & {
   userChoice: Promise<{ outcome: string }>;
 };
 
+declare global {
+  interface Window {
+    __pwaPrompt: InstallEvent | null;
+  }
+}
+
 export function PWAInstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState<InstallEvent | null>(null);
   const [show, setShow] = useState(false);
@@ -34,11 +40,22 @@ export function PWAInstallPrompt() {
       return () => clearTimeout(t);
     }
 
-    // Chrome / Edge / Android — show 4s after beforeinstallprompt fires
+    // Check if event was already captured before React mounted
+    function tryShow(e: InstallEvent) {
+      setDeferredPrompt(e);
+      setTimeout(() => setShow(true), 3000);
+    }
+
+    if (window.__pwaPrompt) {
+      tryShow(window.__pwaPrompt);
+      return;
+    }
+
+    // Also listen for future fires (first visit / after SW update)
     const handler = (e: Event) => {
       e.preventDefault();
-      setDeferredPrompt(e as InstallEvent);
-      setTimeout(() => setShow(true), 4000);
+      window.__pwaPrompt = e as InstallEvent;
+      tryShow(e as InstallEvent);
     };
     window.addEventListener("beforeinstallprompt", handler);
     return () => window.removeEventListener("beforeinstallprompt", handler);
@@ -62,10 +79,7 @@ export function PWAInstallPrompt() {
 
   return (
     <>
-      <div
-        onClick={dismiss}
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9998]"
-      />
+      <div onClick={dismiss} className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9998]" />
 
       <div className="fixed bottom-5 left-1/2 -translate-x-1/2 w-[min(380px,calc(100vw-32px))] z-[9999] animate-in slide-in-from-bottom-6 duration-300">
         <div className="bg-white rounded-2xl shadow-2xl border border-purple-100 overflow-hidden">
@@ -88,10 +102,7 @@ export function PWAInstallPrompt() {
           {/* Badges */}
           <div className="flex gap-2 px-5 pt-4 flex-wrap">
             {["เปิดเร็ว", "เหมือนแอป", "ฟรี 100%"].map((f) => (
-              <span
-                key={f}
-                className="bg-purple-50 border border-purple-100 text-purple-700 text-[10px] font-bold px-3 py-1 rounded-full"
-              >
+              <span key={f} className="bg-purple-50 border border-purple-100 text-purple-700 text-[10px] font-bold px-3 py-1 rounded-full">
                 {f}
               </span>
             ))}
