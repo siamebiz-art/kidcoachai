@@ -1,20 +1,22 @@
 "use client";
 
 import { SignUp } from "@clerk/nextjs";
-import { Heart } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 
 export default function SignUpPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-pink-50 flex flex-col items-center justify-center p-4">
       <div className="mb-8 text-center">
-        <Link href="/" className="flex items-center gap-2 justify-center mb-4">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-            <Heart className="w-5 h-5 text-white" />
-          </div>
-          <span className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-            KidCoach AI
-          </span>
+        <Link href="/" className="flex items-center justify-center mb-3">
+          <Image
+            src="/logo.png"
+            alt="KidCoach AI"
+            width={200}
+            height={60}
+            className="h-14 w-auto object-contain"
+            priority
+          />
         </Link>
         <p className="text-gray-500 text-sm">เริ่มต้นฟรี ไม่ต้องใช้บัตรเครดิต</p>
       </div>

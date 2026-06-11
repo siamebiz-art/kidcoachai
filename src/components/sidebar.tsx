@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { UserButton } from "@clerk/nextjs";
+import Image from "next/image";
 import {
   Home,
   TrendingUp,
@@ -20,7 +21,6 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { KidCoachLogoIcon, KidCoachWordmark } from "@/components/logo";
 import { useState } from "react";
 
 const navItems = [
@@ -44,11 +44,17 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
       <div className="p-4 border-b border-gray-100 flex items-center justify-between">
         <Link
           href="/dashboard"
-          className="flex items-center gap-2.5"
+          className="flex items-center"
           onClick={onClose}
         >
-          <KidCoachLogoIcon size={38} />
-          <KidCoachWordmark className="text-sm leading-none" />
+          <Image
+            src="/logo.png"
+            alt="KidCoach AI"
+            width={140}
+            height={40}
+            className="h-10 w-auto object-contain"
+            priority
+          />
         </Link>
         {onClose && (
           <button
