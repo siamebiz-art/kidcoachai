@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { UserButton, SignOutButton } from "@clerk/nextjs";
 import Image from "next/image";
+import { useProfile } from "@/hooks/use-profile";
 import {
   Home, TrendingUp, Calendar, Gamepad2, BarChart3,
   BookOpen, Bot, Users, Settings, Crown, Sparkles, Menu, X, Camera, LogOut,
@@ -65,6 +66,7 @@ function FamilyPhoto() {
 
 function SidebarContent({ onClose }: { onClose?: () => void }) {
   const pathname = usePathname();
+  const { displayName } = useProfile();
 
   return (
     <div className="flex flex-col h-full">
@@ -131,7 +133,7 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
           <div className="flex items-center gap-3 p-2.5 rounded-xl bg-gray-50">
             <UserButton />
             <div className="text-xs text-gray-500 min-w-0">
-              <div className="font-semibold text-gray-700 truncate">คุณแม่ก้อย</div>
+              <div className="font-semibold text-gray-700 truncate">{displayName}</div>
               <div className="truncate text-gray-400">Free Plan</div>
             </div>
           </div>

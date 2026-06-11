@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
+import { Toaster } from "react-hot-toast";
 import { PWAInstallPrompt } from "@/components/pwa-install";
 import Script from "next/script";
 import "./globals.css";
@@ -71,6 +72,7 @@ export default function RootLayout({
       >
         <body className="min-h-full flex flex-col font-sans">
           {children}
+          <Toaster position="top-center" toastOptions={{ duration: 3000 }} />
           <PWAInstallPrompt />
           <Script
             id="sw-register"

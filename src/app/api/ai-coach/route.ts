@@ -1,7 +1,9 @@
 import { streamText, convertToModelMessages } from "ai";
 import { openai } from "@ai-sdk/openai";
+import { currentUser } from "@clerk/nextjs/server";
+import type { UserMetadata } from "@/lib/types";
 
-const SYSTEM_PROMPT = `คุณคือ KidCoach AI ผู้ช่วยฝึกพัฒนาการเด็กที่เป็นมิตรและเชี่ยวชาญ
+const BASE_PROMPT = `คุณคือ KidCoach AI ผู้ช่วยฝึกพัฒนาการเด็กที่เป็นมิตรและเชี่ยวชาญ
 
 บทบาทของคุณ:
 - เป็น AI Learning Assistant และ AI Parent Assistant ที่ช่วยผู้ปกครองฝึกพัฒนาการเด็กที่บ้าน
@@ -25,9 +27,33 @@ const SYSTEM_PROMPT = `คุณคือ KidCoach AI ผู้ช่วยฝ�
 export async function POST(req: Request) {
   const { messages } = await req.json();
 
+  // Get child context from Clerk
+  let childContext = "";
+  try {
+    const user = await currentUser();
+    if (user) {
+      const meta = (user.unsafeMetadata ?? {}) as UserMetadata;
+      const cp = meta.childProfile;
+      const la = meta.latestAssessment;
+      if (cp) {
+        childContext = `\n\nข้อมูลเด็กที่ผู้ปกครองกำลังดูแล:
+- ชื่อ: ${cp.name}
+- ความต้องการพิเศษ: ${cp.diagnosisLabel}`;
+        if (la) {
+          childContext += `\n- ผลประเมินล่าสุด: ภาษา ${la.scores.ภาษา}%, การสื่อสาร ${la.scores.การสื่อสาร}%, การเรียนรู้ ${la.scores.การเรียนรู้}%, สมาธิ ${la.scores.สมาธิ}%, กล้ามเนื้อ ${la.scores.กล้ามเนื้อ}%`;
+        }
+        childContext += `\n\nเมื่อผู้ปกครองถามเรื่องลูก ให้ใช้ชื่อ "${cp.name}" และคำนึงถึงความต้องการพิเศษของเด็กด้วย`;
+      }
+    }
+  } catch {
+    // Continue without child context if auth fails
+  }
+
+  const systemPrompt = BASE_PROMPT + childContext;
+
   const result = streamText({
     model: openai("gpt-4o-mini"),
-    system: SYSTEM_PROMPT,
+    system: systemPrompt,
     messages: await convertToModelMessages(messages),
     maxOutputTokens: 1000,
   });
