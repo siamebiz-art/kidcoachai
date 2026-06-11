@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { UserButton, SignOutButton } from "@clerk/nextjs";
 import Image from "next/image";
 import { useProfile } from "@/hooks/use-profile";
+import { AvatarFallback, Avatar } from "@/components/ui/avatar";
 import {
   Home, TrendingUp, Calendar, Gamepad2, BarChart3,
   BookOpen, Bot, Users, Settings, Crown, Sparkles, X, Camera, LogOut,
@@ -60,7 +61,7 @@ function FamilyPhoto() {
 
 function SidebarContent({ onClose }: { onClose?: () => void }) {
   const pathname = usePathname();
-  const { displayName, subscriptionTier } = useProfile();
+  const { displayName, subscriptionTier, parentProfile } = useProfile();
 
   return (
     <div className="flex flex-col h-full">
@@ -145,7 +146,13 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
         {/* User info */}
         <div className="px-3 pb-2">
           <div className="flex items-center gap-3 p-2.5 rounded-xl bg-gray-50">
-            <UserButton />
+            {parentProfile?.avatarUrl ? (
+              <div className="w-8 h-8 rounded-full overflow-hidden shrink-0">
+                <Image src={parentProfile.avatarUrl} alt={displayName} width={32} height={32} className="w-full h-full object-cover" />
+              </div>
+            ) : (
+              <UserButton />
+            )}
             <div className="text-xs text-gray-500 min-w-0">
               <div className="font-semibold text-gray-700 truncate">{displayName}</div>
               <div className="truncate text-gray-400 capitalize">

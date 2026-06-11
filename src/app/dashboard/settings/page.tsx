@@ -40,6 +40,9 @@ function SettingsContent() {
   // Parent form
   const [parentName, setParentName] = useState("");
   const [parentPhone, setParentPhone] = useState("");
+  const [parentAvatar, setParentAvatar] = useState("");
+  const [parentAvatarUploading, setParentAvatarUploading] = useState(false);
+  const parentAvatarInputRef = useRef<HTMLInputElement>(null);
 
   // Child form
   const [childName, setChildName] = useState("");
@@ -69,6 +72,7 @@ function SettingsContent() {
     if (parentProfile) {
       setParentName(parentProfile.displayName || "");
       setParentPhone(parentProfile.phone || "");
+      setParentAvatar(parentProfile.avatarUrl || "");
     }
     if (childProfile) {
       setChildName(childProfile.name || "");
@@ -78,6 +82,31 @@ function SettingsContent() {
       setChildAvatar(childProfile.avatar || "");
     }
   }, [isLoaded, parentProfile, childProfile]);
+
+  const uploadParentPhoto = async (file: File) => {
+    if (file.size > 5 * 1024 * 1024) { toast.error("ไฟล์ใหญ่เกิน 5MB"); return; }
+    if (!file.type.startsWith("image/")) { toast.error("รองรับเฉพาะรูปภาพ"); return; }
+    setParentAvatarUploading(true);
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      form.append("prefix", "parent");
+      const res = await fetch("/api/upload-child-photo", { method: "POST", body: form });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "อัปโหลดไม่สำเร็จ");
+      setParentAvatar(data.url);
+      await updateParentProfile({
+        displayName: parentName || parentProfile?.displayName || "",
+        phone: parentPhone || parentProfile?.phone || "",
+        avatarUrl: data.url,
+      });
+      toast.success("บันทึกรูปสำเร็จ!");
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "อัปโหลดไม่สำเร็จ กรุณาลองใหม่");
+    } finally {
+      setParentAvatarUploading(false);
+    }
+  };
 
   const uploadChildPhoto = async (file: File) => {
     if (file.size > 5 * 1024 * 1024) { toast.error("ไฟล์ใหญ่เกิน 5MB"); return; }
@@ -170,35 +199,52 @@ function SettingsContent() {
             <Card className="p-6 border-gray-100 shadow-sm">
               <h2 className="font-bold text-gray-900 mb-5">ข้อมูลผู้ปกครอง</h2>
               <div className="flex items-center gap-4 mb-6">
-                <div className="relative group">
-                  <Avatar className="w-16 h-16">
-                    <AvatarImage src={user?.imageUrl} alt={parentName} />
-                    <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white text-xl font-bold">
-                      {parentName ? parentName[0] : "พ"}
-                    </AvatarFallback>
-                  </Avatar>
-                  <button
-                    type="button"
-                    onClick={() => openUserProfile()}
-                    className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
-                    title="เปลี่ยนรูปโปรไฟล์"
-                  >
-                    <Camera className="w-5 h-5 text-white" />
-                  </button>
+                <div
+                  className="relative w-16 h-16 rounded-full cursor-pointer group shrink-0"
+                  onClick={() => parentAvatarInputRef.current?.click()}
+                >
+                  {parentAvatar?.startsWith("http") ? (
+                    <Image src={parentAvatar} alt={parentName || "ผู้ปกครอง"} fill className="rounded-full object-cover" />
+                  ) : (
+                    <Avatar className="w-16 h-16">
+                      <AvatarImage src={user?.imageUrl} alt={parentName} />
+                      <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white text-xl font-bold">
+                        {parentName ? parentName[0] : "พ"}
+                      </AvatarFallback>
+                    </Avatar>
+                  )}
+                  <div className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    {parentAvatarUploading
+                      ? <Loader2 className="w-5 h-5 text-white animate-spin" />
+                      : <Camera className="w-5 h-5 text-white" />
+                    }
+                  </div>
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-gray-800">{parentName || "ยังไม่ได้ตั้งชื่อ"}</p>
                   <p className="text-xs text-gray-400">{user?.emailAddresses?.[0]?.emailAddress}</p>
                   <button
                     type="button"
-                    onClick={() => openUserProfile()}
-                    className="mt-1 text-xs text-purple-600 hover:text-purple-800 flex items-center gap-1 font-medium"
+                    onClick={() => parentAvatarInputRef.current?.click()}
+                    disabled={parentAvatarUploading}
+                    className="mt-1 text-xs text-purple-600 hover:text-purple-800 flex items-center gap-1 font-medium disabled:opacity-50"
                   >
                     <Camera className="w-3 h-3" />
-                    เปลี่ยนรูปโปรไฟล์
+                    {parentAvatarUploading ? "กำลังอัปโหลด..." : "เปลี่ยนรูปโปรไฟล์"}
                   </button>
+                  <p className="text-xs text-gray-400 mt-0.5">JPG, PNG ไม่เกิน 5MB</p>
                 </div>
               </div>
+              <input
+                ref={parentAvatarInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) uploadParentPhoto(file);
+                }}
+              />
               <div className="space-y-4">
                 <div>
                   <label className="text-sm font-medium text-gray-700 block mb-1.5">

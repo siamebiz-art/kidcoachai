@@ -17,8 +17,9 @@ export async function POST(req: NextRequest) {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
 
+  const prefix = (formData.get("prefix") as string) || "child";
   const ext = file.name.split(".").pop();
-  const fileName = `child-${userId}-${Date.now()}.${ext}`;
+  const fileName = `${prefix}-${userId}-${Date.now()}.${ext}`;
   const bytes = await file.arrayBuffer();
 
   const { error } = await supabase.storage

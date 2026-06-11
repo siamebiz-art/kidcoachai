@@ -7,7 +7,7 @@ import Image from "next/image";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useProfile } from "@/hooks/use-profile";
 import { DAY_KEYS } from "@/lib/profile-utils";
 import type { DayKey, PlanActivity } from "@/lib/types";
@@ -46,7 +46,7 @@ function getScoreStatus(score: number) {
 export default function DashboardPage() {
   const router = useRouter();
   const [chatInput, setChatInput] = useState("");
-  const { isLoaded, childProfile, childAge, displayName, latestAssessment, weeklyPlan, activityLog, toggleActivity } = useProfile();
+  const { isLoaded, childProfile, childAge, displayName, parentProfile, latestAssessment, weeklyPlan, activityLog, toggleActivity } = useProfile();
 
   // Redirect new users to onboarding
   useEffect(() => {
@@ -142,6 +142,7 @@ export default function DashboardPage() {
               </button>
             </div>
             <Avatar className="w-9 h-9 cursor-pointer ring-2 ring-purple-200">
+              <AvatarImage src={parentProfile?.avatarUrl} alt={displayName} className="object-cover" />
               <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white text-xs font-bold">
                 {displayName[0]}
               </AvatarFallback>

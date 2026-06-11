@@ -21,6 +21,7 @@ export interface ChildProfile {
 export interface ParentProfile {
   displayName: string;
   phone?: string;
+  avatarUrl?: string;
 }
 
 export interface AssessmentResult {
