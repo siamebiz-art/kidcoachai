@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Download, X, Share, Plus } from "lucide-react";
+import Image from "next/image";
 
 type InstallEvent = Event & {
   prompt: () => Promise<void>;
@@ -85,8 +86,8 @@ export function PWAInstallPrompt() {
         <div className="bg-white rounded-2xl shadow-2xl border border-purple-100 overflow-hidden">
           {/* Header */}
           <div className="bg-gradient-to-r from-purple-600 to-pink-500 px-5 py-4 flex items-start gap-3">
-            <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center text-2xl shrink-0">
-              🧠
+            <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 bg-white">
+              <Image src="/logo-icon.png" alt="KidCoach AI" width={48} height={48} className="w-full h-full object-contain" />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-white font-bold text-base">KidCoach AI</p>
