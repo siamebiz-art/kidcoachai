@@ -90,7 +90,11 @@ function SettingsContent() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "อัปโหลดไม่สำเร็จ");
       setChildAvatar(data.url);
-      toast.success("อัปโหลดรูปสำเร็จ!");
+      // Auto-save avatar to Clerk immediately
+      if (childProfile) {
+        await updateChildProfile({ ...childProfile, avatar: data.url });
+      }
+      toast.success("บันทึกรูปสำเร็จ!");
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : "อัปโหลดไม่สำเร็จ กรุณาลองใหม่");
     } finally {
