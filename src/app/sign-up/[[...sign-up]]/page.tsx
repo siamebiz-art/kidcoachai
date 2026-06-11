@@ -21,6 +21,7 @@ export default function SignUpPage() {
         <p className="text-gray-500 text-sm">เริ่มต้นฟรี ไม่ต้องใช้บัตรเครดิต</p>
       </div>
       <SignUp
+        forceRedirectUrl="/onboarding"
         appearance={{
           elements: {
             rootBox: "w-full max-w-md",

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -42,8 +43,16 @@ function getScoreStatus(score: number) {
 }
 
 export default function DashboardPage() {
+  const router = useRouter();
   const [chatInput, setChatInput] = useState("");
   const { isLoaded, childProfile, childAge, displayName, latestAssessment, weeklyPlan, activityLog, toggleActivity } = useProfile();
+
+  // Redirect new users to onboarding
+  useEffect(() => {
+    if (isLoaded && !childProfile) {
+      router.replace("/onboarding");
+    }
+  }, [isLoaded, childProfile, router]);
 
   const todayDate = new Date().toLocaleDateString("th-TH", { day: "numeric", month: "long", year: "numeric" });
 

@@ -21,6 +21,7 @@ export default function SignInPage() {
         <p className="text-gray-500 text-sm">ผู้ช่วย AI พัฒนาการเด็ก</p>
       </div>
       <SignIn
+        forceRedirectUrl="/dashboard"
         appearance={{
           elements: {
             rootBox: "w-full max-w-md",
