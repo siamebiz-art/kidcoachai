@@ -147,37 +147,67 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* Top Bar */}
-        <div className="flex items-start justify-between mb-4 pl-12 lg:pl-0">
-          <div className="flex items-center gap-4">
+        {/* Top Bar — 3-column integrated */}
+        <div className="flex items-center gap-4 mb-5 pl-12 lg:pl-0">
+
+          {/* Left: child avatar + greeting + chips */}
+          <div className="flex items-center gap-4 flex-1 min-w-0">
             <div className="relative shrink-0">
-              <div className="w-20 h-20 rounded-full ring-4 ring-pink-200 ring-offset-2 bg-gradient-to-br from-pink-200 via-purple-200 to-blue-200 flex items-center justify-center shadow-lg overflow-hidden">
+              <div className="w-16 h-16 lg:w-20 lg:h-20 rounded-full ring-4 ring-pink-200 ring-offset-2 bg-gradient-to-br from-pink-200 via-purple-200 to-blue-200 flex items-center justify-center shadow-lg overflow-hidden">
                 {childProfile?.avatar?.startsWith("http") ? (
                   <Image src={childProfile.avatar} alt={childProfile.name} width={80} height={80} className="w-full h-full object-cover" />
                 ) : (
-                  <span className="text-4xl select-none">{childProfile?.gender === "ชาย" ? "👦" : "👧"}</span>
+                  <span className="text-3xl lg:text-4xl select-none">{childProfile?.gender === "ชาย" ? "👦" : "👧"}</span>
                 )}
               </div>
               {childProfile && (
-                <span className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-400 rounded-full border-2 border-white flex items-center justify-center text-xs">✓</span>
+                <span className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-400 rounded-full border-2 border-white flex items-center justify-center text-[10px]">✓</span>
               )}
             </div>
-            <div>
-              <h1 className="text-xl lg:text-2xl font-bold text-gray-900">สวัสดีค่ะ {displayName} 👋</h1>
-              <p className="text-base lg:text-lg font-semibold text-gray-700 mt-0.5">
-                {childProfile ? `วันนี้มาฝึก${childProfile.name}กันเถอะ! 💗` : "เริ่มต้นใช้งาน KidCoach AI 💗"}
+            <div className="min-w-0">
+              <h1 className="text-lg lg:text-2xl font-bold text-gray-900 truncate">สวัสดีค่ะ {displayName} 👋</h1>
+              <p className="text-sm lg:text-base font-semibold text-gray-700 mt-0.5">
+                {childProfile ? `วันนี้${childProfile.name}เก่งมากเลย! ⭐ 💗` : "เริ่มต้นใช้งาน KidCoach AI 💗"}
               </p>
-              <div className="flex items-center gap-2 mt-1.5">
-                {childProfile && (
-                  <Badge className="bg-purple-100 text-purple-700 border-purple-200 text-xs font-semibold px-2.5 py-0.5 rounded-full">
-                    {childProfile.name}
-                  </Badge>
-                )}
-                {childAge && <span className="text-sm text-gray-500">อายุ {childAge}</span>}
-              </div>
+              {childProfile && (
+                <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                  <span className="inline-flex items-center gap-1 bg-orange-50 border border-orange-100 rounded-full px-2.5 py-0.5 text-xs font-semibold text-orange-600">
+                    <Flame className="w-3 h-3" /> ฝึกต่อเนื่อง {streakDays} วัน
+                  </span>
+                  <span className="inline-flex items-center gap-1 bg-purple-50 border border-purple-100 rounded-full px-2.5 py-0.5 text-xs font-semibold text-purple-600">
+                    {level.emoji} ระดับ {level.title}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
-          <div className="flex items-center gap-3">
+
+          {/* Center: stat summary card */}
+          {childProfile && (
+            <div className="hidden lg:flex flex-col gap-2 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 border border-blue-100 rounded-2xl px-5 py-3.5 shrink-0 min-w-[300px]">
+              <div className="font-bold text-sm text-gray-800">
+                🎯 วันนี้{childProfile.name}ฝึกครบ {streakDays} วันต่อเนื่อง
+              </div>
+              {progressChange !== null ? (
+                <div className="text-xs text-gray-600 flex items-center gap-1.5">
+                  <Zap className="w-3.5 h-3.5 text-green-500" />
+                  พัฒนาการเพิ่มขึ้น <span className="font-bold text-green-600">{progressChange >= 0 ? "+" : ""}{progressChange}%</span> จากครั้งที่แล้ว
+                </div>
+              ) : (
+                <div className="text-xs text-gray-500 flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+                  ทำแบบประเมินเพื่อติดตามพัฒนาการ
+                </div>
+              )}
+              <div className="text-xs text-gray-600 flex items-center gap-1.5">
+                <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+                AI แนะนำกิจกรรมใหม่สำหรับวันนี้ 🎉
+              </div>
+            </div>
+          )}
+
+          {/* Right: notification + avatar */}
+          <div className="flex items-center gap-3 shrink-0">
             <button className="w-10 h-10 bg-white rounded-full shadow-sm border border-gray-100 flex items-center justify-center hover:bg-gray-50 transition-colors">
               <Bell className="w-5 h-5 text-gray-600" />
             </button>
@@ -190,47 +220,6 @@ export default function DashboardPage() {
             <span className="hidden lg:block text-sm font-medium text-gray-700">{displayName}</span>
           </div>
         </div>
-
-        {/* Hero Stats Row */}
-        {childProfile && (
-          <div className="flex flex-wrap gap-2.5 mb-5 pl-12 lg:pl-0">
-            <div className="flex items-center gap-2.5 bg-orange-50 border border-orange-100 rounded-2xl px-4 py-2.5">
-              <Flame className="w-6 h-6 text-orange-500" />
-              <div>
-                <div className="text-[10px] text-orange-500 font-semibold uppercase tracking-wide">ฝึกต่อเนื่อง</div>
-                <div className="text-xl font-black text-orange-600 leading-none">{streakDays} วัน</div>
-              </div>
-            </div>
-
-            {progressChange !== null && (
-              <div className="flex items-center gap-2.5 bg-green-50 border border-green-100 rounded-2xl px-4 py-2.5">
-                <Zap className="w-6 h-6 text-green-500" />
-                <div>
-                  <div className="text-[10px] text-green-600 font-semibold uppercase tracking-wide">พัฒนาการ</div>
-                  <div className={`text-xl font-black leading-none ${progressChange >= 0 ? "text-green-600" : "text-red-500"}`}>
-                    {progressChange >= 0 ? "+" : ""}{progressChange}%
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <div className="flex items-center gap-2.5 bg-purple-50 border border-purple-100 rounded-2xl px-4 py-2.5">
-              <Trophy className="w-5 h-5 text-purple-500" />
-              <div>
-                <div className="text-[10px] text-purple-500 font-semibold uppercase tracking-wide">ระดับ</div>
-                <div className="text-sm font-bold text-purple-700 leading-tight">{level.emoji} {level.title}</div>
-              </div>
-            </div>
-
-            <Link
-              href="/dashboard/assessment"
-              className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl px-4 py-2.5 hover:opacity-90 transition-opacity"
-            >
-              <Sparkles className="w-5 h-5 text-white" />
-              <span className="text-sm font-bold text-white">ประเมินลูก 3 นาที</span>
-            </Link>
-          </div>
-        )}
 
         <div className="grid grid-cols-1 xl:grid-cols-[1fr_310px] gap-5">
           {/* ═══ LEFT COLUMN ═══ */}
