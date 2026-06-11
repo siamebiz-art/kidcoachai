@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth, currentUser } from "@clerk/nextjs/server";
-import { stripe, PRICE_IDS } from "@/lib/stripe";
+import { getStripe, PRICE_IDS } from "@/lib/stripe";
 import type { SubscriptionTier } from "@/lib/stripe";
 
 export async function POST(req: NextRequest) {
@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
-  const session = await stripe.checkout.sessions.create({
+  const session = await getStripe().checkout.sessions.create({
     mode: "subscription",
     payment_method_types: ["card"],
     customer_email: user?.emailAddresses[0]?.emailAddress,

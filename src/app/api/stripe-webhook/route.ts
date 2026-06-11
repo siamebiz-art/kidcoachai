@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { stripe, getTierFromPriceId } from "@/lib/stripe";
+import { getStripe, getTierFromPriceId } from "@/lib/stripe";
 import { clerkClient } from "@clerk/nextjs/server";
 import type Stripe from "stripe";
 import type { UserMetadata } from "@/lib/types";
@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
 
   let event: Stripe.Event;
   try {
-    event = stripe.webhooks.constructEvent(
+    event = getStripe().webhooks.constructEvent(
       body,
       signature,
       process.env.STRIPE_WEBHOOK_SECRET!
@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
       const userId = session.metadata?.userId;
       if (!userId || !session.subscription) break;
 
-      const sub = await stripe.subscriptions.retrieve(session.subscription as string);
+      const sub = await getStripe().subscriptions.retrieve(session.subscription as string);
       const priceId = sub.items.data[0]?.price.id ?? "";
       const tier = getTierFromPriceId(priceId);
 
