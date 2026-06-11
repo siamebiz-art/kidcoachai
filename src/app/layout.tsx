@@ -22,7 +22,6 @@ export const metadata: Metadata = {
   title: "KidCoach AI - ผู้ช่วย AI พัฒนาการเด็ก",
   description:
     "แพลตฟอร์ม AI ช่วยผู้ปกครองพัฒนาศักยภาพเด็ก เด็กพูดช้า เด็กพัฒนาการช้า เด็กออทิสติก ด้วย AI Coach ส่วนตัว",
-  manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
