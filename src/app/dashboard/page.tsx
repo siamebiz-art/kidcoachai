@@ -374,7 +374,7 @@ export default function DashboardPage() {
                   </Link>
                   <Link href="/dashboard/kido" className="flex-1 lg:flex-none">
                     <button className="w-full lg:w-44 bg-amber-400/20 text-amber-200 font-semibold text-sm px-4 py-3 rounded-2xl flex items-center justify-center gap-2 hover:bg-amber-400/30 transition-colors border border-amber-300/30">
-                      🤖 Kido Mode (เด็กเล่น)
+                      🤖 Kido – AI Buddy ของลูก
                     </button>
                   </Link>
                 </div>

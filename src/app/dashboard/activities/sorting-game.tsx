@@ -1,6 +1,8 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
+import { useKidoVoice } from "@/hooks/use-kido-voice";
+import { KidoGameOverlay } from "@/components/kido/kido-game-overlay";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, Trophy, CheckCircle2, RotateCcw } from "lucide-react";
@@ -88,6 +90,16 @@ export function SortingGame({ onBack, onComplete }: { onBack: () => void; onComp
   const [score, setScore] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const [done, setDone] = useState(false);
+  const { emotion, message, speak, praise, encourage } = useKidoVoice();
+  const announcedDone = useRef(false);
+
+  useEffect(() => { speak("มาจัดหมวดหมู่กันเลย! เลือกชุดที่ชอบนะ 🗂️"); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (done && !announcedDone.current) {
+      announcedDone.current = true;
+      speak("น้องจัดหมวดหมู่ได้เก่งมากเลย! 🏆", "celebrating");
+    }
+  }, [done]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function startGame(si: number) {
     setSetIdx(si);
@@ -102,18 +114,20 @@ export function SortingGame({ onBack, onComplete }: { onBack: () => void; onComp
     (catIndex: number) => {
       if (selected !== null) return;
       setSelected(catIndex);
-      if (catIndex === items[current].catIndex) setScore((s) => s + 1);
+      if (catIndex === items[current].catIndex) { setScore((s) => s + 1); praise(); }
+      else encourage();
       setTimeout(() => {
         if (current + 1 >= items.length) setDone(true);
         else { setCurrent((c) => c + 1); setSelected(null); }
       }, 700);
     },
-    [selected, current, items]
+    [selected, current, items, praise, encourage]
   );
 
   if (setIdx === null) {
     return (
       <div className="p-6 max-w-2xl mx-auto">
+        <KidoGameOverlay emotion={emotion} message={message} />
         <button onClick={onBack} className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 mb-6">
           <ChevronLeft className="w-4 h-4" /> กลับ
         </button>
@@ -145,6 +159,7 @@ export function SortingGame({ onBack, onComplete }: { onBack: () => void; onComp
   if (done) {
     return (
       <div className="p-6 max-w-2xl mx-auto text-center">
+        <KidoGameOverlay emotion={emotion} message={message} />
         <div className="w-24 h-24 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-4">
           <Trophy className="w-12 h-12 text-amber-500" />
         </div>
@@ -171,6 +186,7 @@ export function SortingGame({ onBack, onComplete }: { onBack: () => void; onComp
   const item = items[current];
   return (
     <div className="p-6 max-w-2xl mx-auto">
+      <KidoGameOverlay emotion={emotion} message={message} />
       <div className="flex items-center justify-between mb-4">
         <button onClick={onBack} className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700">
           <ChevronLeft className="w-4 h-4" /> กลับ

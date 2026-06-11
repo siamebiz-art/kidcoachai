@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { ChevronLeft, RotateCcw, CheckCircle2, Trophy } from "lucide-react";
+import { useKidoVoice } from "@/hooks/use-kido-voice";
+import { KidoGameOverlay } from "@/components/kido/kido-game-overlay";
 
 const VOCAB_CATEGORIES: Record<string, { emoji: string; word: string }[]> = {
   "🐾 สัตว์": [
@@ -52,6 +54,16 @@ export function FlashcardGame({
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [done, setDone] = useState(false);
+  const { emotion, message, speak, praise, encourage } = useKidoVoice();
+  const announcedDone = useRef(false);
+
+  useEffect(() => { speak("มาฝึกคำศัพท์กันเลย! เลือกหมวดที่ชอบนะ 📖"); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (done && !announcedDone.current) {
+      announcedDone.current = true;
+      speak("น้องจำคำศัพท์ได้เก่งมาก! เยี่ยมสุดๆ! 🏆", "celebrating");
+    }
+  }, [done]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const startGame = (cat: string) => {
     setSelectedCat(cat);
@@ -59,11 +71,21 @@ export function FlashcardGame({
     setIndex(0);
     setFlipped(false);
     setDone(false);
+    announcedDone.current = false;
+    speak("เริ่มเลย! แตะการ์ดเพื่อดูคำนะ 🃏");
   };
 
   const next = (remember: boolean) => {
-    if (!remember) {
-      // put card at end of queue
+    if (remember) {
+      praise();
+      if (index + 1 >= cards.length) {
+        setDone(true);
+      } else {
+        setIndex(index + 1);
+        setFlipped(false);
+      }
+    } else {
+      encourage();
       setCards((prev) => {
         const updated = [...prev];
         const [current] = updated.splice(index, 1);
@@ -71,19 +93,13 @@ export function FlashcardGame({
         return updated;
       });
       setFlipped(false);
-      return;
-    }
-    if (index + 1 >= cards.length) {
-      setDone(true);
-    } else {
-      setIndex(index + 1);
-      setFlipped(false);
     }
   };
 
   if (!selectedCat) {
     return (
       <div className="p-6 max-w-2xl mx-auto">
+        <KidoGameOverlay emotion={emotion} message={message} />
         <button onClick={onBack} className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 mb-6">
           <ChevronLeft className="w-4 h-4" /> กลับ
         </button>
@@ -111,6 +127,7 @@ export function FlashcardGame({
   if (done) {
     return (
       <div className="p-6 max-w-2xl mx-auto text-center">
+        <KidoGameOverlay emotion={emotion} message={message} />
         <div className="w-24 h-24 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-4">
           <Trophy className="w-12 h-12 text-amber-500" />
         </div>
@@ -136,6 +153,7 @@ export function FlashcardGame({
 
   return (
     <div className="p-6 max-w-2xl mx-auto">
+      <KidoGameOverlay emotion={emotion} message={message} />
       <div className="flex items-center justify-between mb-4">
         <button onClick={onBack} className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700">
           <ChevronLeft className="w-4 h-4" /> กลับ

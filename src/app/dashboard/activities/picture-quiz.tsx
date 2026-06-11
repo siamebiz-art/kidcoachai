@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, Trophy, CheckCircle2, RotateCcw } from "lucide-react";
+import { useKidoVoice } from "@/hooks/use-kido-voice";
+import { KidoGameOverlay } from "@/components/kido/kido-game-overlay";
 
 const ALL_VOCAB = [
   { emoji: "🐱", word: "แมว" }, { emoji: "🐶", word: "หมา" }, { emoji: "🐸", word: "กบ" },
@@ -41,6 +43,16 @@ export function PictureQuizGame({ onBack, onComplete }: { onBack: () => void; on
   const [score, setScore] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
   const [done, setDone] = useState(false);
+  const { emotion, message, speak, praise, encourage } = useKidoVoice();
+  const announcedDone = useRef(false);
+
+  useEffect(() => { speak("มาดูกันว่าน้องรู้จักอะไรบ้าง! เลือกรูปที่ถูกต้องนะ 🌟"); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (done && !announcedDone.current) {
+      announcedDone.current = true;
+      speak("เก่งมากเลย! น้องรู้จักคำศัพท์เยอะมากเลย! 🏆", "celebrating");
+    }
+  }, [done]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function restart() {
     setQuestions(buildQuestions());
@@ -54,18 +66,20 @@ export function PictureQuizGame({ onBack, onComplete }: { onBack: () => void; on
     (emoji: string) => {
       if (selected !== null) return;
       setSelected(emoji);
-      if (emoji === questions[index].correct) setScore((s) => s + 1);
+      if (emoji === questions[index].correct) { setScore((s) => s + 1); praise(); }
+      else encourage();
       setTimeout(() => {
         if (index + 1 >= questions.length) setDone(true);
         else { setIndex((i) => i + 1); setSelected(null); }
       }, 700);
     },
-    [selected, index, questions]
+    [selected, index, questions, praise, encourage]
   );
 
   if (done) {
     return (
       <div className="p-6 max-w-2xl mx-auto text-center">
+        <KidoGameOverlay emotion={emotion} message={message} />
         <div className="w-24 h-24 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-4">
           <Trophy className="w-12 h-12 text-amber-500" />
         </div>
@@ -93,6 +107,7 @@ export function PictureQuizGame({ onBack, onComplete }: { onBack: () => void; on
   const q = questions[index];
   return (
     <div className="p-6 max-w-2xl mx-auto">
+      <KidoGameOverlay emotion={emotion} message={message} />
       <div className="flex items-center justify-between mb-4">
         <button onClick={onBack} className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700">
           <ChevronLeft className="w-4 h-4" /> กลับ

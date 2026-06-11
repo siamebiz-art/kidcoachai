@@ -1,7 +1,9 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { Progress } from "@/components/ui/progress";
+import { useKidoVoice } from "@/hooks/use-kido-voice";
+import { KidoGameOverlay } from "@/components/kido/kido-game-overlay";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, Trophy, CheckCircle2, RotateCcw } from "lucide-react";
 
@@ -35,6 +37,16 @@ export function CountingGame({ onBack, onComplete }: { onBack: () => void; onCom
   const [score, setScore] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const [done, setDone] = useState(false);
+  const { emotion, message, speak, praise, encourage } = useKidoVoice();
+  const announcedDone = useRef(false);
+
+  useEffect(() => { speak("มาฝึกนับจำนวนกันเลย! เลือกระดับที่ชอบนะ 🔢"); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (done && !announcedDone.current) {
+      announcedDone.current = true;
+      speak("น้องนับเลขเก่งมากเลย! ยอดเยี่ยมสุดๆ! 🏆", "celebrating");
+    }
+  }, [done]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function startGame(diff: Difficulty) {
     setDifficulty(diff);
@@ -49,18 +61,20 @@ export function CountingGame({ onBack, onComplete }: { onBack: () => void; onCom
     (n: number) => {
       if (selected !== null) return;
       setSelected(n);
-      if (n === rounds[index].count) setScore((s) => s + 1);
+      if (n === rounds[index].count) { setScore((s) => s + 1); praise(); }
+      else encourage();
       setTimeout(() => {
         if (index + 1 >= rounds.length) setDone(true);
         else { setIndex((i) => i + 1); setSelected(null); }
       }, 700);
     },
-    [selected, index, rounds]
+    [selected, index, rounds, praise, encourage]
   );
 
   if (!difficulty) {
     return (
       <div className="p-6 max-w-2xl mx-auto">
+        <KidoGameOverlay emotion={emotion} message={message} />
         <button onClick={onBack} className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 mb-6">
           <ChevronLeft className="w-4 h-4" /> กลับ
         </button>
@@ -96,6 +110,7 @@ export function CountingGame({ onBack, onComplete }: { onBack: () => void; onCom
   if (done) {
     return (
       <div className="p-6 max-w-2xl mx-auto text-center">
+        <KidoGameOverlay emotion={emotion} message={message} />
         <div className="w-24 h-24 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-4">
           <Trophy className="w-12 h-12 text-amber-500" />
         </div>
@@ -122,6 +137,7 @@ export function CountingGame({ onBack, onComplete }: { onBack: () => void; onCom
   const round = rounds[index];
   return (
     <div className="p-6 max-w-2xl mx-auto">
+      <KidoGameOverlay emotion={emotion} message={message} />
       <div className="flex items-center justify-between mb-4">
         <button onClick={onBack} className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700">
           <ChevronLeft className="w-4 h-4" /> กลับ

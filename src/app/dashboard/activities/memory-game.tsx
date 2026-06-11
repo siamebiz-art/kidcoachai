@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, Trophy, RotateCcw, CheckCircle2 } from "lucide-react";
+import { useKidoVoice } from "@/hooks/use-kido-voice";
+import { KidoGameOverlay } from "@/components/kido/kido-game-overlay";
 
 const EMOJI_SETS = {
   easy: ["🐱", "🐶", "🐸", "🐰", "🦁", "🐮"],
@@ -31,6 +33,16 @@ export function MemoryMatchGame({
   const [moves, setMoves] = useState(0);
   const [locked, setLocked] = useState(false);
   const [done, setDone] = useState(false);
+  const { emotion, message, speak, praise, encourage } = useKidoVoice();
+  const announcedDone = useRef(false);
+
+  useEffect(() => { speak("มาเล่นจับคู่ภาพกันเลย! เลือกระดับที่ชอบนะ 🃏"); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (done && !announcedDone.current) {
+      announcedDone.current = true;
+      speak("เก่งมากเลย! จับคู่ได้ครบทุกคู่! 🏆", "celebrating");
+    }
+  }, [done]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const startGame = (diff: Difficulty) => {
     setDifficulty(diff);
@@ -39,6 +51,8 @@ export function MemoryMatchGame({
     setMoves(0);
     setLocked(false);
     setDone(false);
+    announcedDone.current = false;
+    speak("เริ่มเลย! พลิกการ์ดหาคู่ที่เหมือนกันนะ 🔍");
   };
 
   const handleFlip = useCallback((id: number) => {
@@ -62,8 +76,10 @@ export function MemoryMatchGame({
         setCards(matched);
         setSelected([]);
         setLocked(false);
+        praise();
         if (matched.every((c) => c.isMatched)) setDone(true);
       } else {
+        encourage();
         setTimeout(() => {
           setCards((prev) =>
             prev.map((c) =>
@@ -75,11 +91,12 @@ export function MemoryMatchGame({
         }, 900);
       }
     }
-  }, [cards, selected, locked]);
+  }, [cards, selected, locked, praise, encourage]);
 
   if (!difficulty) {
     return (
       <div className="p-6 max-w-2xl mx-auto">
+        <KidoGameOverlay emotion={emotion} message={message} />
         <button onClick={onBack} className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 mb-6">
           <ChevronLeft className="w-4 h-4" /> กลับ
         </button>
@@ -115,6 +132,7 @@ export function MemoryMatchGame({
   if (done) {
     return (
       <div className="p-6 max-w-2xl mx-auto text-center">
+        <KidoGameOverlay emotion={emotion} message={message} />
         <div className="w-24 h-24 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-4">
           <Trophy className="w-12 h-12 text-amber-500" />
         </div>
@@ -141,6 +159,7 @@ export function MemoryMatchGame({
 
   return (
     <div className="p-6 max-w-lg mx-auto">
+      <KidoGameOverlay emotion={emotion} message={message} />
       <div className="flex items-center justify-between mb-5">
         <button onClick={onBack} className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700">
           <ChevronLeft className="w-4 h-4" /> กลับ

@@ -122,8 +122,8 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
             <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 p-3 flex items-center gap-3 hover:opacity-90 transition-opacity cursor-pointer shadow-md">
               <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center shrink-0 text-xl">🤖</div>
               <div>
-                <div className="text-white font-bold text-sm leading-tight">Kido Mode</div>
-                <div className="text-white/70 text-[10px]">โหมดเด็กเล่นได้เลย</div>
+                <div className="text-white font-bold text-sm leading-tight">Kido – AI Buddy ของลูก</div>
+                <div className="text-white/70 text-[10px]">แตะเพื่อให้ลูกเล่นได้เลย</div>
               </div>
               <div className="ml-auto w-2 h-2 rounded-full bg-green-400 animate-pulse shrink-0" />
             </div>

@@ -224,7 +224,7 @@ export default function KidoPage() {
             กลับ (ผู้ปกครอง)
           </button>
         </Link>
-        <div className="text-white/50 text-xs font-medium">Kido Mode 🤖</div>
+        <div className="text-white/50 text-xs font-medium">Kido – AI Buddy ของลูก 🤖</div>
         <Link href="/dashboard">
           <button className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors">
             <X className="w-4 h-4 text-white/60" />
