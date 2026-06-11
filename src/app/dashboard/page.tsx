@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -99,10 +100,20 @@ export default function DashboardPage() {
         <div className="flex items-start justify-between mb-6 pl-12 lg:pl-0">
           <div className="flex items-center gap-4">
             <div className="relative shrink-0">
-              <div className="w-20 h-20 rounded-full ring-4 ring-pink-200 ring-offset-2 bg-gradient-to-br from-pink-200 via-purple-200 to-blue-200 flex items-center justify-center shadow-lg">
-                <span className="text-4xl select-none">
-                  {childProfile?.avatar || (childProfile?.gender === "ชาย" ? "👦" : "👧")}
-                </span>
+              <div className="w-20 h-20 rounded-full ring-4 ring-pink-200 ring-offset-2 bg-gradient-to-br from-pink-200 via-purple-200 to-blue-200 flex items-center justify-center shadow-lg overflow-hidden">
+                {childProfile?.avatar?.startsWith("http") ? (
+                  <Image
+                    src={childProfile.avatar}
+                    alt={childProfile.name}
+                    width={80}
+                    height={80}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-4xl select-none">
+                    {childProfile?.gender === "ชาย" ? "👦" : "👧"}
+                  </span>
+                )}
               </div>
               {childProfile && (
                 <span className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-400 rounded-full border-2 border-white flex items-center justify-center text-xs">✓</span>

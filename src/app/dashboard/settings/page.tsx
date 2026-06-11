@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, Suspense, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { useClerk } from "@clerk/nextjs";
+import Image from "next/image";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -10,18 +11,11 @@ import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useProfile } from "@/hooks/use-profile";
 import { DIAGNOSIS_OPTIONS } from "@/lib/profile-utils";
+import { getSupabaseClient, STORAGE_BUCKET } from "@/lib/supabase";
 import toast from "react-hot-toast";
 import {
   User, Bell, Shield, CreditCard, Baby, Crown, Check, Loader2, Camera,
 } from "lucide-react";
-
-const CHILD_AVATARS = [
-  "👦", "👧", "🧒", "👶",
-  "🐱", "🐶", "🐻", "🐼",
-  "🐸", "🦁", "🐯", "🐰",
-  "🦊", "🐨", "🦄", "🐧",
-  "⭐", "🌟", "🌈", "🌸",
-];
 
 const tabs = [
   { id: "profile", label: "โปรไฟล์", icon: User },
@@ -54,6 +48,8 @@ function SettingsContent() {
   const [childGender, setChildGender] = useState<"ชาย" | "หญิง" | "">("");
   const [childDiagnosisKey, setChildDiagnosisKey] = useState("");
   const [childAvatar, setChildAvatar] = useState("");
+  const [childAvatarUploading, setChildAvatarUploading] = useState(false);
+  const childAvatarInputRef = useRef<HTMLInputElement>(null);
 
   const [isSaving, setIsSaving] = useState(false);
 
@@ -83,6 +79,28 @@ function SettingsContent() {
       setChildAvatar(childProfile.avatar || "");
     }
   }, [isLoaded, parentProfile, childProfile]);
+
+  const uploadChildPhoto = async (file: File) => {
+    if (file.size > 5 * 1024 * 1024) { toast.error("ไฟล์ใหญ่เกิน 5MB"); return; }
+    if (!file.type.startsWith("image/")) { toast.error("รองรับเฉพาะรูปภาพ"); return; }
+    setChildAvatarUploading(true);
+    try {
+      const supabase = getSupabaseClient();
+      const ext = file.name.split(".").pop();
+      const fileName = `child-${user?.id}-${Date.now()}.${ext}`;
+      const { error } = await supabase.storage
+        .from(STORAGE_BUCKET)
+        .upload(fileName, file, { upsert: true });
+      if (error) throw error;
+      const { data } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(fileName);
+      setChildAvatar(data.publicUrl);
+      toast.success("อัปโหลดรูปสำเร็จ!");
+    } catch {
+      toast.error("อัปโหลดไม่สำเร็จ กรุณาลองใหม่");
+    } finally {
+      setChildAvatarUploading(false);
+    }
+  };
 
   const handleSaveParent = async () => {
     if (!parentName.trim()) { toast.error("กรุณากรอกชื่อผู้ปกครอง"); return; }
@@ -237,33 +255,58 @@ function SettingsContent() {
               )}
 
               <div className="space-y-4">
-                {/* Avatar picker */}
+                {/* Child photo upload */}
                 <div>
-                  <label className="text-sm font-medium text-gray-700 block mb-2">รูปประจำตัว</label>
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-pink-100 via-purple-100 to-blue-100 flex items-center justify-center shadow-sm ring-2 ring-purple-200">
-                      <span className="text-3xl select-none">
-                        {childAvatar || (childGender === "ชาย" ? "👦" : "👧")}
-                      </span>
+                  <label className="text-sm font-medium text-gray-700 block mb-2">รูปโปรไฟล์เด็ก</label>
+                  <div className="flex items-center gap-4">
+                    <div
+                      className="relative w-20 h-20 rounded-full cursor-pointer group shrink-0"
+                      onClick={() => childAvatarInputRef.current?.click()}
+                    >
+                      {childAvatar?.startsWith("http") ? (
+                        <Image
+                          src={childAvatar}
+                          alt={childName || "เด็ก"}
+                          fill
+                          className="rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full rounded-full bg-gradient-to-br from-pink-200 via-purple-200 to-blue-200 flex items-center justify-center">
+                          <span className="text-4xl select-none">
+                            {childGender === "ชาย" ? "👦" : "👧"}
+                          </span>
+                        </div>
+                      )}
+                      <div className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        {childAvatarUploading
+                          ? <Loader2 className="w-6 h-6 text-white animate-spin" />
+                          : <Camera className="w-6 h-6 text-white" />
+                        }
+                      </div>
                     </div>
-                    <p className="text-xs text-gray-400">เลือก emoji ด้านล่าง</p>
-                  </div>
-                  <div className="grid grid-cols-10 gap-1.5">
-                    {CHILD_AVATARS.map((emoji) => (
+                    <div>
                       <button
-                        key={emoji}
                         type="button"
-                        onClick={() => setChildAvatar(emoji)}
-                        className={`text-xl p-1.5 rounded-xl transition-all ${
-                          childAvatar === emoji
-                            ? "bg-purple-100 ring-2 ring-purple-400 scale-110"
-                            : "hover:bg-gray-100"
-                        }`}
+                        onClick={() => childAvatarInputRef.current?.click()}
+                        disabled={childAvatarUploading}
+                        className="text-sm text-purple-600 hover:text-purple-800 font-medium flex items-center gap-1 disabled:opacity-50"
                       >
-                        {emoji}
+                        <Camera className="w-4 h-4" />
+                        {childAvatarUploading ? "กำลังอัปโหลด..." : "เปลี่ยนรูป"}
                       </button>
-                    ))}
+                      <p className="text-xs text-gray-400 mt-1">JPG, PNG ไม่เกิน 5MB</p>
+                    </div>
                   </div>
+                  <input
+                    ref={childAvatarInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) uploadChildPhoto(file);
+                    }}
+                  />
                 </div>
 
                 <div>
