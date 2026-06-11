@@ -135,7 +135,7 @@ function SettingsContent() {
     if (!parentName.trim()) { toast.error("กรุณากรอกชื่อผู้ปกครอง"); return; }
     setIsSaving(true);
     try {
-      await updateParentProfile({ displayName: parentName.trim(), phone: parentPhone.trim() });
+      await updateParentProfile({ displayName: parentName.trim(), phone: parentPhone.trim(), avatarUrl: parentAvatar });
       toast.success("บันทึกข้อมูลสำเร็จ!");
     } catch {
       toast.error("เกิดข้อผิดพลาด กรุณาลองใหม่");
