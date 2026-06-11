@@ -14,14 +14,24 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from "recharts";
 import {
-  Bell, ChevronRight, CheckCircle2, Info, Loader2, Sparkles,
-  Flame, Zap, Send, Mic, Camera, BarChart3, Volume2, Clock,
-  Star, Trophy,
+  Bell, ChevronRight, CheckCircle2, Circle, Info, Loader2, Sparkles,
+  Flame, Zap, Send, Mic, Camera, BarChart3, Volume2, Clock, Star, Trophy,
 } from "lucide-react";
+import toast from "react-hot-toast";
 
 const rawToday = new Date().getDay();
 const adjustedToday = rawToday === 0 ? 6 : rawToday - 1;
 const DAY_LABELS = ["จ", "อ", "พ", "พฤ", "ศ", "ส", "อา"];
+
+const TIME_EMOJI: Record<string, string>     = { เช้า: "☀️", บ่าย: "🌤️", เย็น: "🌙" };
+const TIME_GRADIENT: Record<string, string>  = {
+  เช้า: "from-amber-400 to-orange-400",
+  บ่าย: "from-sky-400 to-blue-500",
+  เย็น: "from-indigo-400 to-purple-500",
+};
+const TIME_LABEL: Record<string, string> = {
+  เช้า: "08:00 น.", บ่าย: "14:00 น.", เย็น: "19:00 น.",
+};
 
 const scoreConfig = [
   { key: "ภาษา",        icon: "💬", bg: "bg-emerald-50", border: "border-emerald-100", textColor: "text-emerald-600", barColor: "bg-emerald-400", color: "#10B981" },
@@ -31,10 +41,10 @@ const scoreConfig = [
   { key: "กล้ามเนื้อ",  icon: "💪", bg: "bg-pink-50",    border: "border-pink-100",    textColor: "text-pink-600",    barColor: "bg-pink-400",    color: "#EC4899" },
 ];
 
-const RECOMMENDED_ACTS = [
-  { emoji: "🧩", title: "เกมจับคู่ภาพ", desc: "พัฒนาการสังเกตและคำศัพท์", duration: "10 นาที", gradient: "from-purple-400 to-violet-500", aiPick: true,  href: "/dashboard/activities" },
-  { emoji: "📖", title: "นิทานเสียง",   desc: "พัฒนาการฟังและจินตนาการ",    duration: "10 นาที", gradient: "from-pink-400 to-rose-500",   aiPick: false, href: "/dashboard/activities" },
-  { emoji: "🃏", title: "บัตรคำศัพท์",  desc: "ฝึกจำคำและการพูด",           duration: "10 นาที", gradient: "from-blue-400 to-cyan-500",   aiPick: false, href: "/dashboard/activities" },
+const FALLBACK_ACTS = [
+  { emoji: "🧩", title: "เกมจับคู่ภาพ", desc: "พัฒนาการสังเกตและคำศัพท์", duration: "10 นาที", gradient: "from-purple-400 to-violet-500", aiPick: true  },
+  { emoji: "📖", title: "นิทานเสียง",   desc: "พัฒนาการฟังและจินตนาการ",  duration: "10 นาที", gradient: "from-pink-400 to-rose-500",   aiPick: false },
+  { emoji: "🃏", title: "บัตรคำศัพท์",  desc: "ฝึกจำคำและการพูด",         duration: "10 นาที", gradient: "from-blue-400 to-cyan-500",   aiPick: false },
 ];
 
 function getScoreBadge(score: number) {
@@ -87,15 +97,20 @@ export default function DashboardPage() {
       ? latestAssessment!.overall - assessmentHistory[assessmentHistory.length - 2].overall
       : null;
 
+  // AI recommendation — based on weakest skill from real assessment
   const aiRec = (() => {
     if (!childProfile || !latestAssessment) return null;
     const sc = latestAssessment.scores as unknown as Record<string, number>;
     const sorted = Object.entries(sc).sort(([, a], [, b]) => a - b);
     const weakest = sorted[0][0];
     const strongest = sorted[sorted.length - 1][0];
+    const todayAct = todayActivities[0]?.activity;
     return {
-      text: `จากข้อมูลล่าสุด ${childProfile.name} มีพัฒนาการด้าน${strongest}ดีขึ้น 🎉 วันนี้ AI แนะนำกิจกรรมที่จะช่วยพัฒนาด้าน${weakest}และคำศัพท์ใหม่`,
+      text: todayAct
+        ? `จากข้อมูลล่าสุด ${childProfile.name} มีพัฒนาการด้าน${strongest}ดีขึ้น 🎉 วันนี้แนะนำ "${todayAct}" เพื่อพัฒนาด้าน${weakest}ให้แข็งแกร่งขึ้น`
+        : `จากข้อมูลล่าสุด ${childProfile.name} มีพัฒนาการด้าน${strongest}ดีขึ้น 🎉 วันนี้ AI แนะนำกิจกรรมที่จะช่วยพัฒนาด้าน${weakest}และคำศัพท์ใหม่`,
       weakest,
+      href: "/dashboard/activities",
     };
   })();
 
@@ -108,10 +123,13 @@ export default function DashboardPage() {
       ? [{ เดือน: new Date(latestAssessment.date).toLocaleDateString("th-TH", { month: "short" }), ...latestAssessment.scores }]
       : [];
 
+  // Incomplete today activities count → bell badge
+  const incompleteTodayCount = todayActivities.filter((_, i) => !activityLog[`${todayKey}-${i}`]).length;
+
   const ACHIEVEMENTS = [
-    { emoji: "🎤", title: "พูดคำใหม่ได้",   sub: "10 คำ",    earned: !!latestAssessment },
-    { emoji: "🔥", title: "ฝึกครบ 7 วัน",  sub: "",         earned: streakDays >= 7 },
-    { emoji: "🎯", title: "สมาธิดีขึ้น",   sub: "10 นาที",  earned: overall >= 60 },
+    { emoji: "🎤", title: "พูดคำใหม่ได้",     sub: "10 คำ",    earned: !!latestAssessment },
+    { emoji: "🔥", title: "ฝึกครบ 7 วัน",    sub: "",         earned: streakDays >= 7 },
+    { emoji: "🎯", title: "สมาธิดีขึ้น",     sub: "10 นาที",  earned: overall >= 60 },
     { emoji: "👨‍👩‍👧", title: "แบ่งปันครอบครัว", sub: "ครั้งแรก", earned: !!weeklyPlan },
   ];
 
@@ -139,9 +157,8 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* ── Top Bar (3-col) ── */}
+        {/* ── Top Bar ── */}
         <div className="flex items-center gap-4 mb-5 pl-12 lg:pl-0">
-
           {/* Left: avatar + greeting + chips */}
           <div className="flex items-center gap-4 flex-1 min-w-0">
             <div className="relative shrink-0">
@@ -174,7 +191,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Center: stat summary card */}
+          {/* Center: stat summary */}
           {childProfile && (
             <div className="hidden lg:flex flex-col gap-2 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 border border-blue-100 rounded-2xl px-5 py-3.5 shrink-0 min-w-[300px]">
               <div className="font-bold text-sm text-gray-800">
@@ -199,15 +216,27 @@ export default function DashboardPage() {
 
           {/* Right: bell + avatar */}
           <div className="flex items-center gap-3 shrink-0">
-            <button className="w-10 h-10 bg-white rounded-full shadow-sm border border-gray-100 flex items-center justify-center hover:bg-gray-50 transition-colors">
-              <Bell className="w-5 h-5 text-gray-600" />
-            </button>
-            <Avatar className="w-9 h-9 cursor-pointer ring-2 ring-purple-200">
-              <AvatarImage src={parentProfile?.avatarUrl} alt={displayName} className="object-cover" />
-              <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white text-xs font-bold">
-                {displayName[0]}
-              </AvatarFallback>
-            </Avatar>
+            <div className="relative">
+              <button
+                onClick={() => incompleteTodayCount > 0 && toast(`มีกิจกรรมวันนี้อีก ${incompleteTodayCount} รายการที่ยังไม่เสร็จ 📋`)}
+                className="w-10 h-10 bg-white rounded-full shadow-sm border border-gray-100 flex items-center justify-center hover:bg-gray-50 transition-colors"
+              >
+                <Bell className="w-5 h-5 text-gray-600" />
+              </button>
+              {incompleteTodayCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-white text-[10px] font-bold">
+                  {incompleteTodayCount}
+                </span>
+              )}
+            </div>
+            <Link href="/dashboard/settings">
+              <Avatar className="w-9 h-9 cursor-pointer ring-2 ring-purple-200">
+                <AvatarImage src={parentProfile?.avatarUrl} alt={displayName} className="object-cover" />
+                <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white text-xs font-bold">
+                  {displayName[0]}
+                </AvatarFallback>
+              </Avatar>
+            </Link>
             <span className="hidden lg:block text-sm font-medium text-gray-700">{displayName}</span>
           </div>
         </div>
@@ -246,21 +275,23 @@ export default function DashboardPage() {
                     const badge = getScoreBadge(score);
                     const pct = getPercentile(score);
                     return (
-                      <div key={s.key} className={`${s.bg} border ${s.border} rounded-2xl p-3.5 text-center`}>
-                        <div className={`w-11 h-11 rounded-xl ${s.bg} border ${s.border} flex items-center justify-center shadow-sm mx-auto mb-2`}>
-                          <span className="text-2xl">{s.icon}</span>
+                      <Link key={s.key} href="/dashboard/progress">
+                        <div className={`${s.bg} border ${s.border} rounded-2xl p-3.5 text-center cursor-pointer hover:shadow-md transition-shadow`}>
+                          <div className={`w-11 h-11 rounded-xl ${s.bg} border ${s.border} flex items-center justify-center shadow-sm mx-auto mb-2`}>
+                            <span className="text-2xl">{s.icon}</span>
+                          </div>
+                          <div className="text-xs text-gray-500 font-semibold mb-0.5">{s.key}</div>
+                          <div className={`text-2xl font-black ${s.textColor} leading-none`}>{score}<span className="text-xs font-semibold text-gray-400">/100</span></div>
+                          <div className="w-full h-1.5 bg-white/80 rounded-full overflow-hidden my-2">
+                            <div className={`h-full ${s.barColor} rounded-full transition-all`} style={{ width: `${score}%` }} />
+                          </div>
+                          <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${badge.bg} ${badge.text}`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${badge.dot}`} />
+                            {badge.label}
+                          </div>
+                          <div className="text-[9px] text-gray-400 mt-1">ดีกว่าเด็กวัยเดียวกัน {pct}%</div>
                         </div>
-                        <div className="text-xs text-gray-500 font-semibold mb-0.5">{s.key}</div>
-                        <div className={`text-2xl font-black ${s.textColor} leading-none`}>{score}<span className="text-xs font-semibold text-gray-400">/100</span></div>
-                        <div className="w-full h-1.5 bg-white/80 rounded-full overflow-hidden my-2">
-                          <div className={`h-full ${s.barColor} rounded-full`} style={{ width: `${score}%` }} />
-                        </div>
-                        <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${badge.bg} ${badge.text}`}>
-                          <span className={`w-1.5 h-1.5 rounded-full ${badge.dot}`} />
-                          {badge.label}
-                        </div>
-                        <div className="text-[9px] text-gray-400 mt-1">ดีกว่าเด็กวัยเดียวกัน {pct}%</div>
-                      </div>
+                      </Link>
                     );
                   })}
                 </div>
@@ -270,7 +301,7 @@ export default function DashboardPage() {
             {/* Middle 3-col: AI card | Assessment CTA | Streak */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
-              {/* AI Recommendation card */}
+              {/* AI Recommendation */}
               <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-purple-500 via-pink-500 to-rose-400 p-5 shadow-md flex flex-col">
                 <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_rgba(255,255,255,0.15),_transparent_60%)]" />
                 <div className="relative flex-1">
@@ -286,16 +317,16 @@ export default function DashboardPage() {
                         : "ตั้งค่าข้อมูลเด็กและทำแบบประเมินเพื่อรับคำแนะนำจาก AI ค่ะ"}
                   </p>
                 </div>
-                <Link href="/dashboard/activities" className="relative mt-4">
+                <Link href={aiRec?.href ?? "/dashboard/assessment"} className="relative mt-4">
                   <button className="w-full bg-white/20 hover:bg-white/30 text-white font-bold text-sm px-4 py-2.5 rounded-2xl border border-white/30 transition-colors">
-                    เริ่มกิจกรรมแนะนำ →
+                    {aiRec ? "เริ่มกิจกรรมแนะนำ →" : "เริ่มประเมินเลย →"}
                   </button>
                 </Link>
               </div>
 
               {/* Assessment CTA */}
               <Card className="p-5 shadow-sm border-gray-100 bg-white flex flex-col items-center text-center justify-between">
-                <div>
+                <div className="w-full">
                   <h3 className="font-bold text-gray-800 mb-3">ประเมินพัฒนาการด่วน</h3>
                   <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 border-4 border-blue-200 flex items-center justify-center mx-auto mb-3">
                     <Clock className="w-10 h-10 text-blue-500" />
@@ -321,25 +352,26 @@ export default function DashboardPage() {
                     <span className="text-xl font-bold text-orange-400 mb-1">วัน</span>
                   </div>
                   <p className="text-xs text-orange-600 mb-4">
-                    {streakDays >= 7 ? "เก่งมาก! รักษาฟอร์มให้ดีนะ 👏" : streakDays > 0 ? "ต่อเนื่องอีกนะคะ 💪" : "เริ่มฝึกวันนี้เลยนะคะ!"}
+                    {streakDays >= 7 ? "เก่งมาก! รักษาฟอร์มให้ดีนะ 👏"
+                      : streakDays > 0 ? "ต่อเนื่องอีกนะคะ 💪"
+                      : "เริ่มฝึกวันนี้เลยนะคะ!"}
                   </p>
-                  {/* Day grid */}
                   <div className="grid grid-cols-7 gap-1">
                     {DAY_LABELS.map((label, i) => {
                       const dk = DAY_KEYS[i] as DayKey;
                       const acts = weeklyPlan ? ((weeklyPlan[dk] as PlanActivity[]) ?? []) : [];
-                      const done = acts.some((_, idx) => activityLog[`${dk}-${idx}`]);
+                      const done = acts.length > 0 && acts.every((_, idx) => activityLog[`${dk}-${idx}`]);
+                      const partial = !done && acts.some((_, idx) => activityLog[`${dk}-${idx}`]);
                       const isToday = i === adjustedToday;
                       return (
                         <div key={i} className="flex flex-col items-center gap-0.5">
-                          <div className={`w-full aspect-square rounded-full flex items-center justify-center transition-all text-xs ${
-                            done
-                              ? "bg-gradient-to-br from-orange-400 to-amber-500 shadow-sm"
-                              : isToday
-                                ? "bg-orange-200 border-2 border-orange-400"
-                                : "bg-white border border-orange-200"
+                          <div className={`w-full aspect-square rounded-full flex items-center justify-center text-[10px] font-bold transition-all ${
+                            done    ? "bg-gradient-to-br from-orange-400 to-amber-500 shadow-sm text-white"
+                            : partial ? "bg-orange-200 text-orange-600"
+                            : isToday ? "bg-white border-2 border-orange-400 text-orange-500"
+                            : "bg-white border border-orange-200 text-gray-300"
                           }`}>
-                            {done ? <span className="text-white text-[10px]">✓</span> : isToday ? <span className="text-orange-600 text-[8px]">★</span> : null}
+                            {done ? "✓" : partial ? "·" : isToday ? "★" : ""}
                           </div>
                           <span className="text-[8px] text-gray-400 font-medium">{label}</span>
                         </div>
@@ -350,43 +382,100 @@ export default function DashboardPage() {
               </Card>
             </div>
 
-            {/* Bottom 3-col: Activities | Chart | Progress */}
+            {/* Bottom 3-col: Today Activities | Chart | Progress */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
-              {/* Activity List */}
-              <Card className="p-5 shadow-sm border-gray-100 bg-white">
+              {/* Today's Activities (real plan data or fallback) */}
+              <Card className="p-5 shadow-sm border-gray-100 bg-white flex flex-col">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="font-bold text-gray-900 text-sm">กิจกรรมแนะนำสำหรับวันนี้</h2>
+                  <div>
+                    <h2 className="font-bold text-gray-900 text-sm">
+                      {todayActivities.length > 0 ? "แผนการฝึกวันนี้" : "กิจกรรมแนะนำ"}
+                    </h2>
+                    {todayActivities.length > 0 && (
+                      <p className="text-[10px] text-gray-400 mt-0.5">
+                        เสร็จแล้ว {todayActivities.filter((_, i) => activityLog[`${todayKey}-${i}`]).length}/{todayActivities.length} กิจกรรม
+                      </p>
+                    )}
+                  </div>
                   <Link href="/dashboard/activities">
                     <span className="text-blue-600 text-xs font-medium flex items-center gap-0.5">ดูทั้งหมด <ChevronRight className="w-3 h-3" /></span>
                   </Link>
                 </div>
-                <div className="space-y-3">
-                  {RECOMMENDED_ACTS.map((act) => (
-                    <div key={act.title} className="flex items-center gap-3">
-                      <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${act.gradient} flex items-center justify-center shrink-0 shadow-sm`}>
-                        <span className="text-2xl">{act.emoji}</span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5 mb-0.5">
-                          <span className="text-sm font-semibold text-gray-800 truncate">{act.title}</span>
-                          {act.aiPick && (
-                            <span className="inline-flex items-center gap-0.5 bg-purple-100 text-purple-700 text-[9px] font-bold px-1.5 py-0.5 rounded-full shrink-0">
-                              <Sparkles className="w-2.5 h-2.5" /> แนะนำโดย AI
-                            </span>
-                          )}
+
+                <div className="space-y-3 flex-1">
+                  {todayActivities.length > 0 ? (
+                    todayActivities.map((item, i) => {
+                      const key = `${todayKey}-${i}`;
+                      const isDone = activityLog[key] ?? false;
+                      const gradient = TIME_GRADIENT[item.time] ?? "from-gray-400 to-gray-500";
+                      const emoji = TIME_EMOJI[item.time] ?? "🌟";
+                      const timeLabel = TIME_LABEL[item.time] ?? "";
+                      return (
+                        <div key={i} className={`flex items-center gap-3 p-2 rounded-xl transition-opacity ${isDone ? "opacity-50" : ""}`}>
+                          <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center shrink-0 shadow-sm`}>
+                            <span className="text-2xl">{emoji}</span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className={`text-sm font-semibold text-gray-800 truncate ${isDone ? "line-through text-gray-400" : ""}`}>
+                              {item.activity}
+                            </div>
+                            <div className="text-[10px] text-gray-400">{timeLabel} · {item.duration}</div>
+                          </div>
+                          <button
+                            onClick={() => toggleActivity(key)}
+                            className="shrink-0 p-1 hover:scale-110 transition-transform"
+                          >
+                            {isDone
+                              ? <CheckCircle2 className="w-6 h-6 text-green-500" />
+                              : <Circle className="w-6 h-6 text-gray-300 hover:text-green-400 transition-colors" />
+                            }
+                          </button>
                         </div>
-                        <p className="text-[11px] text-gray-400 truncate">{act.desc}</p>
-                        <p className="text-[10px] text-gray-400">{act.duration}</p>
+                      );
+                    })
+                  ) : (
+                    FALLBACK_ACTS.map((act) => (
+                      <div key={act.title} className="flex items-center gap-3">
+                        <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${act.gradient} flex items-center justify-center shrink-0 shadow-sm`}>
+                          <span className="text-2xl">{act.emoji}</span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5 mb-0.5">
+                            <span className="text-sm font-semibold text-gray-800 truncate">{act.title}</span>
+                            {act.aiPick && (
+                              <span className="inline-flex items-center gap-0.5 bg-purple-100 text-purple-700 text-[9px] font-bold px-1.5 py-0.5 rounded-full shrink-0">
+                                <Sparkles className="w-2.5 h-2.5" /> แนะนำโดย AI
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[10px] text-gray-400">{act.desc} · {act.duration}</p>
+                        </div>
+                        <Link href="/dashboard/activities">
+                          <button className="shrink-0 bg-blue-50 hover:bg-blue-100 text-blue-600 text-xs font-bold px-3 py-1.5 rounded-xl transition-colors">
+                            เริ่มเลย
+                          </button>
+                        </Link>
                       </div>
-                      <Link href={act.href}>
-                        <button className="shrink-0 bg-blue-50 hover:bg-blue-100 text-blue-600 text-xs font-bold px-3 py-1.5 rounded-xl transition-colors">
-                          เริ่มเลย
-                        </button>
-                      </Link>
-                    </div>
-                  ))}
+                    ))
+                  )}
                 </div>
+
+                {/* Progress bar for today */}
+                {todayActivities.length > 0 && (
+                  <div className="mt-4">
+                    <div className="flex justify-between text-[10px] text-gray-400 mb-1">
+                      <span>ความคืบหน้าวันนี้</span>
+                      <span>{Math.round((todayActivities.filter((_, i) => activityLog[`${todayKey}-${i}`]).length / todayActivities.length) * 100)}%</span>
+                    </div>
+                    <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-gradient-to-r from-green-400 to-emerald-500 rounded-full transition-all"
+                        style={{ width: `${(todayActivities.filter((_, i) => activityLog[`${todayKey}-${i}`]).length / todayActivities.length) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
               </Card>
 
               {/* Line Chart */}
@@ -398,8 +487,13 @@ export default function DashboardPage() {
                   </Link>
                 </div>
                 {chartData.length === 0 ? (
-                  <div className="h-[180px] flex items-center justify-center text-gray-400 text-xs text-center">
-                    ยังไม่มีข้อมูล<br />ทำแบบประเมินก่อน
+                  <div className="h-[180px] flex flex-col items-center justify-center gap-3 text-center">
+                    <p className="text-gray-400 text-xs">ยังไม่มีข้อมูล<br />ทำแบบประเมินก่อน</p>
+                    <Link href="/dashboard/assessment">
+                      <Button size="sm" className="bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0 rounded-xl text-xs">
+                        เริ่มประเมิน
+                      </Button>
+                    </Link>
                   </div>
                 ) : (
                   <ResponsiveContainer width="100%" height={180}>
@@ -419,7 +513,7 @@ export default function DashboardPage() {
 
               {/* Overall Progress */}
               <Card className="p-5 shadow-sm border-gray-100 bg-white flex flex-col">
-                <h2 className="font-bold text-gray-900 text-sm mb-4">ความก้าวหน้าโดยรวม</h2>
+                <h2 className="font-bold text-gray-900 text-sm mb-3">ความก้าวหน้าโดยรวม</h2>
                 <div className="flex items-center justify-center mb-3">
                   <div className="relative w-28 h-28">
                     <svg viewBox="0 0 36 36" className="w-28 h-28 -rotate-90">
@@ -435,14 +529,14 @@ export default function DashboardPage() {
                     </svg>
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
                       <span className="text-2xl font-black text-gray-900">{overall}%</span>
-                      <span className="text-[8px] text-gray-400 text-center leading-tight">ผลประเมินล่าสุด</span>
+                      <span className="text-[8px] text-gray-400 text-center">ผลประเมินล่าสุด</span>
                     </div>
                   </div>
                 </div>
                 {progressChange !== null && (
-                  <div className="text-xs text-green-600 font-semibold text-center mb-3">
+                  <p className="text-xs text-green-600 font-semibold text-center mb-2">
                     เพิ่มขึ้น {progressChange >= 0 ? "+" : ""}{progressChange}% จากเดือนที่แล้ว 🚀
-                  </div>
+                  </p>
                 )}
                 <div className="bg-amber-50 rounded-2xl p-3 border border-amber-100 mt-auto">
                   <div className="flex items-center gap-2 mb-1">
@@ -466,7 +560,6 @@ export default function DashboardPage() {
 
             {/* AI Coach Panel */}
             <Card className="overflow-hidden shadow-sm border-gray-100">
-              {/* Header */}
               <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 p-4">
                 <div className="flex items-center gap-3">
                   <div className="w-11 h-11 rounded-2xl bg-white/20 flex items-center justify-center text-xl shrink-0">🤖</div>
@@ -480,7 +573,6 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              {/* Message */}
               <div className="p-4 bg-gray-50/70">
                 <div className="bg-white text-gray-800 rounded-2xl rounded-tl-sm px-3.5 py-2.5 text-sm leading-relaxed shadow-sm border border-gray-100">
                   {childProfile
@@ -492,20 +584,20 @@ export default function DashboardPage() {
               {/* Quick chips 2x2 */}
               <div className="px-4 pb-3 grid grid-cols-2 gap-2">
                 {[
-                  { label: "แนะนำกิจกรรม", color: "bg-purple-50 border-purple-100 text-purple-700" },
+                  { label: "แนะนำกิจกรรม",  color: "bg-purple-50 border-purple-100 text-purple-700" },
                   { label: "พัฒนาการวันนี้", color: "bg-blue-50 border-blue-100 text-blue-700" },
-                  { label: "พฤติกรรม",      color: "bg-amber-50 border-amber-100 text-amber-700" },
-                  { label: "โภชนาการ",      color: "bg-green-50 border-green-100 text-green-700" },
+                  { label: "พฤติกรรม",       color: "bg-amber-50 border-amber-100 text-amber-700" },
+                  { label: "โภชนาการ",       color: "bg-green-50 border-green-100 text-green-700" },
                 ].map((chip) => (
                   <Link key={chip.label} href={`/dashboard/ai-coach?q=${encodeURIComponent(chip.label)}`}>
-                    <button className={`w-full text-xs font-semibold px-2.5 py-2 rounded-xl border transition-opacity hover:opacity-80 ${chip.color}`}>
+                    <button className={`w-full text-xs font-semibold px-2.5 py-2 rounded-xl border transition-opacity hover:opacity-70 ${chip.color}`}>
                       {chip.label}
                     </button>
                   </Link>
                 ))}
               </div>
 
-              {/* Big CTA button */}
+              {/* Big CTA */}
               <div className="px-4 pb-3">
                 <Link href="/dashboard/ai-coach">
                   <button className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold text-sm py-3 rounded-2xl flex items-center justify-center gap-2 hover:opacity-90 transition-opacity shadow-sm">
@@ -516,16 +608,26 @@ export default function DashboardPage() {
 
               {/* 3 action buttons */}
               <div className="px-4 pb-3 grid grid-cols-3 gap-2">
-                {[
-                  { icon: Camera,   label: "ส่งคลิป/รูป" },
-                  { icon: BarChart3, label: "ดูรายงาน"   },
-                  { icon: Volume2,  label: "โหมดเสียง"  },
-                ].map(({ icon: Icon, label }) => (
-                  <button key={label} className="flex flex-col items-center gap-1 py-2.5 bg-gray-50 border border-gray-100 rounded-xl hover:bg-gray-100 transition-colors">
-                    <Icon className="w-4 h-4 text-gray-500" />
-                    <span className="text-[10px] text-gray-500 font-medium">{label}</span>
+                <button
+                  onClick={() => toast("ฟีเจอร์ส่งคลิป/รูป กำลังพัฒนาอยู่ค่ะ 🚧")}
+                  className="flex flex-col items-center gap-1 py-2.5 bg-gray-50 border border-gray-100 rounded-xl hover:bg-gray-100 transition-colors"
+                >
+                  <Camera className="w-4 h-4 text-gray-500" />
+                  <span className="text-[10px] text-gray-500 font-medium">ส่งคลิป/รูป</span>
+                </button>
+                <Link href="/dashboard/progress">
+                  <button className="w-full flex flex-col items-center gap-1 py-2.5 bg-gray-50 border border-gray-100 rounded-xl hover:bg-gray-100 transition-colors">
+                    <BarChart3 className="w-4 h-4 text-gray-500" />
+                    <span className="text-[10px] text-gray-500 font-medium">ดูรายงาน</span>
                   </button>
-                ))}
+                </Link>
+                <button
+                  onClick={() => toast("ฟีเจอร์โหมดเสียง กำลังพัฒนาอยู่ค่ะ 🚧")}
+                  className="flex flex-col items-center gap-1 py-2.5 bg-gray-50 border border-gray-100 rounded-xl hover:bg-gray-100 transition-colors"
+                >
+                  <Volume2 className="w-4 h-4 text-gray-500" />
+                  <span className="text-[10px] text-gray-500 font-medium">โหมดเสียง</span>
+                </button>
               </div>
 
               {/* Input */}
@@ -535,6 +637,11 @@ export default function DashboardPage() {
                     type="text"
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && chatInput.trim()) {
+                        router.push(`/dashboard/ai-coach?q=${encodeURIComponent(chatInput.trim())}`);
+                      }
+                    }}
                     placeholder="พิมพ์ข้อความ..."
                     className="flex-1 text-sm bg-gray-50 rounded-xl px-3 py-2 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-200"
                   />
@@ -551,14 +658,25 @@ export default function DashboardPage() {
             <Card className="p-4 shadow-sm border-gray-100 bg-white">
               <div className="flex items-center justify-between mb-3">
                 <h2 className="font-bold text-gray-900 text-sm">การแจ้งเตือน</h2>
-                <span className="text-blue-600 text-xs font-medium flex items-center gap-0.5 cursor-pointer">
+                <span className="text-blue-600 text-xs font-medium cursor-pointer flex items-center gap-0.5">
                   ดูทั้งหมด <ChevronRight className="w-3 h-3" />
                 </span>
               </div>
               <div className="space-y-2">
+                {incompleteTodayCount > 0 && (
+                  <div className="flex items-center gap-2.5 py-1 bg-purple-50 rounded-xl px-2">
+                    <div className="w-7 h-7 bg-purple-100 rounded-xl flex items-center justify-center shrink-0 text-sm">📋</div>
+                    <div className="flex-1 min-w-0 text-xs text-purple-700 font-medium truncate">
+                      มีกิจกรรมวันนี้อีก {incompleteTodayCount} รายการ
+                    </div>
+                    <Link href="/dashboard/plan">
+                      <span className="text-[10px] text-purple-600 font-bold shrink-0">ดู</span>
+                    </Link>
+                  </div>
+                )}
                 {[
-                  { emoji: "🔔", label: "ถึงเวลาฝึกกิจกรรมตอนเย็น", time: "19:00", color: "bg-purple-50" },
-                  { emoji: "📋", label: "บันทึกผลการฝึกประจำวัน",    time: "20:00", color: "bg-blue-50" },
+                  { emoji: "🔔", label: "ถึงเวลาฝึกกิจกรรมตอนเย็น",   time: "19:00",   color: "bg-purple-50" },
+                  { emoji: "📋", label: "บันทึกผลการฝึกประจำวัน",     time: "20:00",   color: "bg-blue-50" },
                   { emoji: "⭐", label: "ประเมินพัฒนาการประจำสัปดาห์", time: "พรุ่งนี้", color: "bg-amber-50" },
                 ].map((n, i) => (
                   <div key={i} className="flex items-center gap-2.5 py-1">
@@ -570,13 +688,13 @@ export default function DashboardPage() {
               </div>
             </Card>
 
-            {/* ความสำเร็จล่าสุด */}
+            {/* Achievements */}
             <Card className="p-4 shadow-sm border-gray-100 bg-white">
               <div className="flex items-center justify-between mb-3">
                 <h2 className="font-bold text-gray-900 text-sm">ความสำเร็จล่าสุด</h2>
-                <span className="text-blue-600 text-xs font-medium flex items-center gap-0.5 cursor-pointer">
-                  ดูทั้งหมด <ChevronRight className="w-3 h-3" />
-                </span>
+                <Link href="/dashboard/progress">
+                  <span className="text-blue-600 text-xs font-medium flex items-center gap-0.5">ดูทั้งหมด <ChevronRight className="w-3 h-3" /></span>
+                </Link>
               </div>
               <div className="grid grid-cols-4 gap-2">
                 {ACHIEVEMENTS.map((a) => (
