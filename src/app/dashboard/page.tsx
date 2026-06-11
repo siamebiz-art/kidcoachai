@@ -97,7 +97,7 @@ export default function DashboardPage() {
       ? latestAssessment!.overall - assessmentHistory[assessmentHistory.length - 2].overall
       : null;
 
-  // AI recommendation — based on weakest skill from real assessment
+  // AI recommendation — based on weakest/strongest skill from real assessment
   const aiRec = (() => {
     if (!childProfile || !latestAssessment) return null;
     const sc = latestAssessment.scores as unknown as Record<string, number>;
@@ -110,6 +110,7 @@ export default function DashboardPage() {
         ? `จากข้อมูลล่าสุด ${childProfile.name} มีพัฒนาการด้าน${strongest}ดีขึ้น 🎉 วันนี้แนะนำ "${todayAct}" เพื่อพัฒนาด้าน${weakest}ให้แข็งแกร่งขึ้น`
         : `จากข้อมูลล่าสุด ${childProfile.name} มีพัฒนาการด้าน${strongest}ดีขึ้น 🎉 วันนี้ AI แนะนำกิจกรรมที่จะช่วยพัฒนาด้าน${weakest}และคำศัพท์ใหม่`,
       weakest,
+      strongest,
       href: "/dashboard/activities",
     };
   })();
@@ -197,20 +198,39 @@ export default function DashboardPage() {
               <div className="font-bold text-sm text-gray-800">
                 🎯 วันนี้{childProfile.name}ฝึกครบ {streakDays} วันต่อเนื่อง
               </div>
-              {progressChange !== null ? (
+              {progressChange !== null && aiRec ? (
                 <div className="text-xs text-gray-600 flex items-center gap-1.5">
                   <Zap className="w-3.5 h-3.5 text-green-500" />
-                  พัฒนาการเพิ่มขึ้น <span className="font-bold text-green-600 ml-0.5">{progressChange >= 0 ? "+" : ""}{progressChange}%</span>
+                  📈 พัฒนาการด้าน{aiRec.strongest}ดีขึ้น{" "}
+                  <span className="font-bold text-green-600">{progressChange >= 0 ? "+" : ""}{progressChange}%</span>
+                </div>
+              ) : progressChange !== null ? (
+                <div className="text-xs text-gray-600 flex items-center gap-1.5">
+                  <Zap className="w-3.5 h-3.5 text-green-500" />
+                  📈 พัฒนาการโดยรวมเพิ่มขึ้น{" "}
+                  <span className="font-bold text-green-600">{progressChange >= 0 ? "+" : ""}{progressChange}%</span>
                 </div>
               ) : (
                 <div className="text-xs text-gray-500 flex items-center gap-1.5">
                   <Sparkles className="w-3.5 h-3.5 text-purple-400" /> ทำแบบประเมินเพื่อติดตามพัฒนาการ
                 </div>
               )}
-              <div className="text-xs text-gray-600 flex items-center gap-1.5">
-                <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
-                AI แนะนำกิจกรรมใหม่สำหรับวันนี้ 🎉
-              </div>
+              {todayActivities.length > 0 ? (
+                <div className="text-xs text-green-700 flex items-center gap-1.5">
+                  <Star className="w-3.5 h-3.5 text-green-500 fill-green-500" />
+                  ✅ AI สร้างแผนฝึก {todayActivities.length} กิจกรรมวันนี้แล้ว
+                </div>
+              ) : weeklyPlan ? (
+                <div className="text-xs text-gray-600 flex items-center gap-1.5">
+                  <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+                  ⭐ มีแผนสัปดาห์นี้แล้ว ดูกิจกรรมวันอื่น →
+                </div>
+              ) : (
+                <div className="text-xs text-gray-400 flex items-center gap-1.5">
+                  <Star className="w-3.5 h-3.5 text-gray-300" />
+                  💡 สร้างแผนฝึกเพื่อรับคำแนะนำจาก AI
+                </div>
+              )}
             </div>
           )}
 
