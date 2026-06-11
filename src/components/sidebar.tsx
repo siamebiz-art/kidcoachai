@@ -2,11 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { UserButton } from "@clerk/nextjs";
+import { UserButton, SignOutButton } from "@clerk/nextjs";
 import Image from "next/image";
 import {
   Home, TrendingUp, Calendar, Gamepad2, BarChart3,
-  BookOpen, Bot, Users, Settings, Crown, Sparkles, Menu, X, Camera,
+  BookOpen, Bot, Users, Settings, Crown, Sparkles, Menu, X, Camera, LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -139,6 +139,16 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
 
         {/* Family photo — very bottom */}
         <FamilyPhoto />
+
+        {/* Sign out button */}
+        <div className="px-3 pb-3">
+          <SignOutButton>
+            <button className="w-full flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-medium text-red-500 hover:bg-red-50 transition-colors border border-red-100">
+              <LogOut className="w-3.5 h-3.5" />
+              ออกจากระบบ
+            </button>
+          </SignOutButton>
+        </div>
       </div>
     </div>
   );
