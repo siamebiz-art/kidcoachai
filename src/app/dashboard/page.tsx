@@ -217,11 +217,13 @@ export default function DashboardPage() {
         {/* Top Bar */}
         <div className="flex items-start justify-between mb-6 pl-12 lg:pl-0">
           <div className="flex items-center gap-4">
-            <Avatar className="w-16 h-16 ring-3 ring-purple-200 ring-offset-2 shrink-0">
-              <AvatarFallback className="bg-gradient-to-br from-pink-300 to-purple-400 text-white text-2xl font-bold">
-                👧
-              </AvatarFallback>
-            </Avatar>
+            {/* Child photo — larger */}
+            <div className="relative shrink-0">
+              <div className="w-20 h-20 rounded-full ring-4 ring-pink-200 ring-offset-2 bg-gradient-to-br from-pink-200 via-purple-200 to-blue-200 flex items-center justify-center shadow-lg">
+                <span className="text-4xl select-none">👧</span>
+              </div>
+              <span className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-400 rounded-full border-2 border-white flex items-center justify-center text-xs">✓</span>
+            </div>
             <div>
               <h1 className="text-xl lg:text-2xl font-bold text-gray-900">
                 สวัสดีค่ะ คุณแม่ 👋
@@ -230,7 +232,7 @@ export default function DashboardPage() {
                 วันนี้มาฝึกน้องนุ่นกันเถอะ! 💗
               </p>
               <div className="flex items-center gap-2 mt-1.5">
-                <Badge className="bg-purple-100 text-purple-700 border-purple-200 text-xs font-semibold px-2.5 py-0.5">
+                <Badge className="bg-purple-100 text-purple-700 border-purple-200 text-xs font-semibold px-2.5 py-0.5 rounded-full">
                   น้องนุ่น
                 </Badge>
                 <span className="text-sm text-gray-500">อายุ 4 ปี 2 เดือน</span>
@@ -283,26 +285,25 @@ export default function DashboardPage() {
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
                 {scores.map((s) => (
-                  <div
-                    key={s.label}
-                    className={`${s.bg} border ${s.border} rounded-2xl p-3.5 text-center`}
-                  >
-                    <div className="text-2xl mb-2">{s.icon}</div>
-                    <div className="text-xs text-gray-500 font-medium mb-1">
-                      {s.label}
+                  <div key={s.label}
+                    className={`${s.bg} border ${s.border} rounded-2xl p-3.5 text-center`}>
+                    {/* Icon with colored bubble */}
+                    <div className="flex justify-center mb-2">
+                      <div className={`w-11 h-11 rounded-xl ${s.bg} border ${s.border} flex items-center justify-center shadow-sm`}
+                        style={{ filter: "saturate(1.2)" }}>
+                        <span className="text-2xl">{s.icon}</span>
+                      </div>
                     </div>
+                    <div className="text-xs text-gray-500 font-semibold mb-1">{s.label}</div>
                     <div className={`text-3xl font-black ${s.textColor} leading-none mb-0.5`}>
                       {s.score}
                     </div>
                     <div className="text-[10px] text-gray-400 mb-2.5">คะแนน</div>
-                    {/* Progress bar */}
-                    <div className="w-full h-1.5 bg-white rounded-full overflow-hidden">
-                      <div
-                        className={`h-full ${s.barColor} rounded-full`}
-                        style={{ width: `${s.score}%` }}
-                      />
+                    <div className="w-full h-1.5 bg-white/80 rounded-full overflow-hidden">
+                      <div className={`h-full ${s.barColor} rounded-full transition-all`}
+                        style={{ width: `${s.score}%` }} />
                     </div>
-                    <div className={`text-[11px] font-semibold mt-1.5 ${s.statusColor}`}>
+                    <div className={`text-[11px] font-bold mt-1.5 ${s.statusColor}`}>
                       {s.status}
                     </div>
                   </div>
