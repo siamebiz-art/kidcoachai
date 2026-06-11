@@ -46,6 +46,17 @@ function SettingsContent() {
 
   const [isSaving, setIsSaving] = useState(false);
 
+  // Reload Clerk user data after returning from Stripe checkout
+  useEffect(() => {
+    if (!isLoaded || !user) return;
+    const success = searchParams.get("success");
+    if (success === "1") {
+      user.reload().then(() => {
+        toast.success("อัปเกรดสำเร็จ! 🎉");
+      });
+    }
+  }, [isLoaded, user, searchParams]);
+
   useEffect(() => {
     if (!isLoaded) return;
     if (parentProfile) {

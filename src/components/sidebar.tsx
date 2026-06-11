@@ -60,7 +60,7 @@ function FamilyPhoto() {
 
 function SidebarContent({ onClose }: { onClose?: () => void }) {
   const pathname = usePathname();
-  const { displayName } = useProfile();
+  const { displayName, subscriptionTier } = useProfile();
 
   return (
     <div className="flex flex-col h-full">
@@ -128,7 +128,9 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
             <UserButton />
             <div className="text-xs text-gray-500 min-w-0">
               <div className="font-semibold text-gray-700 truncate">{displayName}</div>
-              <div className="truncate text-gray-400">Free Plan</div>
+              <div className="truncate text-gray-400 capitalize">
+                {subscriptionTier === "free" ? "Free Plan" : subscriptionTier === "premium" ? "Premium ✨" : "Pro 🚀"}
+              </div>
             </div>
           </div>
         </div>
