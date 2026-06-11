@@ -11,7 +11,6 @@ import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useProfile } from "@/hooks/use-profile";
 import { DIAGNOSIS_OPTIONS } from "@/lib/profile-utils";
-import { getSupabaseClient, STORAGE_BUCKET } from "@/lib/supabase";
 import toast from "react-hot-toast";
 import {
   User, Bell, Shield, CreditCard, Baby, Crown, Check, Loader2, Camera,
@@ -85,18 +84,15 @@ function SettingsContent() {
     if (!file.type.startsWith("image/")) { toast.error("รองรับเฉพาะรูปภาพ"); return; }
     setChildAvatarUploading(true);
     try {
-      const supabase = getSupabaseClient();
-      const ext = file.name.split(".").pop();
-      const fileName = `child-${user?.id}-${Date.now()}.${ext}`;
-      const { error } = await supabase.storage
-        .from(STORAGE_BUCKET)
-        .upload(fileName, file, { upsert: true });
-      if (error) throw error;
-      const { data } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(fileName);
-      setChildAvatar(data.publicUrl);
+      const form = new FormData();
+      form.append("file", file);
+      const res = await fetch("/api/upload-child-photo", { method: "POST", body: form });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "อัปโหลดไม่สำเร็จ");
+      setChildAvatar(data.url);
       toast.success("อัปโหลดรูปสำเร็จ!");
-    } catch {
-      toast.error("อัปโหลดไม่สำเร็จ กรุณาลองใหม่");
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "อัปโหลดไม่สำเร็จ กรุณาลองใหม่");
     } finally {
       setChildAvatarUploading(false);
     }
