@@ -7,6 +7,7 @@ import type {
   ParentProfile,
   AssessmentResult,
   WeeklyPlan,
+  Milestone,
 } from "@/lib/types";
 import { calculateAge } from "@/lib/profile-utils";
 
@@ -21,6 +22,8 @@ export function useProfile() {
   const activityLog = metadata.activityLog ?? {};
 
   const childAge = childProfile?.birthdate ? calculateAge(childProfile.birthdate) : "";
+  const milestones = metadata.milestones ?? [];
+  const bookmarkedArticles = metadata.bookmarkedArticles ?? [];
 
   const displayName =
     parentProfile?.displayName ||
@@ -47,6 +50,18 @@ export function useProfile() {
     await user?.update({ unsafeMetadata: { ...metadata, activityLog: updated } });
   }
 
+  async function addMilestone(data: Milestone) {
+    const next = [...milestones, data].slice(-20); // keep last 20
+    await user?.update({ unsafeMetadata: { ...metadata, milestones: next } });
+  }
+
+  async function toggleBookmark(articleId: number) {
+    const next = bookmarkedArticles.includes(articleId)
+      ? bookmarkedArticles.filter((id) => id !== articleId)
+      : [...bookmarkedArticles, articleId];
+    await user?.update({ unsafeMetadata: { ...metadata, bookmarkedArticles: next } });
+  }
+
   return {
     isLoaded,
     isSignedIn,
@@ -58,10 +73,14 @@ export function useProfile() {
     latestAssessment,
     weeklyPlan,
     activityLog,
+    milestones,
+    bookmarkedArticles,
     updateChildProfile,
     updateParentProfile,
     saveAssessment,
     saveWeeklyPlan,
     toggleActivity,
+    addMilestone,
+    toggleBookmark,
   };
 }

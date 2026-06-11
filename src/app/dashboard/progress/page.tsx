@@ -1,110 +1,125 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useProfile } from "@/hooks/use-profile";
+import { DAY_KEYS } from "@/lib/profile-utils";
+import type { DayKey, PlanActivity } from "@/lib/types";
+import toast from "react-hot-toast";
 import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  RadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  Radar,
-  BarChart,
-  Bar,
+  RadarChart, PolarGrid, PolarAngleAxis, Radar, ResponsiveContainer,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
 } from "recharts";
-import { TrendingUp, Download, Calendar } from "lucide-react";
+import { TrendingUp, Calendar, Plus, Loader2, Sparkles } from "lucide-react";
 
-const monthlyData = [
-  { month: "ม.ค.", ภาษา: 55, การสื่อสาร: 50, การเรียนรู้: 65, สมาธิ: 40, กล้ามเนื้อ: 60 },
-  { month: "ก.พ.", ภาษา: 58, การสื่อสาร: 53, การเรียนรู้: 68, สมาธิ: 43, กล้ามเนื้อ: 63 },
-  { month: "มี.ค.", ภาษา: 62, การสื่อสาร: 57, การเรียนรู้: 72, สมาธิ: 47, กล้ามเนื้อ: 66 },
-  { month: "เม.ย.", ภาษา: 66, การสื่อสาร: 62, การเรียนรู้: 75, สมาธิ: 52, กล้ามเนื้อ: 69 },
-  { month: "พ.ค.", ภาษา: 72, การสื่อสาร: 68, การเรียนรู้: 80, สมาธิ: 60, กล้ามเนื้อ: 75 },
-];
+const catColors: Record<string, string> = {
+  ภาษา: "bg-emerald-500", การสื่อสาร: "bg-blue-500",
+  การเรียนรู้: "bg-purple-500", สมาธิ: "bg-red-500", กล้ามเนื้อ: "bg-amber-500",
+};
 
-const weeklyActivity = [
-  { week: "สัปดาห์ 1", กิจกรรม: 12 },
-  { week: "สัปดาห์ 2", กิจกรรม: 15 },
-  { week: "สัปดาห์ 3", กิจกรรม: 10 },
-  { week: "สัปดาห์ 4", กิจกรรม: 18 },
-];
-
-const radarData = [
-  { subject: "ภาษา", score: 72, fullMark: 100 },
-  { subject: "สื่อสาร", score: 68, fullMark: 100 },
-  { subject: "เรียนรู้", score: 80, fullMark: 100 },
-  { subject: "สมาธิ", score: 60, fullMark: 100 },
-  { subject: "กล้ามเนื้อ", score: 75, fullMark: 100 },
-];
-
-const milestones = [
-  { date: "5 พ.ค.", event: "พูดประโยค 2 คำได้เป็นครั้งแรก", category: "ภาษา", color: "bg-emerald-500" },
-  { date: "20 เม.ย.", event: "นั่งทำกิจกรรมได้นาน 5 นาที", category: "สมาธิ", color: "bg-red-500" },
-  { date: "10 เม.ย.", event: "จำชื่อสัตว์ได้ 10 ชนิด", category: "ภาษา", color: "bg-emerald-500" },
-  { date: "1 มี.ค.", event: "เริ่มสบตาเวลาพูดด้วยบ้าง", category: "สื่อสาร", color: "bg-blue-500" },
-];
-
-const periods = ["รายสัปดาห์", "รายเดือน", "ไตรมาส"];
+const milestoneCategories = ["ภาษา", "การสื่อสาร", "การเรียนรู้", "สมาธิ", "กล้ามเนื้อ", "อื่นๆ"];
 
 export default function ProgressPage() {
-  const [period, setPeriod] = useState("รายเดือน");
+  const router = useRouter();
+  const {
+    isLoaded, childProfile, childAge, latestAssessment, weeklyPlan,
+    activityLog, milestones, addMilestone,
+  } = useProfile();
 
-  const improvements = [
-    { label: "ภาษา", from: 55, to: 72, color: "text-emerald-600" },
-    { label: "การสื่อสาร", from: 50, to: 68, color: "text-blue-600" },
-    { label: "การเรียนรู้", from: 65, to: 80, color: "text-purple-600" },
-    { label: "สมาธิ", from: 40, to: 60, color: "text-red-500" },
-    { label: "กล้ามเนื้อ", from: 60, to: 75, color: "text-amber-600" },
-  ];
+  const [newEvent, setNewEvent] = useState("");
+  const [newCat, setNewCat] = useState("ภาษา");
+  const [isSaving, setIsSaving] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+
+  // Compute real stats from activityLog
+  const totalDone = Object.values(activityLog).filter(Boolean).length;
+  const activeDays = new Set(
+    Object.entries(activityLog)
+      .filter(([, v]) => v)
+      .map(([k]) => k.split("-")[0])
+  ).size;
+
+  // Weekly activity bar data from current plan
+  const weeklyBarData = DAY_KEYS.map((dk) => {
+    const acts: PlanActivity[] = weeklyPlan ? ((weeklyPlan[dk as DayKey] as PlanActivity[]) ?? []) : [];
+    const done = acts.filter((_, i) => activityLog[`${dk}-${i}`]).length;
+    return { day: { monday:"จ",tuesday:"อ",wednesday:"พ",thursday:"พฤ",friday:"ศ",saturday:"ส",sunday:"อา" }[dk], กิจกรรม: done };
+  });
+
+  // Radar data from assessment
+  const radarData = latestAssessment
+    ? [
+        { subject: "ภาษา",     score: latestAssessment.scores.ภาษา },
+        { subject: "สื่อสาร",  score: latestAssessment.scores.การสื่อสาร },
+        { subject: "เรียนรู้", score: latestAssessment.scores.การเรียนรู้ },
+        { subject: "สมาธิ",   score: latestAssessment.scores.สมาธิ },
+        { subject: "กล้ามเนื้อ", score: latestAssessment.scores.กล้ามเนื้อ },
+      ]
+    : [];
+
+  const scoreProgress = latestAssessment
+    ? [
+        { label: "ภาษา",        score: latestAssessment.scores.ภาษา,        color: "text-emerald-600" },
+        { label: "การสื่อสาร",  score: latestAssessment.scores.การสื่อสาร,  color: "text-blue-600" },
+        { label: "การเรียนรู้", score: latestAssessment.scores.การเรียนรู้, color: "text-purple-600" },
+        { label: "สมาธิ",       score: latestAssessment.scores.สมาธิ,       color: "text-red-500" },
+        { label: "กล้ามเนื้อ",  score: latestAssessment.scores.กล้ามเนื้อ,  color: "text-amber-600" },
+      ]
+    : [];
+
+  const handleAddMilestone = async () => {
+    if (!newEvent.trim()) { toast.error("กรุณากรอกเหตุการณ์"); return; }
+    setIsSaving(true);
+    try {
+      await addMilestone({
+        date: new Date().toISOString(),
+        event: newEvent.trim(),
+        category: newCat,
+      });
+      setNewEvent("");
+      setShowForm(false);
+      toast.success("บันทึกความสำเร็จแล้ว!");
+    } catch {
+      toast.error("เกิดข้อผิดพลาด");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  if (!isLoaded) {
+    return <div className="flex items-center justify-center h-64"><Loader2 className="w-8 h-8 animate-spin text-purple-500" /></div>;
+  }
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
-      {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">ติดตามผลพัฒนาการ</h1>
-          <p className="text-gray-500 text-sm mt-0.5">น้องนุ่น • อายุ 4 ปี 2 เดือน</p>
+          <p className="text-gray-500 text-sm mt-0.5">
+            {childProfile ? `${childProfile.name} • อายุ ${childAge}` : "กรุณาตั้งค่าข้อมูลเด็กก่อน"}
+          </p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" className="border-gray-200 gap-2">
-            <Download className="w-4 h-4" />
-            ส่งออก PDF
-          </Button>
-        </div>
-      </div>
-
-      {/* Period Selector */}
-      <div className="flex gap-2 mb-6">
-        {periods.map((p) => (
-          <button
-            key={p}
-            onClick={() => setPeriod(p)}
-            className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-              period === p
-                ? "bg-purple-600 text-white shadow-md shadow-purple-200"
-                : "bg-white border border-gray-200 text-gray-600 hover:border-purple-300"
-            }`}
+        {!latestAssessment && (
+          <Button
+            onClick={() => router.push("/dashboard/assessment")}
+            className="bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0 rounded-xl gap-2"
+            size="sm"
           >
-            {p}
-          </button>
-        ))}
+            <Sparkles className="w-4 h-4" /> เริ่มประเมิน
+          </Button>
+        )}
       </div>
 
-      {/* Summary Cards */}
+      {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         {[
-          { label: "คะแนนรวม", value: "71%", change: "+12%", icon: "📊" },
-          { label: "วันที่ฝึก", value: "47 วัน", change: "+7 วันนี้", icon: "📅" },
-          { label: "กิจกรรมสำเร็จ", value: "55 ครั้ง", change: "+18 สัปดาห์นี้", icon: "✅" },
-          { label: "สายต่อเนื่อง", value: "7 วัน", change: "สูงสุด!", icon: "🔥" },
+          { label: "คะแนนรวม",      value: latestAssessment ? `${latestAssessment.overall}%` : "—",   change: latestAssessment ? "ผลล่าสุด" : "ยังไม่ได้ประเมิน", icon: "📊" },
+          { label: "วันที่ฝึก",     value: `${activeDays} วัน`,  change: "สัปดาห์นี้",      icon: "📅" },
+          { label: "กิจกรรมสำเร็จ", value: `${totalDone} ครั้ง`, change: "สัปดาห์นี้",      icon: "✅" },
+          { label: "ความสำเร็จ",    value: `${milestones.length} รายการ`, change: "ทั้งหมด",icon: "🏆" },
         ].map((stat) => (
           <Card key={stat.label} className="p-4 border-gray-100 shadow-sm">
             <div className="text-xl mb-1">{stat.icon}</div>
@@ -118,116 +133,144 @@ export default function ProgressPage() {
         ))}
       </div>
 
-      <div className="grid md:grid-cols-2 gap-6 mb-6">
-        {/* Line Chart */}
-        <Card className="p-5 border-gray-100 shadow-sm">
-          <h2 className="font-bold text-gray-900 mb-4">กราฟพัฒนาการ 5 เดือน</h2>
-          <ResponsiveContainer width="100%" height={220}>
-            <LineChart data={monthlyData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-              <YAxis tick={{ fontSize: 11 }} domain={[0, 100]} />
-              <Tooltip />
-              <Legend wrapperStyle={{ fontSize: 11 }} />
-              <Line type="monotone" dataKey="ภาษา" stroke="#10B981" strokeWidth={2} dot={{ r: 3 }} />
-              <Line type="monotone" dataKey="การสื่อสาร" stroke="#3B82F6" strokeWidth={2} dot={{ r: 3 }} />
-              <Line type="monotone" dataKey="การเรียนรู้" stroke="#8B5CF6" strokeWidth={2} dot={{ r: 3 }} />
-              <Line type="monotone" dataKey="สมาธิ" stroke="#EF4444" strokeWidth={2} dot={{ r: 3 }} />
-              <Line type="monotone" dataKey="กล้ามเนื้อ" stroke="#F59E0B" strokeWidth={2} dot={{ r: 3 }} />
-            </LineChart>
-          </ResponsiveContainer>
+      {!latestAssessment ? (
+        <Card className="p-10 border-gray-100 shadow-sm text-center mb-6">
+          <div className="text-5xl mb-4">📊</div>
+          <h2 className="text-lg font-bold text-gray-900 mb-2">ยังไม่มีข้อมูลพัฒนาการ</h2>
+          <p className="text-gray-500 text-sm mb-4">ทำแบบประเมินพัฒนาการก่อนเพื่อดูกราฟและข้อมูลจริงค่ะ</p>
+          <Button onClick={() => router.push("/dashboard/assessment")} className="bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0 rounded-xl gap-2">
+            <Sparkles className="w-4 h-4" /> ทำแบบประเมิน
+          </Button>
         </Card>
+      ) : (
+        <div className="grid md:grid-cols-2 gap-6 mb-6">
+          {/* Radar Chart */}
+          <Card className="p-5 border-gray-100 shadow-sm">
+            <h2 className="font-bold text-gray-900 mb-1">ภาพรวมพัฒนาการ</h2>
+            <p className="text-xs text-gray-400 mb-3">
+              ประเมินเมื่อ {new Date(latestAssessment.date).toLocaleDateString("th-TH", { day: "numeric", month: "long", year: "numeric" })}
+            </p>
+            <ResponsiveContainer width="100%" height={220}>
+              <RadarChart data={radarData}>
+                <PolarGrid />
+                <PolarAngleAxis dataKey="subject" tick={{ fontSize: 12 }} />
+                <Radar name="คะแนน" dataKey="score" stroke="#8B5CF6" fill="#8B5CF6" fillOpacity={0.35} />
+              </RadarChart>
+            </ResponsiveContainer>
+          </Card>
 
-        {/* Radar Chart */}
-        <Card className="p-5 border-gray-100 shadow-sm">
-          <h2 className="font-bold text-gray-900 mb-4">ภาพรวมพัฒนาการ</h2>
-          <ResponsiveContainer width="100%" height={220}>
-            <RadarChart data={radarData}>
-              <PolarGrid />
-              <PolarAngleAxis dataKey="subject" tick={{ fontSize: 12 }} />
-              <Radar
-                name="คะแนน"
-                dataKey="score"
-                stroke="#8B5CF6"
-                fill="#8B5CF6"
-                fillOpacity={0.3}
-              />
-            </RadarChart>
-          </ResponsiveContainer>
-        </Card>
-      </div>
-
-      <div className="grid md:grid-cols-2 gap-6 mb-6">
-        {/* Activity Bar Chart */}
-        <Card className="p-5 border-gray-100 shadow-sm">
-          <h2 className="font-bold text-gray-900 mb-4">กิจกรรมรายสัปดาห์</h2>
-          <ResponsiveContainer width="100%" height={180}>
-            <BarChart data={weeklyActivity}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis dataKey="week" tick={{ fontSize: 11 }} />
-              <YAxis tick={{ fontSize: 11 }} />
-              <Tooltip />
-              <Bar dataKey="กิจกรรม" fill="#8B5CF6" radius={[6, 6, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </Card>
-
-        {/* Improvements */}
-        <Card className="p-5 border-gray-100 shadow-sm">
-          <h2 className="font-bold text-gray-900 mb-4">ความก้าวหน้า 5 เดือน</h2>
-          <div className="space-y-4">
-            {improvements.map((imp) => (
-              <div key={imp.label}>
-                <div className="flex justify-between items-center mb-1.5">
-                  <span className="text-sm font-medium text-gray-700">{imp.label}</span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-gray-400">{imp.from}%</span>
-                    <span className="text-xs text-gray-400">→</span>
-                    <span className={`text-sm font-bold ${imp.color}`}>{imp.to}%</span>
-                    <Badge className="bg-green-100 text-green-700 border-green-200 text-xs py-0">
-                      +{imp.to - imp.from}%
-                    </Badge>
+          {/* Score Progress Bars */}
+          <Card className="p-5 border-gray-100 shadow-sm">
+            <h2 className="font-bold text-gray-900 mb-4">คะแนนรายด้าน</h2>
+            <div className="space-y-4">
+              {scoreProgress.map((s) => (
+                <div key={s.label}>
+                  <div className="flex justify-between items-center mb-1.5">
+                    <span className="text-sm font-medium text-gray-700">{s.label}</span>
+                    <span className={`text-sm font-bold ${s.color}`}>{s.score}%</span>
+                  </div>
+                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-700"
+                      style={{ width: `${s.score}%` }}
+                    />
                   </div>
                 </div>
-                <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-700"
-                    style={{ width: `${imp.to}%` }}
-                  />
+              ))}
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {/* Weekly Activity Bar */}
+      <Card className="p-5 border-gray-100 shadow-sm mb-6">
+        <h2 className="font-bold text-gray-900 mb-4">กิจกรรมสำเร็จรายวัน (สัปดาห์นี้)</h2>
+        <ResponsiveContainer width="100%" height={160}>
+          <BarChart data={weeklyBarData} margin={{ top: 0, right: 10, left: -20, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+            <XAxis dataKey="day" tick={{ fontSize: 12 }} />
+            <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
+            <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8 }} />
+            <Bar dataKey="กิจกรรม" fill="#8B5CF6" radius={[6, 6, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+      </Card>
+
+      {/* Milestones */}
+      <Card className="p-5 border-gray-100 shadow-sm">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-bold text-gray-900 flex items-center gap-2">
+            <Calendar className="w-5 h-5 text-purple-600" />
+            ไทม์ไลน์ความสำเร็จ
+          </h2>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setShowForm(!showForm)}
+            className="border-purple-200 text-purple-700 gap-1.5"
+          >
+            <Plus className="w-4 h-4" />
+            เพิ่มความสำเร็จ
+          </Button>
+        </div>
+
+        {showForm && (
+          <div className="mb-5 p-4 bg-purple-50 rounded-2xl border border-purple-100">
+            <h3 className="text-sm font-semibold text-gray-900 mb-3">บันทึกความสำเร็จใหม่</h3>
+            <div className="space-y-3">
+              <input
+                value={newEvent}
+                onChange={(e) => setNewEvent(e.target.value)}
+                placeholder="เช่น น้องพูดว่า 'แม่' เป็นครั้งแรก 🥹"
+                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-200"
+              />
+              <div className="flex gap-2">
+                <select
+                  value={newCat}
+                  onChange={(e) => setNewCat(e.target.value)}
+                  className="border border-gray-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-purple-200"
+                >
+                  {milestoneCategories.map((c) => <option key={c}>{c}</option>)}
+                </select>
+                <Button
+                  onClick={handleAddMilestone}
+                  disabled={isSaving}
+                  className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0 rounded-xl gap-2"
+                >
+                  {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                  บันทึก
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {milestones.length === 0 ? (
+          <div className="text-center py-8 text-gray-400">
+            <div className="text-3xl mb-2">🌟</div>
+            <p className="text-sm">ยังไม่มีความสำเร็จที่บันทึก<br/>กดเพิ่มความสำเร็จเพื่อบันทึกพัฒนาการของลูกค่ะ</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {[...milestones].reverse().map((m, i) => (
+              <div key={i} className="flex items-start gap-4">
+                <div className="flex flex-col items-center">
+                  <div className={`w-3 h-3 rounded-full ${catColors[m.category] || "bg-gray-400"} shrink-0 mt-1`} />
+                  {i < milestones.length - 1 && <div className="w-0.5 h-8 bg-gray-200 mt-1" />}
+                </div>
+                <div className="flex-1 pb-2">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs text-gray-400">
+                      {new Date(m.date).toLocaleDateString("th-TH", { day: "numeric", month: "long" })}
+                    </span>
+                    <Badge variant="outline" className="text-xs">{m.category}</Badge>
+                  </div>
+                  <p className="text-sm font-medium text-gray-800 mt-0.5">{m.event}</p>
                 </div>
               </div>
             ))}
           </div>
-        </Card>
-      </div>
-
-      {/* Milestones */}
-      <Card className="p-5 border-gray-100 shadow-sm">
-        <h2 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-          <Calendar className="w-5 h-5 text-purple-600" />
-          ไทม์ไลน์ความสำเร็จ
-        </h2>
-        <div className="space-y-4">
-          {milestones.map((m, i) => (
-            <div key={i} className="flex items-start gap-4">
-              <div className="flex flex-col items-center">
-                <div className={`w-3 h-3 rounded-full ${m.color} shrink-0 mt-1`} />
-                {i < milestones.length - 1 && (
-                  <div className="w-0.5 h-8 bg-gray-200 mt-1" />
-                )}
-              </div>
-              <div className="flex-1 pb-2">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-xs text-gray-400">{m.date}</span>
-                  <Badge className="text-xs" variant="outline">
-                    {m.category}
-                  </Badge>
-                </div>
-                <p className="text-sm font-medium text-gray-800 mt-0.5">{m.event}</p>
-              </div>
-            </div>
-          ))}
-        </div>
+        )}
       </Card>
     </div>
   );

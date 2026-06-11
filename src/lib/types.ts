@@ -52,10 +52,18 @@ export interface WeeklyPlan {
   aiNote: string;
 }
 
+export interface Milestone {
+  date: string;
+  event: string;
+  category: string;
+}
+
 export interface UserMetadata {
   childProfile?: ChildProfile;
   parentProfile?: ParentProfile;
   latestAssessment?: AssessmentResult;
   weeklyPlan?: WeeklyPlan;
   activityLog?: Record<string, boolean>;
+  milestones?: Milestone[];
+  bookmarkedArticles?: number[];
 }

@@ -5,72 +5,47 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useProfile } from "@/hooks/use-profile";
+import { DAY_KEYS } from "@/lib/profile-utils";
 import { Heart, MessageCircle, Share2, Plus, Flame } from "lucide-react";
 
 const posts = [
-  {
-    id: 1,
-    author: "คุณแม่ปุ้ย",
-    avatar: "ปุ้ย",
-    time: "2 ชั่วโมงที่แล้ว",
-    tag: "แชร์ประสบการณ์",
-    tagColor: "bg-green-100 text-green-700",
-    content:
-      "วันนี้น้องออมพูดว่า 'แม่ ขอน้ำ' เป็นประโยคแรก!!!! ดีใจมากเลยค่ะ ฝึกมา 3 เดือน ใช้กิจกรรมบัตรคำศัพท์และเกมชี้รูปทุกวัน ขอบคุณ AI Coach มากๆ ที่แนะนำ 🥹💜",
-    likes: 47,
-    comments: 12,
-    liked: false,
-  },
-  {
-    id: 2,
-    author: "คุณพ่อโน้ต",
-    avatar: "โน้ต",
-    time: "4 ชั่วโมงที่แล้ว",
-    tag: "ขอคำแนะนำ",
-    tagColor: "bg-blue-100 text-blue-700",
-    content:
-      "ลูกชาย 5 ขวบ ออทิสติกระดับเบา ชอบ meltdown ตอนต้องออกจากกิจกรรมที่ชอบ มีใครมีวิธีรับมือบ้างไหมครับ? ลองทำ timer แล้วแต่ยังไม่ค่อยได้ผล",
-    likes: 23,
-    comments: 18,
-    liked: true,
-  },
-  {
-    id: 3,
-    author: "คุณแม่กุ้ง",
-    avatar: "กุ้ง",
-    time: "6 ชั่วโมงที่แล้ว",
-    tag: "รีวิวกิจกรรม",
-    tagColor: "bg-purple-100 text-purple-700",
-    content:
-      "ลองเกม Floor Time ตามที่คู่มือแนะนำ 4 สัปดาห์แล้วค่ะ น้องสาวเริ่มมองหน้าและยิ้มตอบมากขึ้นมาก ก่อนหน้านี้แทบไม่สบตาเลย แนะนำมากค่ะ ⭐⭐⭐⭐⭐",
-    likes: 61,
-    comments: 8,
-    liked: false,
-  },
-  {
-    id: 4,
-    author: "คุณแม่แนน",
-    avatar: "แนน",
-    time: "เมื่อวาน",
-    tag: "แชร์ประสบการณ์",
-    tagColor: "bg-green-100 text-green-700",
-    content:
-      "เคล็ดลับจากที่บ้านค่ะ ใช้เวลาอาบน้ำ กินข้าว ฝึกคำศัพท์ไปด้วยเลย ไม่ต้องนั่งฝึกแบบเป็นทางการ เด็กจะไม่เบื่อและสนุกกว่ามากค่ะ 😊",
-    likes: 89,
-    comments: 24,
-    liked: false,
-  },
-];
-
-const badges = [
-  { emoji: "🔥", label: "ฝึก 7 วัน", done: true },
-  { emoji: "⭐", label: "กิจกรรมแรก", done: true },
-  { emoji: "🏆", label: "ฝึก 30 วัน", done: false },
-  { emoji: "💜", label: "แชร์ 1 ครั้ง", done: false },
+  { id: 1, author: "คุณแม่ปุ้ย",  avatar: "ปุ้ย",  time: "2 ชั่วโมงที่แล้ว", tag: "แชร์ประสบการณ์", tagColor: "bg-green-100 text-green-700",  content: "วันนี้น้องออมพูดว่า 'แม่ ขอน้ำ' เป็นประโยคแรก!!!! ดีใจมากเลยค่ะ ฝึกมา 3 เดือน ใช้กิจกรรมบัตรคำศัพท์และเกมชี้รูปทุกวัน ขอบคุณ AI Coach มากๆ ที่แนะนำ 🥹💜", likes: 47, comments: 12, liked: false },
+  { id: 2, author: "คุณพ่อโน้ต",  avatar: "โน้ต",  time: "4 ชั่วโมงที่แล้ว", tag: "ขอคำแนะนำ",       tagColor: "bg-blue-100 text-blue-700",   content: "ลูกชาย 5 ขวบ ออทิสติกระดับเบา ชอบ meltdown ตอนต้องออกจากกิจกรรมที่ชอบ มีใครมีวิธีรับมือบ้างไหมครับ? ลองทำ timer แล้วแต่ยังไม่ค่อยได้ผล",                                   likes: 23, comments: 18, liked: true  },
+  { id: 3, author: "คุณแม่กุ้ง",  avatar: "กุ้ง",  time: "6 ชั่วโมงที่แล้ว", tag: "รีวิวกิจกรรม",   tagColor: "bg-purple-100 text-purple-700",content: "ลองเกม Floor Time ตามที่คู่มือแนะนำ 4 สัปดาห์แล้วค่ะ น้องสาวเริ่มมองหน้าและยิ้มตอบมากขึ้นมาก ก่อนหน้านี้แทบไม่สบตาเลย แนะนำมากค่ะ ⭐⭐⭐⭐⭐",                          likes: 61, comments: 8,  liked: false },
+  { id: 4, author: "คุณแม่แนน",  avatar: "แนน",  time: "เมื่อวาน",           tag: "แชร์ประสบการณ์", tagColor: "bg-green-100 text-green-700",  content: "เคล็ดลับจากที่บ้านค่ะ ใช้เวลาอาบน้ำ กินข้าว ฝึกคำศัพท์ไปด้วยเลย ไม่ต้องนั่งฝึกแบบเป็นทางการ เด็กจะไม่เบื่อและสนุกกว่ามากค่ะ 😊",                                        likes: 89, comments: 24, liked: false },
 ];
 
 export default function CommunityPage() {
+  const { activityLog } = useProfile();
   const [liked, setLiked] = useState<Record<number, boolean>>({});
+
+  // Compute streak from activityLog (consecutive days from today backward)
+  const completedDayKeys = new Set(
+    Object.entries(activityLog)
+      .filter(([k, v]) => v && !k.startsWith("lib-"))
+      .map(([k]) => k.split("-")[0])
+  );
+
+  const todayNum = (new Date().getDay() + 6) % 7; // 0=Mon, 6=Sun
+  let streak = 0;
+  for (let i = 0; i <= 6; i++) {
+    const dayNum = (todayNum - i + 7) % 7;
+    if (completedDayKeys.has(DAY_KEYS[dayNum])) {
+      streak++;
+    } else {
+      break;
+    }
+  }
+
+  const totalCompleted = Object.values(activityLog).filter(Boolean).length;
+
+  const badges = [
+    { emoji: "⭐", label: "กิจกรรมแรก",  done: totalCompleted >= 1 },
+    { emoji: "🔥", label: "ฝึก 3 วัน",   done: streak >= 3 },
+    { emoji: "🏅", label: "ฝึก 7 วัน",   done: streak >= 7 },
+    { emoji: "🏆", label: "ฝึก 30 วัน",  done: false },
+  ];
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
@@ -107,9 +82,7 @@ export default function CommunityPage() {
                   </Badge>
                 </div>
 
-                <p className="text-sm text-gray-700 leading-relaxed mb-4">
-                  {post.content}
-                </p>
+                <p className="text-sm text-gray-700 leading-relaxed mb-4">{post.content}</p>
 
                 <div className="flex items-center gap-4 pt-3 border-t border-gray-50">
                   <button
@@ -143,8 +116,13 @@ export default function CommunityPage() {
               <Flame className="w-5 h-5 text-orange-500" />
               สายฝึกของคุณ
             </h3>
-            <div className="text-4xl font-bold text-orange-500 mb-1">7</div>
+            <div className={`text-4xl font-bold mb-1 ${streak > 0 ? "text-orange-500" : "text-gray-300"}`}>
+              {streak}
+            </div>
             <div className="text-sm text-gray-500">วันติดต่อกัน</div>
+            {streak === 0 && (
+              <p className="text-xs text-gray-400 mt-1">ทำกิจกรรมวันนี้เพื่อเริ่มสายค่ะ</p>
+            )}
           </Card>
 
           {/* Badges */}
@@ -154,8 +132,10 @@ export default function CommunityPage() {
               {badges.map((b) => (
                 <div
                   key={b.label}
-                  className={`flex flex-col items-center p-3 rounded-xl text-center ${
-                    b.done ? "bg-purple-50 border border-purple-100" : "bg-gray-50 border border-gray-100 opacity-50"
+                  className={`flex flex-col items-center p-3 rounded-xl text-center transition-all ${
+                    b.done
+                      ? "bg-purple-50 border border-purple-100"
+                      : "bg-gray-50 border border-gray-100 opacity-50"
                   }`}
                 >
                   <span className="text-2xl mb-1">{b.emoji}</span>
@@ -175,9 +155,9 @@ export default function CommunityPage() {
             <h3 className="font-bold text-gray-900 mb-3">ชุมชนของเรา</h3>
             <div className="space-y-2">
               {[
-                { label: "สมาชิก", value: "12,450" },
-                { label: "โพสต์วันนี้", value: "89" },
-                { label: "คำถามที่ตอบ", value: "3,200+" },
+                { label: "สมาชิก",       value: "12,450" },
+                { label: "โพสต์วันนี้",  value: "89" },
+                { label: "คำถามที่ตอบ",  value: "3,200+" },
               ].map((s) => (
                 <div key={s.label} className="flex justify-between items-center text-sm">
                   <span className="text-gray-500">{s.label}</span>
