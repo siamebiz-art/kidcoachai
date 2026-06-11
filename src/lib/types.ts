@@ -15,6 +15,7 @@ export interface ChildProfile {
   gender: "ชาย" | "หญิง" | "";
   diagnosisKey: string;
   diagnosisLabel: string;
+  avatar?: string;
 }
 
 export interface ParentProfile {

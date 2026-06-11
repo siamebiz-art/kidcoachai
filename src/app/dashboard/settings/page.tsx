@@ -2,17 +2,26 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import { useClerk } from "@clerk/nextjs";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useProfile } from "@/hooks/use-profile";
 import { DIAGNOSIS_OPTIONS } from "@/lib/profile-utils";
 import toast from "react-hot-toast";
 import {
-  User, Bell, Shield, CreditCard, Baby, Crown, Check, Loader2,
+  User, Bell, Shield, CreditCard, Baby, Crown, Check, Loader2, Camera,
 } from "lucide-react";
+
+const CHILD_AVATARS = [
+  "👦", "👧", "🧒", "👶",
+  "🐱", "🐶", "🐻", "🐼",
+  "🐸", "🦁", "🐯", "🐰",
+  "🦊", "🐨", "🦄", "🐧",
+  "⭐", "🌟", "🌈", "🌸",
+];
 
 const tabs = [
   { id: "profile", label: "โปรไฟล์", icon: User },
@@ -30,6 +39,7 @@ function SettingsContent() {
     trainingReminder: true, dailyRecord: true, weeklyReport: false, community: true, email: false,
   });
 
+  const { openUserProfile } = useClerk();
   const { isLoaded, childProfile, parentProfile, user, subscriptionTier, isPremium, updateChildProfile, updateParentProfile } = useProfile();
   const [isCheckingOut, setIsCheckingOut] = useState<"premium" | "pro" | null>(null);
   const [isPortaling, setIsPortaling] = useState(false);
@@ -43,6 +53,7 @@ function SettingsContent() {
   const [childBirthdate, setChildBirthdate] = useState("");
   const [childGender, setChildGender] = useState<"ชาย" | "หญิง" | "">("");
   const [childDiagnosisKey, setChildDiagnosisKey] = useState("");
+  const [childAvatar, setChildAvatar] = useState("");
 
   const [isSaving, setIsSaving] = useState(false);
 
@@ -69,6 +80,7 @@ function SettingsContent() {
       setChildBirthdate(childProfile.birthdate || "");
       setChildGender(childProfile.gender || "");
       setChildDiagnosisKey(childProfile.diagnosisKey || "");
+      setChildAvatar(childProfile.avatar || "");
     }
   }, [isLoaded, parentProfile, childProfile]);
 
@@ -96,6 +108,7 @@ function SettingsContent() {
         gender: childGender,
         diagnosisKey: childDiagnosisKey,
         diagnosisLabel: diagnosisOption?.label || "ไม่ระบุ",
+        avatar: childAvatar,
       });
       toast.success("บันทึกข้อมูลเด็กสำเร็จ!");
     } catch {
@@ -139,14 +152,33 @@ function SettingsContent() {
             <Card className="p-6 border-gray-100 shadow-sm">
               <h2 className="font-bold text-gray-900 mb-5">ข้อมูลผู้ปกครอง</h2>
               <div className="flex items-center gap-4 mb-6">
-                <Avatar className="w-16 h-16">
-                  <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white text-xl font-bold">
-                    {parentName ? parentName[0] : "พ"}
-                  </AvatarFallback>
-                </Avatar>
+                <div className="relative group">
+                  <Avatar className="w-16 h-16">
+                    <AvatarImage src={user?.imageUrl} alt={parentName} />
+                    <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white text-xl font-bold">
+                      {parentName ? parentName[0] : "พ"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <button
+                    type="button"
+                    onClick={() => openUserProfile()}
+                    className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                    title="เปลี่ยนรูปโปรไฟล์"
+                  >
+                    <Camera className="w-5 h-5 text-white" />
+                  </button>
+                </div>
                 <div>
                   <p className="text-sm font-semibold text-gray-800">{parentName || "ยังไม่ได้ตั้งชื่อ"}</p>
                   <p className="text-xs text-gray-400">{user?.emailAddresses?.[0]?.emailAddress}</p>
+                  <button
+                    type="button"
+                    onClick={() => openUserProfile()}
+                    className="mt-1 text-xs text-purple-600 hover:text-purple-800 flex items-center gap-1 font-medium"
+                  >
+                    <Camera className="w-3 h-3" />
+                    เปลี่ยนรูปโปรไฟล์
+                  </button>
                 </div>
               </div>
               <div className="space-y-4">
@@ -205,6 +237,35 @@ function SettingsContent() {
               )}
 
               <div className="space-y-4">
+                {/* Avatar picker */}
+                <div>
+                  <label className="text-sm font-medium text-gray-700 block mb-2">รูปประจำตัว</label>
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-pink-100 via-purple-100 to-blue-100 flex items-center justify-center shadow-sm ring-2 ring-purple-200">
+                      <span className="text-3xl select-none">
+                        {childAvatar || (childGender === "ชาย" ? "👦" : "👧")}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-400">เลือก emoji ด้านล่าง</p>
+                  </div>
+                  <div className="grid grid-cols-10 gap-1.5">
+                    {CHILD_AVATARS.map((emoji) => (
+                      <button
+                        key={emoji}
+                        type="button"
+                        onClick={() => setChildAvatar(emoji)}
+                        className={`text-xl p-1.5 rounded-xl transition-all ${
+                          childAvatar === emoji
+                            ? "bg-purple-100 ring-2 ring-purple-400 scale-110"
+                            : "hover:bg-gray-100"
+                        }`}
+                      >
+                        {emoji}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 <div>
                   <label className="text-sm font-medium text-gray-700 block mb-1.5">
                     ชื่อเล่น <span className="text-red-400">*</span>

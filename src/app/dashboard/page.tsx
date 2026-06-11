@@ -100,7 +100,9 @@ export default function DashboardPage() {
           <div className="flex items-center gap-4">
             <div className="relative shrink-0">
               <div className="w-20 h-20 rounded-full ring-4 ring-pink-200 ring-offset-2 bg-gradient-to-br from-pink-200 via-purple-200 to-blue-200 flex items-center justify-center shadow-lg">
-                <span className="text-4xl select-none">{childProfile?.gender === "ชาย" ? "👦" : "👧"}</span>
+                <span className="text-4xl select-none">
+                  {childProfile?.avatar || (childProfile?.gender === "ชาย" ? "👦" : "👧")}
+                </span>
               </div>
               {childProfile && (
                 <span className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-400 rounded-full border-2 border-white flex items-center justify-center text-xs">✓</span>
