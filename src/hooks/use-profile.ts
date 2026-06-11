@@ -25,6 +25,7 @@ export function useProfile() {
   const milestones = metadata.milestones ?? [];
   const bookmarkedArticles = metadata.bookmarkedArticles ?? [];
   const assessmentHistory = metadata.assessmentHistory ?? [];
+  const familyPhotoUrl = metadata.familyPhotoUrl;
   const subscriptionTier = metadata.subscriptionTier ?? "free";
   const isPremium = subscriptionTier === "premium" || subscriptionTier === "pro";
 
@@ -65,6 +66,10 @@ export function useProfile() {
     await user?.update({ unsafeMetadata: { ...metadata, milestones: next } });
   }
 
+  async function updateFamilyPhoto(url: string) {
+    await user?.update({ unsafeMetadata: { ...metadata, familyPhotoUrl: url } });
+  }
+
   async function toggleBookmark(articleId: number) {
     const next = bookmarkedArticles.includes(articleId)
       ? bookmarkedArticles.filter((id) => id !== articleId)
@@ -88,8 +93,10 @@ export function useProfile() {
     bookmarkedArticles,
     subscriptionTier,
     isPremium,
+    familyPhotoUrl,
     updateChildProfile,
     updateParentProfile,
+    updateFamilyPhoto,
     saveAssessment,
     saveWeeklyPlan,
     toggleActivity,

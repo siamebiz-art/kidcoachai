@@ -77,4 +77,5 @@ export interface UserMetadata {
   // Usage
   aiChatCount?: number;
   aiChatResetDate?: string;
+  familyPhotoUrl?: string;
 }

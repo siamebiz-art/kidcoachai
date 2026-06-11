@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { UserButton, SignOutButton } from "@clerk/nextjs";
@@ -8,7 +9,7 @@ import { useProfile } from "@/hooks/use-profile";
 import { AvatarFallback, Avatar } from "@/components/ui/avatar";
 import {
   Home, TrendingUp, Calendar, Gamepad2, BarChart3,
-  BookOpen, Bot, Users, Settings, Crown, Sparkles, X, Camera, LogOut,
+  BookOpen, Bot, Users, Settings, Crown, Sparkles, X, Camera, LogOut, Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -25,36 +26,66 @@ const navItems = [
   { href: "/dashboard/settings",    icon: Settings,   label: "ตั้งค่า",          color: "text-gray-500",   bg: "bg-gray-100"   },
 ];
 
-function FamilyPhoto() {
+function FamilyPhoto({ onClose }: { onClose?: () => void }) {
+  const { familyPhotoUrl, updateFamilyPhoto } = useProfile();
+  const [uploading, setUploading] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  async function handleFile(file: File) {
+    if (file.size > 5 * 1024 * 1024) return;
+    if (!file.type.startsWith("image/")) return;
+    setUploading(true);
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      form.append("prefix", "family");
+      const res = await fetch("/api/upload-child-photo", { method: "POST", body: form });
+      const data = await res.json();
+      if (res.ok) await updateFamilyPhoto(data.url);
+    } finally {
+      setUploading(false);
+    }
+  }
+
   return (
     <div className="mx-3 mb-2 shrink-0 relative group">
-      <div className="rounded-2xl overflow-hidden bg-gradient-to-br from-blue-100 via-sky-50 to-purple-100 flex items-center justify-center py-3 px-2">
-        <div className="relative">
+      <div
+        className="rounded-2xl overflow-hidden bg-gradient-to-br from-blue-100 via-sky-50 to-purple-100 flex items-center justify-center py-3 px-2 cursor-pointer"
+        onClick={() => inputRef.current?.click()}
+      >
+        {familyPhotoUrl ? (
           <Image
-            src="/family.png"
+            src={familyPhotoUrl}
             alt="ครอบครัว"
             width={140}
             height={90}
             className="rounded-xl object-cover w-full h-auto"
-            onError={(e) => {
-              (e.target as HTMLImageElement).style.display = "none";
-              const el = document.getElementById("family-emoji-fallback");
-              if (el) el.style.display = "flex";
-            }}
           />
-          <div id="family-emoji-fallback"
-            className="hidden items-end justify-center gap-1 py-2 select-none">
+        ) : (
+          <div className="flex items-end justify-center gap-1 py-2 select-none">
             <span className="text-4xl">👨</span>
             <span className="text-3xl mb-1">👧</span>
             <span className="text-4xl">👩</span>
           </div>
-        </div>
+        )}
       </div>
-      <Link href="/dashboard/settings">
-        <button className="absolute top-2 right-2 w-7 h-7 bg-white/90 backdrop-blur-sm rounded-full shadow-md border border-gray-100 items-center justify-center hidden group-hover:flex transition-all hover:bg-white">
-          <Camera className="w-3.5 h-3.5 text-gray-500" />
-        </button>
-      </Link>
+      <button
+        onClick={() => inputRef.current?.click()}
+        disabled={uploading}
+        className="absolute top-2 right-2 w-7 h-7 bg-white/90 backdrop-blur-sm rounded-full shadow-md border border-gray-100 items-center justify-center hidden group-hover:flex transition-all hover:bg-white"
+      >
+        {uploading
+          ? <Loader2 className="w-3.5 h-3.5 text-gray-500 animate-spin" />
+          : <Camera className="w-3.5 h-3.5 text-gray-500" />
+        }
+      </button>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }}
+      />
     </div>
   );
 }
@@ -162,7 +193,7 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
           </div>
         </div>
 
-        <FamilyPhoto />
+        <FamilyPhoto onClose={onClose} />
 
         {/* Sign out */}
         <div className="px-3 pb-3">
