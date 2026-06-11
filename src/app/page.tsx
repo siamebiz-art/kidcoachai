@@ -62,14 +62,14 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero */}
-      <section className="pt-24 pb-20 px-4 bg-gradient-to-b from-purple-50 to-white">
+      <section className="pt-20 pb-12 sm:pb-20 px-4 bg-gradient-to-b from-purple-50 to-white">
         <div className="max-w-7xl mx-auto">
           <div className="text-center max-w-4xl mx-auto">
-            <Badge className="mb-6 bg-purple-100 text-purple-700 border-purple-200 px-4 py-1.5 text-sm font-medium">
+            <Badge className="mb-4 sm:mb-6 bg-purple-100 text-purple-700 border-purple-200 px-4 py-1.5 text-sm font-medium">
               <Sparkles className="w-3.5 h-3.5 mr-1.5" />
               AI Coach ส่วนตัวสำหรับพัฒนาการเด็ก
             </Badge>
-            <h1 className="text-5xl md:text-6xl font-bold text-gray-900 leading-tight mb-6">
+            <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold text-gray-900 leading-tight mb-4 sm:mb-6">
               ช่วยลูกเติบโต{" "}
               <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
                 ได้ถูกทาง
@@ -77,16 +77,16 @@ export default function LandingPage() {
               <br />
               ด้วย AI Coach ที่เข้าใจลูกคุณ
             </h1>
-            <p className="text-xl text-gray-600 leading-relaxed mb-10 max-w-2xl mx-auto">
+            <p className="text-base sm:text-xl text-gray-600 leading-relaxed mb-8 max-w-2xl mx-auto">
               แพลตฟอร์ม AI ที่ช่วยผู้ปกครองดูแลและพัฒนาศักยภาพเด็กที่บ้าน
               ไม่ว่าจะเป็นเด็กพูดช้า เด็กพัฒนาการช้า เด็กออทิสติก หรือเด็ก ADHD
               ด้วยแผนฝึกเฉพาะบุคคลที่ AI สร้างให้ทุกวัน
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link href="/sign-up">
                 <Button
                   size="lg"
-                  className="bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0 px-8 py-6 text-lg rounded-2xl shadow-lg shadow-purple-200"
+                  className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0 px-8 py-6 text-base sm:text-lg rounded-2xl shadow-lg shadow-purple-200"
                 >
                   เริ่มต้นฟรี ไม่ต้องใช้บัตรเครดิต
                   <ArrowRight className="ml-2 w-5 h-5" />
@@ -96,27 +96,32 @@ export default function LandingPage() {
                 <Button
                   size="lg"
                   variant="outline"
-                  className="border-purple-200 text-purple-700 px-8 py-6 text-lg rounded-2xl"
+                  className="w-full sm:w-auto border-purple-200 text-purple-700 px-8 py-6 text-base sm:text-lg rounded-2xl"
                 >
                   ดูตัวอย่าง Dashboard
                 </Button>
               </Link>
             </div>
-            <p className="mt-4 text-sm text-gray-500">
+            <p className="mt-4 text-xs sm:text-sm text-gray-500">
               ✓ ทดลองใช้ฟรี 14 วัน &nbsp;✓ ไม่ต้องผูกบัตร &nbsp;✓ ยกเลิกได้ทุกเมื่อ
             </p>
           </div>
 
-          {/* Hero Image Placeholder */}
-          <div className="mt-16 bg-gradient-to-br from-purple-100 to-pink-100 rounded-3xl p-1 shadow-2xl shadow-purple-100 max-w-5xl mx-auto">
-            <div className="bg-white rounded-2xl p-8 flex items-center justify-center min-h-[300px]">
-              <div className="text-center text-gray-400">
-                <Brain className="w-24 h-24 mx-auto mb-4 text-purple-300" />
-                <p className="text-lg font-medium text-purple-400">
-                  Dashboard Preview
-                </p>
+          {/* Feature highlights — แทน placeholder */}
+          <div className="mt-10 sm:mt-16 grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-3xl mx-auto">
+            {[
+              { icon: Brain, label: "ประเมินพัฒนาการ AI", color: "text-purple-600 bg-purple-50" },
+              { icon: MessageCircle, label: "AI Coach 24 ชม.", color: "text-blue-600 bg-blue-50" },
+              { icon: Calendar, label: "แผนฝึกรายวัน", color: "text-green-600 bg-green-50" },
+              { icon: BarChart3, label: "ติดตามผล", color: "text-orange-600 bg-orange-50" },
+            ].map((f) => (
+              <div key={f.label} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 text-center">
+                <div className={`w-10 h-10 rounded-xl ${f.color} flex items-center justify-center mx-auto mb-2`}>
+                  <f.icon className="w-5 h-5" />
+                </div>
+                <p className="text-xs sm:text-sm font-medium text-gray-700 leading-tight">{f.label}</p>
               </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
