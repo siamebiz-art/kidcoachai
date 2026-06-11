@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -10,7 +11,6 @@ import {
   Calendar,
   Shield,
   ArrowRight,
-  Heart,
   Sparkles,
 } from "lucide-react";
 
@@ -21,14 +21,16 @@ export default function LandingPage() {
       <nav className="fixed top-0 w-full z-50 bg-white/90 backdrop-blur-md border-b border-purple-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-2">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-                <Heart className="w-5 h-5 text-white" />
-              </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                KidCoach AI
-              </span>
-            </div>
+            <Link href="/">
+              <Image
+                src="/logo.png"
+                alt="KidCoach AI"
+                width={160}
+                height={48}
+                className="h-11 w-auto object-contain"
+                priority
+              />
+            </Link>
             <div className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-600">
               <a href="#features" className="hover:text-purple-600 transition-colors">
                 ฟีเจอร์
@@ -362,12 +364,13 @@ export default function LandingPage() {
       <footer className="py-12 px-4 bg-gray-900 text-gray-400">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-                <Heart className="w-4 h-4 text-white" />
-              </div>
-              <span className="text-white font-bold">KidCoach AI</span>
-            </div>
+            <Image
+              src="/logo.png"
+              alt="KidCoach AI"
+              width={130}
+              height={40}
+              className="h-9 w-auto object-contain brightness-0 invert"
+            />
             <p className="text-sm text-center">
               © 2024 KidCoach AI. ผู้ช่วยฝึกพัฒนาการเด็ก ไม่ใช่เครื่องมือการแพทย์
             </p>
