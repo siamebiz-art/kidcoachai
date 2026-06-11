@@ -14,10 +14,10 @@ export default function manifest(): MetadataRoute.Manifest {
     lang: "th",
     categories: ["education", "health"],
     icons: [
-      { src: "/logo-icon.png", sizes: "192x192", type: "image/png", purpose: "any" },
-      { src: "/logo-icon.png", sizes: "512x512", type: "image/png", purpose: "any" },
-      { src: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png", purpose: "maskable" },
-      { src: "/icons/icon-512x512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
+      { src: "/icon-192x192.png", sizes: "192x192", type: "image/png", purpose: "any" },
+      { src: "/icon-512x512.png", sizes: "512x512", type: "image/png", purpose: "any" },
+      { src: "/icon-192x192.png", sizes: "192x192", type: "image/png", purpose: "maskable" },
+      { src: "/icon-512x512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
     ],
     shortcuts: [
       { name: "AI Coach", url: "/dashboard/ai-coach", description: "ถาม AI Coach ได้ทันที" },
