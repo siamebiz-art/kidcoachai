@@ -4,7 +4,24 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Mic, MicOff, ChevronLeft, X } from "lucide-react";
-import { KidoAvatar, type KidoEmotion } from "@/components/kido/kido-avatar";
+import type { KidoEmotion } from "@/components/kido/kido-avatar";
+
+const KIDO_CSS = `
+@keyframes kidoFloat    { 0%,100%{transform:translateY(0)}          50%{transform:translateY(-8px)} }
+@keyframes kidoBob      { 0%,100%{transform:translateY(0) rotate(0deg)}  25%{transform:translateY(-4px) rotate(-3deg)} 75%{transform:translateY(-4px) rotate(3deg)} }
+@keyframes kidoBounce   { 0%,100%{transform:translateY(0) scale(1)} 50%{transform:translateY(-14px) scale(1.1)} }
+@keyframes kidoWiggle   { 0%,100%{transform:rotate(0deg)}           25%{transform:rotate(-6deg)} 75%{transform:rotate(6deg)} }
+@keyframes kidoPulse    { 0%,100%{transform:scale(1)}               50%{transform:scale(1.07)} }
+@keyframes kidoGlow     { 0%,100%{opacity:0.3;transform:scale(1)}   50%{opacity:0.6;transform:scale(1.1)} }
+`;
+
+const KIDO_ANIM: Record<KidoEmotion, string> = {
+  idle:        "kidoFloat 3s ease-in-out infinite",
+  talking:     "kidoBob 0.5s ease-in-out infinite",
+  celebrating: "kidoBounce 0.4s ease-in-out infinite",
+  thinking:    "kidoWiggle 1.5s ease-in-out infinite",
+  listening:   "kidoPulse 1s ease-in-out infinite",
+};
 import { useProfile } from "@/hooks/use-profile";
 import toast from "react-hot-toast";
 
@@ -236,8 +253,19 @@ export default function KidoPage() {
       <div className="relative z-10 flex flex-col items-center h-[calc(100%-56px)] px-4 pb-safe">
 
         {/* Kido avatar */}
-        <div className="flex-shrink-0 mt-2">
-          <KidoAvatar emotion={emotion} size={170} />
+        <div className="flex-shrink-0 mt-2 relative">
+          <style dangerouslySetInnerHTML={{ __html: KIDO_CSS }} />
+          {/* Glow behind */}
+          <div className="absolute inset-0 rounded-full bg-purple-400/30 blur-3xl scale-125"
+            style={{ animation: "kidoGlow 3s ease-in-out infinite" }} />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/kido.png"
+            alt="Kido"
+            width={200}
+            height={200}
+            style={{ animation: KIDO_ANIM[emotion], objectFit: "contain", filter: "drop-shadow(0 8px 24px rgba(139,92,246,0.5))" }}
+          />
         </div>
 
         {/* Speech bubble */}
