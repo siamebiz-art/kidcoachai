@@ -101,7 +101,7 @@ function getStatusInfo(score: number) {
 
 export default function AssessmentPage() {
   const router = useRouter();
-  const { isLoaded, childProfile, saveAssessment, saveWeeklyPlan } = useProfile();
+  const { isLoaded, childProfile, saveAssessment, saveAssessmentAndPlan } = useProfile();
 
   const [step, setStep] = useState<"intro" | "quiz" | "result">("intro");
   const [currentQ, setCurrentQ] = useState(0);
@@ -199,26 +199,24 @@ export default function AssessmentPage() {
 
       if (res.ok) {
         const { plan } = await res.json();
-        await saveWeeklyPlan({
-          generatedAt: new Date().toISOString(),
-          childName: name,
-          ...plan,
-        });
+        await saveAssessmentAndPlan(
+          {
+            date: new Date().toISOString(),
+            childName: name,
+            childAge: age,
+            scores: {
+              ภาษา: results.ภาษา,
+              การสื่อสาร: results.การสื่อสาร,
+              การเรียนรู้: results.การเรียนรู้,
+              สมาธิ: results.สมาธิ,
+              กล้ามเนื้อ: results.กล้ามเนื้อ,
+            },
+            overall: results.overall,
+          },
+          { generatedAt: new Date().toISOString(), childName: name, ...plan }
+        );
         toast.success("บันทึกและสร้างแผนสำเร็จ!", { id: toastId });
       } else {
-        await saveAssessment({
-          date: new Date().toISOString(),
-          childName: name,
-          childAge: age,
-          scores: {
-            ภาษา: results.ภาษา,
-            การสื่อสาร: results.การสื่อสาร,
-            การเรียนรู้: results.การเรียนรู้,
-            สมาธิ: results.สมาธิ,
-            กล้ามเนื้อ: results.กล้ามเนื้อ,
-          },
-          overall: results.overall,
-        });
         toast.success("บันทึกผลสำเร็จ (สร้างแผนได้ที่หน้าแผนการฝึก)", { id: toastId });
       }
       router.push("/dashboard/plan");

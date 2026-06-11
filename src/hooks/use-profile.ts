@@ -56,6 +56,18 @@ export function useProfile() {
     await user?.update({ unsafeMetadata: { ...metadata, weeklyPlan: plan } });
   }
 
+  async function saveAssessmentAndPlan(result: AssessmentResult, plan: WeeklyPlan) {
+    const history = [...assessmentHistory, result].slice(-12);
+    await user?.update({
+      unsafeMetadata: {
+        ...metadata,
+        latestAssessment: result,
+        assessmentHistory: history,
+        weeklyPlan: plan,
+      },
+    });
+  }
+
   async function toggleActivity(key: string) {
     const updated = { ...activityLog, [key]: !activityLog[key] };
     await user?.update({ unsafeMetadata: { ...metadata, activityLog: updated } });
@@ -99,6 +111,7 @@ export function useProfile() {
     updateFamilyPhoto,
     saveAssessment,
     saveWeeklyPlan,
+    saveAssessmentAndPlan,
     toggleActivity,
     addMilestone,
     toggleBookmark,
