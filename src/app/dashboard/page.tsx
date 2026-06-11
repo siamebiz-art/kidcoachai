@@ -24,6 +24,13 @@ const adjustedToday = rawToday === 0 ? 6 : rawToday - 1;
 const DAY_LABELS = ["จ", "อ", "พ", "พฤ", "ศ", "ส", "อา"];
 
 const TIME_EMOJI: Record<string, string>     = { เช้า: "☀️", บ่าย: "🌤️", เย็น: "🌙" };
+const SKILL_TO_GAME: Record<string, string> = {
+  ภาษา: "picture-quiz",
+  การสื่อสาร: "flashcard",
+  การเรียนรู้: "counting",
+  สมาธิ: "matching",
+  กล้ามเนื้อ: "sorting",
+};
 const TIME_GRADIENT: Record<string, string>  = {
   เช้า: "from-amber-400 to-orange-400",
   บ่าย: "from-sky-400 to-blue-500",
@@ -268,6 +275,107 @@ export default function DashboardPage() {
           {/* ═══ LEFT COLUMN ═══ */}
           <div className="space-y-5">
 
+            {/* ── HERO: AI Coach Card ── */}
+            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 p-6 lg:p-8 shadow-xl">
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(255,255,255,0.15),_transparent_55%)]" />
+              <div className="absolute -bottom-10 -right-10 w-52 h-52 rounded-full bg-white/5 pointer-events-none" />
+              <div className="absolute top-4 right-4 pointer-events-none">
+                <div className="text-[120px] opacity-5 select-none leading-none">🤖</div>
+              </div>
+
+              <div className="relative flex flex-col lg:flex-row items-start gap-5">
+
+                {/* AI Avatar */}
+                <div className="shrink-0">
+                  <div className="relative">
+                    <div className="w-20 h-20 rounded-3xl bg-white/20 backdrop-blur-sm border border-white/30 flex items-center justify-center shadow-lg">
+                      <span className="text-5xl select-none">🤖</span>
+                    </div>
+                    <div className="absolute -bottom-1.5 -right-1.5 flex items-center gap-1 bg-green-400 rounded-full px-2 py-0.5 shadow-sm">
+                      <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                      <span className="text-[10px] text-white font-bold">ออนไลน์</span>
+                    </div>
+                  </div>
+                  <div className="mt-2 text-center">
+                    <span className="text-white/60 text-[11px] font-semibold">AI Coach</span>
+                  </div>
+                </div>
+
+                {/* Message bubble */}
+                <div className="flex-1 min-w-0">
+                  <div className="inline-flex items-center gap-1.5 bg-white/20 rounded-full px-3 py-1 text-white/90 text-xs font-semibold mb-3">
+                    <Sparkles className="w-3.5 h-3.5" /> แนะนำสำหรับวันนี้
+                  </div>
+
+                  {aiRec && childProfile ? (
+                    <div className="space-y-1.5">
+                      <p className="text-white font-bold text-base lg:text-lg leading-snug">
+                        จากข้อมูลล่าสุด {childProfile.name} มีพัฒนาการด้าน{aiRec.strongest}ดีขึ้น
+                        {progressChange !== null && (
+                          <span className="text-green-300 ml-1">{progressChange >= 0 ? "+" : ""}{progressChange}%</span>
+                        )} 🎉
+                      </p>
+                      <p className="text-white/80 text-sm lg:text-base leading-relaxed">
+                        {todayActivities[0]
+                          ? `วันนี้แนะนำ "${todayActivities[0].activity}" ${todayActivities[0].duration} เพื่อพัฒนาด้าน${aiRec.weakest}ให้แข็งแกร่งขึ้นค่ะ`
+                          : `วันนี้แนะนำกิจกรรมฝึกด้าน${aiRec.weakest}เพื่อพัฒนาทักษะที่ยังต้องการความช่วยเหลือค่ะ`}
+                      </p>
+                    </div>
+                  ) : childProfile ? (
+                    <div className="space-y-1.5">
+                      <p className="text-white font-bold text-base lg:text-lg leading-snug">
+                        สวัสดีค่ะ! AI ยังรอข้อมูลพัฒนาการของ{childProfile.name}อยู่ค่ะ 🌟
+                      </p>
+                      <p className="text-white/80 text-sm leading-relaxed">
+                        ทำแบบประเมินเพียง 3 นาที AI จะวิเคราะห์และสร้างแผนฝึกเฉพาะตัวให้ทันทีค่ะ ✨
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="text-white text-base leading-relaxed">
+                      สวัสดีค่ะ! เริ่มต้นด้วยการตั้งค่าข้อมูลเด็กเพื่อรับคำแนะนำจาก AI ค่ะ
+                    </p>
+                  )}
+
+                  {/* Quick info chips */}
+                  {aiRec && todayActivities[0] && (
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      <span className="inline-flex items-center gap-1 bg-white/15 rounded-full px-3 py-1 text-white text-xs font-medium">
+                        🎯 {todayActivities[0].activity}
+                      </span>
+                      <span className="inline-flex items-center gap-1 bg-white/15 rounded-full px-3 py-1 text-white text-xs font-medium">
+                        ⏱ {todayActivities[0].duration}
+                      </span>
+                      <span className="inline-flex items-center gap-1 bg-white/15 rounded-full px-3 py-1 text-white text-xs font-medium">
+                        📈 ด้าน{aiRec.weakest}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* CTA buttons */}
+                <div className="flex flex-row lg:flex-col gap-2 w-full lg:w-auto shrink-0">
+                  <Link
+                    href={
+                      aiRec
+                        ? `/dashboard/activities?game=${SKILL_TO_GAME[aiRec.weakest] ?? "matching"}`
+                        : "/dashboard/assessment"
+                    }
+                    className="flex-1 lg:flex-none"
+                  >
+                    <button className="w-full lg:w-44 bg-white text-purple-700 font-bold text-sm px-4 py-3 rounded-2xl flex items-center justify-center gap-2 hover:bg-white/90 transition-colors shadow-md">
+                      <Sparkles className="w-4 h-4" />
+                      {aiRec ? "เริ่มกิจกรรม" : "ประเมินลูกเลย"}
+                    </button>
+                  </Link>
+                  <Link href="/dashboard/ai-coach" className="flex-1 lg:flex-none">
+                    <button className="w-full lg:w-44 bg-white/20 text-white font-semibold text-sm px-4 py-3 rounded-2xl flex items-center justify-center gap-2 hover:bg-white/30 transition-colors border border-white/30">
+                      <Mic className="w-4 h-4" /> พูดคุยกับ AI
+                    </button>
+                  </Link>
+                </div>
+              </div>
+            </div>
+
             {/* Score Cards */}
             <Card className="p-5 shadow-sm border-gray-100 bg-white">
               <div className="flex items-center justify-between mb-4">
@@ -319,31 +427,8 @@ export default function DashboardPage() {
               )}
             </Card>
 
-            {/* Middle 3-col: AI card | Assessment CTA | Streak */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-
-              {/* AI Recommendation */}
-              <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-purple-500 via-pink-500 to-rose-400 p-5 shadow-md flex flex-col">
-                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_rgba(255,255,255,0.15),_transparent_60%)]" />
-                <div className="relative flex-1">
-                  <div className="inline-flex items-center gap-1.5 bg-white/20 rounded-full px-3 py-1 text-white text-xs font-semibold mb-3">
-                    <Sparkles className="w-3.5 h-3.5" /> AI แนะนำสำหรับวันนี้
-                  </div>
-                  <div className="text-5xl mb-3 select-none">🤖</div>
-                  <p className="text-white text-sm leading-relaxed">
-                    {aiRec
-                      ? aiRec.text
-                      : childProfile
-                        ? `ทำแบบประเมินเพื่อให้ AI วิเคราะห์และแนะนำกิจกรรมที่เหมาะกับ${childProfile.name}โดยเฉพาะค่ะ ✨`
-                        : "ตั้งค่าข้อมูลเด็กและทำแบบประเมินเพื่อรับคำแนะนำจาก AI ค่ะ"}
-                  </p>
-                </div>
-                <Link href={aiRec?.href ?? "/dashboard/assessment"} className="relative mt-4">
-                  <button className="w-full bg-white/20 hover:bg-white/30 text-white font-bold text-sm px-4 py-2.5 rounded-2xl border border-white/30 transition-colors">
-                    {aiRec ? "เริ่มกิจกรรมแนะนำ →" : "เริ่มประเมินเลย →"}
-                  </button>
-                </Link>
-              </div>
+            {/* Middle 2-col: Assessment CTA | Streak */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
               {/* Assessment CTA */}
               <Card className="p-5 shadow-sm border-gray-100 bg-white flex flex-col items-center text-center justify-between">

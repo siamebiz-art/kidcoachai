@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -37,10 +38,21 @@ type Activity = (typeof ACTIVITIES)[0];
 
 export default function ActivitiesPage() {
   const { latestAssessment, activityLog, toggleActivity } = useProfile();
+  const searchParams = useSearchParams();
   const [selectedCat, setSelectedCat] = useState("ทั้งหมด");
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<Activity | null>(null);
   const [completing, setCompleting] = useState(false);
+
+  // Auto-start a game when ?game= param is present (from dashboard hero CTA)
+  useEffect(() => {
+    const gameId = searchParams.get("game");
+    if (gameId && !selected) {
+      const match = ACTIVITIES.find((a) => a.interactive === gameId);
+      if (match) setSelected(match);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Find weak areas (score < 60)
   const weakCategories = latestAssessment
