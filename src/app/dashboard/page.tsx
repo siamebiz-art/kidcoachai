@@ -85,11 +85,12 @@ export default function DashboardPage() {
   const scores = latestAssessment?.scores ?? null;
   const overall = latestAssessment?.overall ?? 0;
 
-  const streakDays = new Set(
-    Object.entries(activityLog)
-      .filter(([k, v]) => v && !k.startsWith("lib-"))
-      .map(([k]) => k.split("-")[0])
-  ).size;
+  // Count days this week where at least 1 plan activity is marked done
+  const streakDays = weeklyPlan
+    ? DAY_KEYS.filter((dk) =>
+        ((weeklyPlan[dk as DayKey] as PlanActivity[]) ?? []).some((_, idx) => activityLog[`${dk}-${idx}`])
+      ).length
+    : 0;
   const level = getStreakLevel(streakDays);
 
   const progressChange =
