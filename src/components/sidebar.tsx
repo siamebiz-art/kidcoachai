@@ -7,11 +7,10 @@ import Image from "next/image";
 import { useProfile } from "@/hooks/use-profile";
 import {
   Home, TrendingUp, Calendar, Gamepad2, BarChart3,
-  BookOpen, Bot, Users, Settings, Crown, Sparkles, Menu, X, Camera, LogOut,
+  BookOpen, Bot, Users, Settings, Crown, Sparkles, X, Camera, LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
 
 const navItems = [
   { href: "/dashboard",             icon: Home,       label: "หน้าหลัก",        color: "text-blue-600",   bg: "bg-blue-100"   },
@@ -29,7 +28,6 @@ function FamilyPhoto() {
   return (
     <div className="mx-3 mb-2 shrink-0 relative group">
       <div className="rounded-2xl overflow-hidden bg-gradient-to-br from-blue-100 via-sky-50 to-purple-100 flex items-center justify-center py-3 px-2">
-        {/* Try real image first, fallback to emoji */}
         <div className="relative">
           <Image
             src="/family.png"
@@ -39,8 +37,8 @@ function FamilyPhoto() {
             className="rounded-xl object-cover w-full h-auto"
             onError={(e) => {
               (e.target as HTMLImageElement).style.display = "none";
-              const fallback = document.getElementById("family-emoji-fallback");
-              if (fallback) fallback.style.display = "flex";
+              const el = document.getElementById("family-emoji-fallback");
+              if (el) el.style.display = "flex";
             }}
           />
           <div id="family-emoji-fallback"
@@ -51,15 +49,11 @@ function FamilyPhoto() {
           </div>
         </div>
       </div>
-      {/* Edit button */}
       <Link href="/dashboard/settings">
         <button className="absolute top-2 right-2 w-7 h-7 bg-white/90 backdrop-blur-sm rounded-full shadow-md border border-gray-100 items-center justify-center hidden group-hover:flex transition-all hover:bg-white">
           <Camera className="w-3.5 h-3.5 text-gray-500" />
         </button>
       </Link>
-      <p className="text-center text-[10px] text-gray-400 mt-1 select-none">
-        กดค้างเพื่อเปลี่ยนรูปครอบครัว
-      </p>
     </div>
   );
 }
@@ -78,13 +72,13 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
         </Link>
         {onClose && (
           <button onClick={onClose}
-            className="lg:hidden w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100">
+            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors">
             <X className="w-4 h-4 text-gray-500" />
           </button>
         )}
       </div>
 
-      {/* Scrollable middle: nav + upgrade + family */}
+      {/* Scrollable content */}
       <div className="flex-1 overflow-y-auto">
         <nav className="p-3 space-y-0.5">
           {navItems.map((item) => {
@@ -96,7 +90,7 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
                   isActive ? "bg-blue-50 text-blue-700" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                 )}>
                   <div className={cn(
-                    "w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-all",
+                    "w-7 h-7 rounded-lg flex items-center justify-center shrink-0",
                     isActive ? "bg-blue-100" : item.bg
                   )}>
                     <item.icon className={cn("w-4 h-4", isActive ? "text-blue-600" : item.color)} />
@@ -108,7 +102,7 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
           })}
         </nav>
 
-        {/* Upgrade — right below ตั้งค่า */}
+        {/* Upgrade banner */}
         <div className="mx-3 mb-2">
           <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-100 rounded-2xl px-3 py-2.5">
             <div className="flex items-center justify-between mb-1.5">
@@ -119,7 +113,7 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
               </div>
               <span className="text-[9px] text-gray-400">ไม่จำกัด</span>
             </div>
-            <Link href="/dashboard/settings?tab=billing">
+            <Link href="/dashboard/settings?tab=billing" onClick={onClose}>
               <Button size="sm"
                 className="w-full text-xs bg-gradient-to-r from-pink-500 to-rose-500 text-white border-0 rounded-xl h-7 font-bold shadow-sm">
                 อัปเกรดเลย
@@ -128,7 +122,7 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
           </div>
         </div>
 
-        {/* User — above family photo */}
+        {/* User info */}
         <div className="px-3 pb-2">
           <div className="flex items-center gap-3 p-2.5 rounded-xl bg-gray-50">
             <UserButton />
@@ -139,10 +133,9 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
           </div>
         </div>
 
-        {/* Family photo — very bottom */}
         <FamilyPhoto />
 
-        {/* Sign out button */}
+        {/* Sign out */}
         <div className="px-3 pb-3">
           <SignOutButton>
             <button className="w-full flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-medium text-red-500 hover:bg-red-50 transition-colors border border-red-100">
@@ -156,32 +149,33 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
   );
 }
 
-export function Sidebar() {
-  const [mobileOpen, setMobileOpen] = useState(false);
-
+export function Sidebar({
+  mobileOpen,
+  onClose,
+}: {
+  mobileOpen: boolean;
+  onClose: () => void;
+}) {
   return (
     <>
-      {/* Mobile hamburger */}
-      <button onClick={() => setMobileOpen(true)}
-        className="lg:hidden fixed top-4 left-4 z-40 w-10 h-10 bg-white rounded-xl shadow-md border border-gray-100 flex items-center justify-center">
-        <Menu className="w-5 h-5 text-gray-600" />
-      </button>
-
       {/* Mobile overlay */}
       {mobileOpen && (
-        <div className="lg:hidden fixed inset-0 z-40 bg-black/40" onClick={() => setMobileOpen(false)} />
+        <div
+          className="lg:hidden fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
+          onClick={onClose}
+        />
       )}
 
-      {/* Mobile sidebar */}
+      {/* Mobile sidebar drawer */}
       <aside className={cn(
-        "lg:hidden fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-xl transition-transform duration-300",
+        "lg:hidden fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-xl transition-transform duration-300 ease-in-out",
         mobileOpen ? "translate-x-0" : "-translate-x-full"
       )}>
-        <SidebarContent onClose={() => setMobileOpen(false)} />
+        <SidebarContent onClose={onClose} />
       </aside>
 
       {/* Desktop sidebar */}
-      <aside className="hidden lg:flex w-56 min-h-screen bg-white border-r border-gray-100 flex-col shadow-sm shrink-0">
+      <aside className="hidden lg:flex w-56 bg-white border-r border-gray-100 flex-col shadow-sm shrink-0 overflow-hidden">
         <SidebarContent />
       </aside>
     </>

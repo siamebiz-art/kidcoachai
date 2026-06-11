@@ -54,7 +54,7 @@ export default function AICoachPage() {
   };
 
   return (
-    <div className="h-screen flex flex-col max-h-screen">
+    <div className="flex flex-col h-full min-h-0">
       {/* Header */}
       <div className="bg-gradient-to-r from-purple-600 to-violet-700 p-5 shrink-0">
         <div className="flex items-center justify-between max-w-4xl mx-auto">
@@ -88,7 +88,7 @@ export default function AICoachPage() {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+      <div className="flex-1 overflow-y-auto min-h-0 p-4 space-y-4 bg-gray-50">
         <div className="max-w-4xl mx-auto">
           {messages.length === 0 && (
             <div className="text-center py-12">

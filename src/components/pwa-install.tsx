@@ -1,53 +1,51 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { X, Download, Smartphone } from "lucide-react";
+import { X, Download, Share } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 }
 
+type Platform = "android" | "ios" | "desktop" | null;
+
 export function PWAInstallPrompt() {
-  const [deferredPrompt, setDeferredPrompt] =
-    useState<BeforeInstallPromptEvent | null>(null);
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showBanner, setShowBanner] = useState(false);
-  const [isIOS, setIsIOS] = useState(false);
-  const [isInstalled, setIsInstalled] = useState(false);
+  const [platform, setPlatform] = useState<Platform>(null);
 
   useEffect(() => {
-    // Check if already installed
-    if (window.matchMedia("(display-mode: standalone)").matches) {
-      setIsInstalled(true);
-      return;
-    }
+    // Already installed as PWA
+    if (window.matchMedia("(display-mode: standalone)").matches) return;
 
-    // Check iOS
-    const ua = navigator.userAgent;
-    const ios =
-      /iphone|ipad|ipod/i.test(ua) &&
-      !(window as Window & { MSStream?: unknown }).MSStream;
-    setIsIOS(ios);
-
-    // Check if banner was dismissed recently
+    // Dismissed recently (7 days)
     const dismissed = localStorage.getItem("pwa-install-dismissed");
-    if (dismissed) {
-      const dismissedAt = parseInt(dismissed);
-      if (Date.now() - dismissedAt < 7 * 24 * 60 * 60 * 1000) return;
-    }
+    if (dismissed && Date.now() - parseInt(dismissed) < 7 * 24 * 60 * 60 * 1000) return;
 
-    // Android/Desktop: listen for beforeinstallprompt
+    const ua = navigator.userAgent;
+    const isIOS = /iphone|ipad|ipod/i.test(ua) && !(window as unknown as { MSStream?: unknown }).MSStream;
+    const isMac = /macintosh/i.test(ua) && navigator.maxTouchPoints === 0;
+    const isDesktop = !isIOS && (isMac || !/android|mobile/i.test(ua));
+
+    // Android / Desktop: wait for browser beforeinstallprompt
     const handler = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
-      setShowBanner(true);
+      setPlatform(isDesktop ? "desktop" : "android");
+      // Show after 8s of engagement
+      setTimeout(() => setShowBanner(true), 8000);
     };
     window.addEventListener("beforeinstallprompt", handler);
 
-    // iOS: show manual instructions after 3s
-    if (ios) {
-      const timer = setTimeout(() => setShowBanner(true), 3000);
+    // iOS: show manual instructions after 5s
+    if (isIOS) {
+      const timer = setTimeout(() => {
+        setPlatform("ios");
+        setShowBanner(true);
+      }, 5000);
       return () => {
         window.removeEventListener("beforeinstallprompt", handler);
         clearTimeout(timer);
@@ -61,11 +59,11 @@ export function PWAInstallPrompt() {
     if (!deferredPrompt) return;
     await deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
-    if (outcome === "accepted") {
-      setIsInstalled(true);
-    }
     setShowBanner(false);
     setDeferredPrompt(null);
+    if (outcome === "accepted") {
+      localStorage.setItem("pwa-install-dismissed", Date.now().toString());
+    }
   };
 
   const handleDismiss = () => {
@@ -73,63 +71,76 @@ export function PWAInstallPrompt() {
     localStorage.setItem("pwa-install-dismissed", Date.now().toString());
   };
 
-  if (!showBanner || isInstalled) return null;
+  if (!showBanner || !platform) return null;
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 z-50 max-w-sm mx-auto">
-      <div className="bg-white rounded-2xl shadow-2xl border border-purple-100 p-4 flex items-start gap-3">
-        {/* App Icon */}
-        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shrink-0">
-          <span className="text-2xl">💜</span>
+    <div className="fixed bottom-safe-area-inset-bottom bottom-4 left-4 right-4 z-50 max-w-sm mx-auto animate-in slide-in-from-bottom-4 duration-300">
+      <div className="bg-white rounded-2xl shadow-2xl border border-purple-100 overflow-hidden">
+        {/* Header strip */}
+        <div className="bg-gradient-to-r from-purple-600 to-pink-600 px-4 py-2 flex items-center justify-between">
+          <span className="text-white text-xs font-semibold">
+            {platform === "ios" ? "ติดตั้งบน iPhone / iPad" : platform === "desktop" ? "ติดตั้งบนคอมพิวเตอร์" : "ติดตั้งบนมือถือ"}
+          </span>
+          <button onClick={handleDismiss} className="text-white/70 hover:text-white">
+            <X className="w-4 h-4" />
+          </button>
         </div>
 
-        {/* Content */}
-        <div className="flex-1 min-w-0">
-          <p className="font-bold text-gray-900 text-sm">ติดตั้ง KidCoach AI</p>
-          {isIOS ? (
-            <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">
-              กด{" "}
-              <span className="inline-flex items-center gap-0.5 font-medium text-blue-600">
-                Share
-              </span>{" "}
-              แล้วเลือก <strong>&quot;Add to Home Screen&quot;</strong>
-            </p>
-          ) : (
-            <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">
-              ติดตั้งบนอุปกรณ์ เข้าใช้ได้เหมือนแอปทั่วไป ไม่ต้องผ่านเบราว์เซอร์
-            </p>
-          )}
+        <div className="p-4 flex items-start gap-3">
+          {/* App icon */}
+          <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 border border-purple-100">
+            <Image src="/icons/icon-192x192.png" alt="KidCoach AI" width={48} height={48} className="w-full h-full object-cover" />
+          </div>
 
-          {!isIOS && (
-            <Button
-              onClick={handleInstall}
-              size="sm"
-              className="mt-2 h-8 text-xs bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0 rounded-xl gap-1.5"
-            >
-              <Download className="w-3.5 h-3.5" />
-              ติดตั้งเลย
-            </Button>
-          )}
-        </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-bold text-gray-900 text-sm">KidCoach AI</p>
 
-        {/* Close */}
-        <button
-          onClick={handleDismiss}
-          className="shrink-0 w-6 h-6 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
-        >
-          <X className="w-4 h-4 text-gray-400" />
-        </button>
-      </div>
+            {/* iOS instructions */}
+            {platform === "ios" && (
+              <div className="mt-1 space-y-1.5">
+                <p className="text-xs text-gray-600 leading-relaxed">
+                  ติดตั้งเป็นแอปบนหน้าจอหลัก ใช้งานได้เหมือนแอปทั่วไป
+                </p>
+                <div className="flex items-center gap-1.5 text-xs text-blue-600 font-medium">
+                  <span className="bg-blue-50 rounded px-1.5 py-0.5 flex items-center gap-1">
+                    <Share className="w-3 h-3" /> กด Share
+                  </span>
+                  <span className="text-gray-400">→</span>
+                  <span className="bg-gray-50 rounded px-1.5 py-0.5 text-gray-700">Add to Home Screen</span>
+                </div>
+              </div>
+            )}
 
-      {/* iOS Arrow hint */}
-      {isIOS && (
-        <div className="flex justify-center mt-2">
-          <div className="bg-gray-900/80 text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1.5">
-            <Smartphone className="w-3.5 h-3.5" />
-            กดปุ่ม Share ที่ toolbar ด้านล่าง
+            {/* Android / Desktop */}
+            {(platform === "android" || platform === "desktop") && (
+              <div className="mt-1">
+                <p className="text-xs text-gray-500 leading-relaxed mb-2">
+                  {platform === "desktop"
+                    ? "ติดตั้งเป็นแอปบน Desktop เข้าใช้ได้เร็วขึ้น"
+                    : "ติดตั้งบนหน้าจอหลัก ใช้งานได้แม้ไม่มีสัญญาณ"}
+                </p>
+                <Button
+                  onClick={handleInstall}
+                  size="sm"
+                  className="h-8 text-xs bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0 rounded-xl gap-1.5"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  ติดตั้งเลย — ฟรี
+                </Button>
+              </div>
+            )}
           </div>
         </div>
-      )}
+
+        {/* iOS bottom hint arrow */}
+        {platform === "ios" && (
+          <div className="bg-gray-50 border-t border-gray-100 px-4 py-2 text-center">
+            <p className="text-[11px] text-gray-500">
+              👇 กดปุ่ม <strong>Share</strong> ที่ toolbar ด้านล่างเบราว์เซอร์
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
