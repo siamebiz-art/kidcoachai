@@ -126,19 +126,19 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
           </div>
         </div>
 
-        {/* Family photo */}
-        <FamilyPhoto />
-      </div>
-
-      {/* User — very bottom */}
-      <div className="p-3 border-t border-gray-100 shrink-0">
-        <div className="flex items-center gap-3">
-          <UserButton />
-          <div className="text-xs text-gray-500 min-w-0">
-            <div className="font-semibold text-gray-700 truncate">คุณแม่ก้อย</div>
-            <div className="truncate text-gray-400">Free Plan</div>
+        {/* User — above family photo */}
+        <div className="px-3 pb-2">
+          <div className="flex items-center gap-3 p-2.5 rounded-xl bg-gray-50">
+            <UserButton />
+            <div className="text-xs text-gray-500 min-w-0">
+              <div className="font-semibold text-gray-700 truncate">คุณแม่ก้อย</div>
+              <div className="truncate text-gray-400">Free Plan</div>
+            </div>
           </div>
         </div>
+
+        {/* Family photo — very bottom */}
+        <FamilyPhoto />
       </div>
     </div>
   );
