@@ -6,7 +6,7 @@ import { UserButton } from "@clerk/nextjs";
 import Image from "next/image";
 import {
   Home, TrendingUp, Calendar, Gamepad2, BarChart3,
-  BookOpen, Bot, Users, Settings, Crown, Sparkles, Menu, X,
+  BookOpen, Bot, Users, Settings, Crown, Sparkles, Menu, X, Camera,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,45 @@ const navItems = [
   { href: "/dashboard/community",   icon: Users,      label: "ชุมชนผู้ปกครอง", color: "text-pink-600",   bg: "bg-pink-100"   },
   { href: "/dashboard/settings",    icon: Settings,   label: "ตั้งค่า",          color: "text-gray-500",   bg: "bg-gray-100"   },
 ];
+
+function FamilyPhoto() {
+  return (
+    <div className="mx-3 mb-2 shrink-0 relative group">
+      <div className="rounded-2xl overflow-hidden bg-gradient-to-br from-blue-100 via-sky-50 to-purple-100 flex items-center justify-center py-3 px-2">
+        {/* Try real image first, fallback to emoji */}
+        <div className="relative">
+          <Image
+            src="/family.png"
+            alt="ครอบครัว"
+            width={140}
+            height={90}
+            className="rounded-xl object-cover w-full h-auto"
+            onError={(e) => {
+              (e.target as HTMLImageElement).style.display = "none";
+              const fallback = document.getElementById("family-emoji-fallback");
+              if (fallback) fallback.style.display = "flex";
+            }}
+          />
+          <div id="family-emoji-fallback"
+            className="hidden items-end justify-center gap-1 py-2 select-none">
+            <span className="text-4xl">👨</span>
+            <span className="text-3xl mb-1">👧</span>
+            <span className="text-4xl">👩</span>
+          </div>
+        </div>
+      </div>
+      {/* Edit button */}
+      <Link href="/dashboard/settings">
+        <button className="absolute top-2 right-2 w-7 h-7 bg-white/90 backdrop-blur-sm rounded-full shadow-md border border-gray-100 items-center justify-center hidden group-hover:flex transition-all hover:bg-white">
+          <Camera className="w-3.5 h-3.5 text-gray-500" />
+        </button>
+      </Link>
+      <p className="text-center text-[10px] text-gray-400 mt-1 select-none">
+        กดค้างเพื่อเปลี่ยนรูปครอบครัว
+      </p>
+    </div>
+  );
+}
 
 function SidebarContent({ onClose }: { onClose?: () => void }) {
   const pathname = usePathname();
@@ -67,42 +106,31 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
         })}
       </nav>
 
-      {/* Family illustration + Upgrade */}
-      <div className="mx-3 mb-3 rounded-2xl overflow-hidden bg-gradient-to-b from-violet-100 via-purple-50 to-pink-100 relative shrink-0">
-        {/* Decorative stars */}
-        <span className="absolute top-2 right-4 text-yellow-400 text-sm select-none">⭐</span>
-        <span className="absolute top-1 left-5 text-yellow-300 text-xs select-none">✦</span>
-        <span className="absolute top-4 right-10 text-pink-300 text-xs select-none">✦</span>
-        <span className="absolute top-2 left-12 text-purple-300 text-xs select-none">✦</span>
-
-        {/* Characters */}
-        <div className="flex items-end justify-center gap-0 pt-3 pb-1 select-none">
-          <span className="text-5xl leading-none">👩</span>
-          <span className="text-4xl leading-none mb-0.5">👧</span>
-        </div>
-
-        {/* Upgrade content */}
-        <div className="px-3 pb-3 pt-1">
-          <div className="text-[10px] text-gray-500 mb-0.5">อัปเกรดเป็น</div>
-          <div className="flex items-center gap-1 mb-1">
-            <Crown className="w-3.5 h-3.5 text-amber-500" />
-            <span className="text-sm font-bold text-amber-600">Premium</span>
-            <Sparkles className="w-3 h-3 text-amber-400" />
+      {/* Upgrade — right below last nav item */}
+      <div className="mx-3 mb-2 shrink-0">
+        <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-100 rounded-2xl px-3 py-2.5">
+          <div className="flex items-center justify-between mb-1.5">
+            <div className="flex items-center gap-1">
+              <Crown className="w-3.5 h-3.5 text-amber-500" />
+              <span className="text-xs font-bold text-amber-600">Premium</span>
+              <Sparkles className="w-3 h-3 text-amber-400" />
+            </div>
+            <span className="text-[9px] text-gray-400">ไม่จำกัด</span>
           </div>
-          <p className="text-[10px] text-gray-500 mb-2 leading-relaxed">
-            เข้าถึงทุกฟีเจอร์ ไม่จำกัด
-          </p>
           <Link href="/dashboard/settings?tab=billing">
             <Button size="sm"
-              className="w-full text-xs bg-gradient-to-r from-pink-500 to-rose-500 text-white border-0 rounded-xl h-8 font-bold shadow-sm">
+              className="w-full text-xs bg-gradient-to-r from-pink-500 to-rose-500 text-white border-0 rounded-xl h-7 font-bold shadow-sm">
               อัปเกรดเลย
             </Button>
           </Link>
         </div>
       </div>
 
+      {/* Family photo — changeable */}
+      <FamilyPhoto />
+
       {/* User — very bottom */}
-      <div className="p-4 border-t border-gray-100 shrink-0">
+      <div className="p-3 border-t border-gray-100 shrink-0">
         <div className="flex items-center gap-3">
           <UserButton />
           <div className="text-xs text-gray-500 min-w-0">
