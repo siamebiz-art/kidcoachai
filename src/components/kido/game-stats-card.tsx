@@ -78,7 +78,7 @@ export function GameStatsCard({ gameSessions, compact = false }: Props) {
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <Gamepad2 className="w-4 h-4 text-purple-500" />
-            <h3 className="font-bold text-gray-900 text-sm">สถิติการเล่นเกม</h3>
+            <h3 className="font-bold text-gray-900 text-sm">สถิติการเล่นเกมเสริมพัฒนาการ</h3>
           </div>
           <Link href="/dashboard/activities" className="text-xs text-purple-600 flex items-center gap-0.5 hover:underline">
             ไปเล่นเลย <ChevronRight className="w-3 h-3" />
@@ -98,7 +98,7 @@ export function GameStatsCard({ gameSessions, compact = false }: Props) {
       <div className="bg-gradient-to-r from-violet-600 to-purple-500 px-5 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Gamepad2 className="w-4 h-4 text-white/80" />
-          <span className="text-white font-bold text-sm">สถิติการเล่นเกม</span>
+          <span className="text-white font-bold text-sm">สถิติการเล่นเกมเสริมพัฒนาการ</span>
         </div>
         <Link href="/dashboard/progress" className="text-white/80 text-xs flex items-center gap-0.5 hover:text-white">
           ดูทั้งหมด <ChevronRight className="w-3 h-3" />
