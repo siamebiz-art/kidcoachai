@@ -249,50 +249,47 @@ export default function KidoPage() {
         </Link>
       </div>
 
-      {/* Main content */}
-      <div className="relative z-10 flex flex-col items-center h-[calc(100%-56px)] px-4 pb-safe">
+      {/* Main content — scrollable so nothing gets cut off on small screens */}
+      <div className="relative z-10 flex flex-col items-center h-[calc(100%-56px)] overflow-y-auto px-4 pb-6">
 
-        {/* Kido avatar */}
-        <div className="flex-shrink-0 mt-2 relative">
+        {/* Kido avatar — responsive size */}
+        <div className="relative mt-1 shrink-0">
           <style dangerouslySetInnerHTML={{ __html: KIDO_CSS }} />
-          {/* Glow behind */}
           <div className="absolute inset-0 rounded-full bg-purple-400/30 blur-3xl scale-125"
             style={{ animation: "kidoGlow 3s ease-in-out infinite" }} />
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/kido.png"
             alt="Kido"
-            width={200}
-            height={200}
+            className="w-36 h-36 sm:w-44 sm:h-44"
             style={{ animation: KIDO_ANIM[emotion], objectFit: "contain", filter: "drop-shadow(0 8px 24px rgba(139,92,246,0.5))" }}
           />
         </div>
 
         {/* Speech bubble */}
-        <div className={`relative mt-4 mx-auto max-w-xs w-full transition-all duration-300 ${displayed ? "opacity-100 scale-100" : "opacity-0 scale-95"}`}>
-          {/* Bubble tail */}
-          <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-0 h-0"
-            style={{ borderLeft: "8px solid transparent", borderRight: "8px solid transparent", borderBottom: "14px solid rgba(255,255,255,0.15)" }}
+        <div className={`relative mt-2 mx-auto max-w-xs w-full transition-all duration-300 ${displayed ? "opacity-100 scale-100" : "opacity-0 scale-95"}`}>
+          <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 w-0 h-0"
+            style={{ borderLeft: "8px solid transparent", borderRight: "8px solid transparent", borderBottom: "12px solid rgba(255,255,255,0.15)" }}
           />
-          <div className="bg-white/15 backdrop-blur-md border border-white/20 rounded-3xl px-5 py-4 shadow-xl">
-            <p className="text-white text-center text-base font-semibold leading-relaxed min-h-[2.5rem]">
+          <div className="bg-white/15 backdrop-blur-md border border-white/20 rounded-3xl px-4 py-3 shadow-xl">
+            <p className="text-white text-center text-sm font-semibold leading-relaxed min-h-[2rem]">
               {displayed || " "}
             </p>
           </div>
         </div>
 
-        {/* Activity grid — shown when in menu phase */}
+        {/* Activity grid */}
         {(phase === "menu" || phase === "greeting") && (
-          <div className="w-full max-w-sm mt-5">
-            <p className="text-white/60 text-xs text-center mb-3 font-medium">เลือกกิจกรรม</p>
-            <div className="grid grid-cols-2 gap-3">
+          <div className="w-full max-w-sm mt-3 shrink-0">
+            <p className="text-white/60 text-xs text-center mb-2 font-medium">เลือกกิจกรรม</p>
+            <div className="grid grid-cols-2 gap-2.5">
               {GAME_ITEMS.map((item) => (
                 <button
                   key={item.game}
                   onClick={() => handleGameSelect(item)}
-                  className={`bg-gradient-to-br ${item.color} rounded-2xl p-4 flex flex-col items-center gap-2 shadow-lg hover:scale-105 active:scale-95 transition-transform`}
+                  className={`bg-gradient-to-br ${item.color} rounded-2xl p-3.5 flex flex-col items-center gap-1.5 shadow-lg active:scale-95 transition-transform`}
                 >
-                  <span className="text-4xl">{item.emoji}</span>
+                  <span className="text-3xl">{item.emoji}</span>
                   <span className="text-white font-bold text-sm">{item.label}</span>
                 </button>
               ))}
@@ -300,55 +297,42 @@ export default function KidoPage() {
           </div>
         )}
 
-        {/* Thinking / responding indicator */}
+        {/* Thinking indicator */}
         {(phase === "thinking" || phase === "responding") && (
-          <div className="mt-6 flex items-center gap-2">
+          <div className="mt-4 flex items-center gap-2">
             {[0, 1, 2].map(i => (
-              <div
-                key={i}
-                className="w-3 h-3 rounded-full bg-white/60"
-                style={{ animation: `antennaPulse 0.8s ease-in-out ${i * 0.2}s infinite` }}
-              />
+              <div key={i} className="w-3 h-3 rounded-full bg-white/60"
+                style={{ animation: `antennaPulse 0.8s ease-in-out ${i * 0.2}s infinite` }} />
             ))}
             <span className="text-white/60 text-sm ml-1">คิโด้กำลังคิด...</span>
           </div>
         )}
 
         {/* Bottom controls */}
-        <div className="mt-auto pb-6 flex flex-col items-center gap-4 w-full max-w-xs">
-
-          {/* Praise button */}
+        <div className="mt-4 flex flex-col items-center gap-3 w-full max-w-xs shrink-0">
           <button
             onClick={handlePraise}
-            className="text-2xl bg-amber-400/20 hover:bg-amber-400/30 border border-amber-300/30 rounded-full px-5 py-2 text-white font-bold text-sm flex items-center gap-2 transition-colors"
+            className="bg-amber-400/20 hover:bg-amber-400/30 border border-amber-300/30 rounded-full px-5 py-2 text-white font-bold text-sm flex items-center gap-2 transition-colors"
           >
             🏆 น้องทำได้แล้ว!
           </button>
 
-          {/* Mic button */}
           {voiceSupported ? (
-            <div className="flex flex-col items-center gap-2">
+            <div className="flex flex-col items-center gap-1.5">
               <button
                 onClick={startListening}
-                className={`w-20 h-20 rounded-full flex items-center justify-center shadow-2xl transition-all duration-200 ${
+                className={`w-16 h-16 rounded-full flex items-center justify-center shadow-2xl transition-all duration-200 ${
                   isListening
                     ? "bg-red-500 scale-110 shadow-red-400/50 animate-pulse"
                     : "bg-gradient-to-br from-pink-500 to-rose-600 hover:scale-105 shadow-pink-500/40 active:scale-95"
                 }`}
               >
-                {isListening
-                  ? <MicOff className="w-9 h-9 text-white" />
-                  : <Mic className="w-9 h-9 text-white" />
-                }
+                {isListening ? <MicOff className="w-7 h-7 text-white" /> : <Mic className="w-7 h-7 text-white" />}
               </button>
-              <p className="text-white/60 text-xs">
-                {isListening ? "กด เพื่อหยุด" : "พูดกับคิโด้"}
-              </p>
+              <p className="text-white/60 text-xs">{isListening ? "กด เพื่อหยุด" : "พูดกับคิโด้"}</p>
             </div>
           ) : (
-            <p className="text-white/40 text-xs text-center">
-              ไม่รองรับการพูดบนเบราว์เซอร์นี้<br />ใช้ Chrome หรือ Safari บนมือถือ
-            </p>
+            <p className="text-white/40 text-xs text-center">ไม่รองรับการพูดบนเบราว์เซอร์นี้<br />ใช้ Chrome หรือ Safari บนมือถือ</p>
           )}
         </div>
       </div>
