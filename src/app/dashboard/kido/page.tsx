@@ -481,7 +481,7 @@ export default function KidoPage() {
           <div className="absolute inset-0 rounded-full bg-purple-400/30 blur-3xl scale-125"
             style={{ animation: "kidoGlow 3s ease-in-out infinite" }} />
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={KIDO_IMG[emotion]} alt="Kido" className="w-36 h-36 sm:w-44 sm:h-44"
+          <img src={KIDO_IMG[emotion]} alt="Kido" className="w-48 h-48 sm:w-56 sm:h-56"
             style={{ animation: KIDO_ANIM[emotion], objectFit: "contain", filter: "drop-shadow(0 8px 24px rgba(139,92,246,0.5))" }} />
         </div>
 
@@ -502,10 +502,11 @@ export default function KidoPage() {
             ) : (
               <p className="text-white/60 text-xs text-center mb-1.5 font-medium">เลือกกิจกรรม</p>
             )}
-            <div className="grid grid-cols-2 gap-2.5">
+            <div className="grid grid-cols-2 gap-3">
               {recOrder
                 .map((id) => GAME_ITEMS.find((g) => g.game === id)!)
                 .filter(Boolean)
+                .slice(0, 4)
                 .map((item) => {
                   const s = stats[item.game];
                   const isHighlight = item.game === recHighlight;
