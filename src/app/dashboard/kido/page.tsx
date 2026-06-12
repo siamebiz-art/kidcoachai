@@ -2,9 +2,13 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
-import { Mic, MicOff, ChevronLeft, X, BarChart2 } from "lucide-react";
+import { Mic, MicOff, ChevronLeft, X, BarChart2, Brain } from "lucide-react";
 import type { KidoEmotion } from "@/components/kido/kido-avatar";
+import type { GameResult, GameSession } from "@/lib/types";
 import { useProfile } from "@/hooks/use-profile";
+import { KidoBreakOverlay } from "@/components/kido/kido-break-overlay";
+import { KidoMissionOverlay } from "@/components/kido/kido-mission-overlay";
+import { addScreenMinute, loadDailyData, randomMission, type Mission } from "@/lib/daily-data";
 import toast from "react-hot-toast";
 import { MemoryMatchGame }  from "@/app/dashboard/activities/memory-game";
 import { PictureQuizGame }  from "@/app/dashboard/activities/picture-quiz";
@@ -39,8 +43,7 @@ const GAME_ITEMS = [
 ] as const;
 type GameId = typeof GAME_ITEMS[number]["game"];
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const GAME_MAP: Record<GameId, React.ComponentType<{ onBack: () => void; onComplete: () => void }>> = {
+const GAME_MAP: Record<GameId, React.ComponentType<{ onBack: () => void; onComplete: (result?: GameResult) => void }>> = {
   "matching":     MemoryMatchGame,
   "picture-quiz": PictureQuizGame,
   "flashcard":    FlashcardGame,
@@ -48,10 +51,28 @@ const GAME_MAP: Record<GameId, React.ComponentType<{ onBack: () => void; onCompl
   "sorting":      SortingGame,
 };
 
-/* ─── stats (localStorage) ─── */
-const STATS_KEY = "kidocoachai-stats";
+/* ─── stats + sessions + recommendation (localStorage) ─── */
+const STATS_KEY    = "kidocoachai-stats";
+const SESSIONS_KEY = "kidocoachai-sessions";
+const REC_KEY      = "kidocoachai-rec";
 type GameStat = { plays: number; lastPlayed: string };
 type StatsMap = Record<string, GameStat>;
+type RecCache = { order: GameId[]; highlight: GameId; reason: string; cachedAt: number };
+
+function loadRecCache(): RecCache | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(REC_KEY);
+    if (!raw) return null;
+    const data = JSON.parse(raw) as RecCache;
+    if (Date.now() - data.cachedAt > 24 * 60 * 60 * 1000) return null;
+    return data;
+  } catch { return null; }
+}
+function clearRecCache() {
+  if (typeof window !== "undefined") localStorage.removeItem(REC_KEY);
+}
+
 
 function loadStats(): StatsMap {
   if (typeof window === "undefined") return {};
@@ -80,7 +101,7 @@ type Phase = "greeting" | "menu" | "listening" | "thinking" | "responding";
 
 /* ══════════════════════════════════════════════════ */
 export default function KidoPage() {
-  const { childProfile, childAge } = useProfile();
+  const { childProfile, childAge, isLoaded, kidoSettings } = useProfile();
 
   const [emotion, setEmotion]       = useState<KidoEmotion>("idle");
   const [displayed, setDisplayed]   = useState("");
@@ -90,11 +111,24 @@ export default function KidoPage() {
   const [activeGame, setActiveGame] = useState<GameId | null>(null);
   const [stats, setStats]           = useState<StatsMap>({});
   const [showStats, setShowStats]   = useState(false);
+  const [insights, setInsights]     = useState("");
+  const [loadingInsights, setLoadingInsights] = useState(false);
+  const [recOrder, setRecOrder]     = useState<GameId[]>(GAME_ITEMS.map((g) => g.game));
+  const [recHighlight, setRecHighlight] = useState<GameId | null>(null);
+  const [recReason, setRecReason]   = useState("");
+  const [showBreak, setShowBreak]   = useState<"activity" | "limit" | null>(null);
+  const [showMission, setShowMission] = useState<Mission | null>(null);
+  const [dailyMinutes, setDailyMinutes] = useState(0);
+  const [resumeCount, setResumeCount] = useState(0);
 
-  const synthRef  = useRef<SpeechSynthesis | null>(null);
-  const typeTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const synthRef     = useRef<SpeechSynthesis | null>(null);
+  const typeTimer    = useRef<ReturnType<typeof setInterval> | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const recogRef  = useRef<any>(null);
+  const recogRef     = useRef<any>(null);
+  const sessionStart  = useRef(0);
+  const warned15      = useRef(false);
+  const missionShown  = useRef(false);
+  const playTimer     = useRef<ReturnType<typeof setInterval> | null>(null);
 
   /* ── speak ── */
   const speak = useCallback((text: string, em: KidoEmotion = "talking", onEnd?: () => void) => {
@@ -141,6 +175,108 @@ export default function KidoPage() {
     recogRef.current?.abort();
   }, []);
 
+  /* ── game recommendation (AI or rule-based, cached 24h) ── */
+  useEffect(() => {
+    if (!childProfile) return;
+    const cached = loadRecCache();
+    if (cached) {
+      setRecOrder(cached.order);
+      setRecHighlight(cached.highlight);
+      setRecReason(cached.reason);
+      return;
+    }
+    // fetch in background — never blocks UI
+    const sessions: GameSession[] = (() => {
+      try { return JSON.parse(localStorage.getItem(SESSIONS_KEY) ?? "[]"); }
+      catch { return []; }
+    })();
+    const ageMonths = childProfile.birthdate ? (() => {
+      const b = new Date(childProfile.birthdate);
+      const n = new Date();
+      return (n.getFullYear() - b.getFullYear()) * 12 + (n.getMonth() - b.getMonth());
+    })() : 0;
+    fetch("/api/kido-game-recommendation", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        childName: childProfile.name,
+        childAge,
+        diagnosisLabel: childProfile.diagnosisLabel,
+        diagnosisKey: childProfile.diagnosisKey,
+        ageMonths,
+        recentSessions: sessions.slice(0, 5),
+      }),
+    })
+      .then((r) => r.ok ? r.json() : null)
+      .then((data: { order: GameId[]; highlight: GameId; reason: string } | null) => {
+        if (!data || !data.order?.length) return;
+        const cache: RecCache = { ...data, cachedAt: Date.now() };
+        localStorage.setItem(REC_KEY, JSON.stringify(cache));
+        setRecOrder(data.order);
+        setRecHighlight(data.highlight);
+        setRecReason(data.reason);
+      })
+      .catch(() => { /* keep default order */ });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [childProfile]);
+
+  /* ── play-time guard (3 levels) ── */
+  useEffect(() => {
+    if (!isLoaded) return;
+    const limitMinutes = kidoSettings.dailyLimitMinutes;
+    const daily = loadDailyData();
+    const current = daily.screenMinutes;
+    setDailyMinutes(current);
+
+    // already hit daily limit
+    if (limitMinutes > 0 && current >= limitMinutes) {
+      setShowBreak("limit");
+      return;
+    }
+
+    sessionStart.current = Date.now();
+    warned15.current     = false;
+    missionShown.current = false;
+    if (playTimer.current) clearInterval(playTimer.current);
+
+    playTimer.current = setInterval(() => {
+      const updated = addScreenMinute();
+      setDailyMinutes(updated.screenMinutes);
+      const lim = kidoSettings.dailyLimitMinutes;
+      if (lim > 0 && updated.screenMinutes >= lim) {
+        speak("หยุดพักก่อนนะ! ไปเล่นของเล่นจริงๆ หรืออ่านนิทานกับคุณพ่อคุณแม่นะ 😊", "talking");
+        setShowBreak("limit");
+        clearInterval(playTimer.current!);
+        return;
+      }
+      const elapsed = Math.floor((Date.now() - sessionStart.current) / 60000);
+      // Level 1 – Gentle Reminder at 15 min
+      if (elapsed >= 15 && !warned15.current) {
+        warned15.current = true;
+        speak("เล่นมา 15 นาทีแล้วนะ ลุกขึ้นยืดเส้นยืดสายสักหน่อยนะ แล้วกลับมาเล่นต่อได้เลย 😊", "talking");
+      }
+      // Level 2 – Offline Mission at 20 min
+      if (elapsed >= 20 && !missionShown.current) {
+        missionShown.current = true;
+        const d = loadDailyData();
+        setShowMission(randomMission(d.completedMissions));
+      }
+      // Level 3 – Mandatory Activity Break at 30 min
+      if (elapsed >= 30) {
+        setShowBreak("activity");
+        clearInterval(playTimer.current!);
+      }
+    }, 60000);
+
+    return () => { if (playTimer.current) clearInterval(playTimer.current); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoaded, kidoSettings.dailyLimitMinutes, resumeCount]);
+
+  function handleResumeAfterBreak() {
+    setShowBreak(null);
+    setResumeCount((c) => c + 1);
+  }
+
   /* ── game handlers ── */
   function handleGameSelect(item: typeof GAME_ITEMS[number]) {
     speak(item.say, "talking", () => setActiveGame(item.game));
@@ -152,17 +288,66 @@ export default function KidoPage() {
     setPhase("menu");
   }
 
-  function handleGameComplete() {
+  function handleGameComplete(result?: GameResult) {
     const finished = activeGame!;
+    const finishedInfo = GAME_ITEMS.find((g) => g.game === finished)!;
     setStats((prev) => recordPlay(finished, prev));
     setActiveGame(null);
     setPhase("menu");
+
+    // clear rec cache so next visit re-fetches with new session data
+    clearRecCache();
+
+    // persist session for AI coaching analysis
+    if (result && typeof window !== "undefined") {
+      try {
+        const session: GameSession = {
+          gameId: finished,
+          gameName: finishedInfo.label,
+          date: new Date().toISOString().slice(0, 10),
+          score: result.score,
+          total: result.total,
+          accuracy: Math.round((result.score / Math.max(result.total, 1)) * 100),
+          ts: Date.now(),
+        };
+        const prev: GameSession[] = JSON.parse(localStorage.getItem(SESSIONS_KEY) ?? "[]");
+        localStorage.setItem(SESSIONS_KEY, JSON.stringify([session, ...prev].slice(0, 50)));
+      } catch { /* ignore */ }
+    }
 
     // suggest a random different game
     const others = GAME_ITEMS.filter((g) => g.game !== finished);
     const next = others[Math.floor(Math.random() * others.length)];
     const praise = PRAISE[Math.floor(Math.random() * PRAISE.length)];
     speak(`${praise} ลองเล่น${next.label}ต่อไหมนะ?`, "celebrating");
+  }
+
+  async function fetchInsights() {
+    setLoadingInsights(true);
+    setInsights("");
+    try {
+      const sessions: GameSession[] = JSON.parse(localStorage.getItem(SESSIONS_KEY) ?? "[]");
+      if (sessions.length === 0) {
+        setInsights("ยังไม่มีข้อมูลเพียงพอ เล่นเกมสัก 3 รอบก่อนนะ 🎮");
+        return;
+      }
+      const res = await fetch("/api/kido-insights", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessions: sessions.slice(0, 20), childName: childProfile?.name }),
+      });
+      if (!res.ok) {
+        const err = await res.json() as { error?: string };
+        setInsights(err.error ?? "ขอโทษนะ ลองใหม่ภายหลัง");
+        return;
+      }
+      const data = await res.json() as { insights: string };
+      setInsights(data.insights);
+    } catch {
+      setInsights("เกิดข้อผิดพลาด ลองใหม่นะ 😅");
+    } finally {
+      setLoadingInsights(false);
+    }
   }
 
   /* ── voice chat ── */
@@ -215,6 +400,21 @@ export default function KidoPage() {
     const gameInfo = GAME_ITEMS.find((g) => g.game === activeGame)!;
     return (
       <div className="fixed inset-0 z-[100] flex flex-col bg-gray-50">
+        {showMission && (
+          <KidoMissionOverlay
+            mission={showMission}
+            onComplete={() => setShowMission(null)}
+            onSkip={() => setShowMission(null)}
+          />
+        )}
+        {showBreak && (
+          <KidoBreakOverlay
+            type={showBreak}
+            dailyMinutes={dailyMinutes}
+            limitMinutes={kidoSettings.dailyLimitMinutes}
+            onResume={handleResumeAfterBreak}
+          />
+        )}
         {/* Slim Kido bar */}
         <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 shrink-0">
           <button onClick={handleGameBack} className="flex items-center gap-1 text-white/80 hover:text-white text-xs transition-colors">
@@ -290,23 +490,36 @@ export default function KidoPage() {
         {/* Game tiles */}
         {(phase === "menu" || phase === "greeting") && (
           <div className="w-full max-w-sm mt-3 shrink-0">
-            <p className="text-white/60 text-xs text-center mb-2 font-medium">เลือกกิจกรรม</p>
+            {recReason ? (
+              <p className="text-amber-300/90 text-xs text-center mb-1.5 font-medium">✨ {recReason}</p>
+            ) : (
+              <p className="text-white/60 text-xs text-center mb-1.5 font-medium">เลือกกิจกรรม</p>
+            )}
             <div className="grid grid-cols-2 gap-2.5">
-              {GAME_ITEMS.map((item) => {
-                const s = stats[item.game];
-                return (
-                  <button key={item.game} onClick={() => handleGameSelect(item)}
-                    className={`bg-gradient-to-br ${item.color} rounded-2xl p-3 flex flex-col items-center gap-1 shadow-lg active:scale-95 transition-transform relative`}>
-                    {s && (
-                      <span className="absolute top-1.5 right-1.5 bg-black/30 text-white text-[9px] font-bold rounded-full px-1.5 py-0.5">
-                        {s.plays}ครั้ง
-                      </span>
-                    )}
-                    <span className="text-3xl">{item.emoji}</span>
-                    <span className="text-white font-bold text-sm">{item.label}</span>
-                  </button>
-                );
-              })}
+              {recOrder
+                .map((id) => GAME_ITEMS.find((g) => g.game === id)!)
+                .filter(Boolean)
+                .map((item) => {
+                  const s = stats[item.game];
+                  const isHighlight = item.game === recHighlight;
+                  return (
+                    <button key={item.game} onClick={() => handleGameSelect(item)}
+                      className={`bg-gradient-to-br ${item.color} rounded-2xl p-3 flex flex-col items-center gap-1 shadow-lg active:scale-95 transition-transform relative ${isHighlight ? "ring-2 ring-white/70 mt-3" : ""}`}>
+                      {isHighlight && (
+                        <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber-400 text-gray-900 text-[9px] font-bold rounded-full px-2 py-0.5 whitespace-nowrap shadow">
+                          ⭐ แนะนำวันนี้
+                        </span>
+                      )}
+                      {s && !isHighlight && (
+                        <span className="absolute top-1.5 right-1.5 bg-black/30 text-white text-[9px] font-bold rounded-full px-1.5 py-0.5">
+                          {s.plays}ครั้ง
+                        </span>
+                      )}
+                      <span className="text-3xl">{item.emoji}</span>
+                      <span className="text-white font-bold text-sm">{item.label}</span>
+                    </button>
+                  );
+                })}
             </div>
           </div>
         )}
@@ -343,10 +556,29 @@ export default function KidoPage() {
         </div>
       </div>
 
+      {/* Offline mission overlay */}
+      {showMission && (
+        <KidoMissionOverlay
+          mission={showMission}
+          onComplete={() => setShowMission(null)}
+          onSkip={() => setShowMission(null)}
+        />
+      )}
+
+      {/* Break / daily-limit overlay */}
+      {showBreak && (
+        <KidoBreakOverlay
+          type={showBreak}
+          dailyMinutes={dailyMinutes}
+          limitMinutes={kidoSettings.dailyLimitMinutes}
+          onResume={handleResumeAfterBreak}
+        />
+      )}
+
       {/* Stats modal */}
       {showStats && (
         <div className="fixed inset-0 z-[110] flex items-end sm:items-center justify-center p-4" onClick={() => setShowStats(false)}>
-          <div className="bg-white rounded-3xl w-full max-w-sm p-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white rounded-3xl w-full max-w-sm p-5 shadow-2xl max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold text-gray-900">📊 สถิติการเล่น</h2>
               <button onClick={() => setShowStats(false)} className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
@@ -374,6 +606,23 @@ export default function KidoPage() {
             {Object.keys(stats).length === 0 && (
               <p className="text-center text-gray-400 text-sm mt-3">เริ่มเล่นเกมแรกได้เลย! 🎮</p>
             )}
+
+            {/* AI Coaching Insights */}
+            <div className="mt-4 border-t border-gray-100 pt-4">
+              <button
+                onClick={fetchInsights}
+                disabled={loadingInsights}
+                className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-2xl py-3 text-sm font-bold disabled:opacity-60"
+              >
+                <Brain className="w-4 h-4" />
+                {loadingInsights ? "AI กำลังวิเคราะห์..." : "🧠 AI วิเคราะห์พัฒนาการ"}
+              </button>
+              {insights && (
+                <div className="mt-3 bg-violet-50 rounded-2xl p-4 text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
+                  {insights}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}

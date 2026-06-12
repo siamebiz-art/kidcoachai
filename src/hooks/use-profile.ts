@@ -8,6 +8,7 @@ import type {
   AssessmentResult,
   WeeklyPlan,
   Milestone,
+  KidoSettings,
 } from "@/lib/types";
 import { calculateAge } from "@/lib/profile-utils";
 
@@ -28,6 +29,7 @@ export function useProfile() {
   const familyPhotoUrl = metadata.familyPhotoUrl;
   const subscriptionTier = metadata.subscriptionTier ?? "free";
   const isPremium = subscriptionTier === "premium" || subscriptionTier === "pro";
+  const kidoSettings: KidoSettings = metadata.kidoSettings ?? { dailyLimitMinutes: 0 };
 
   const displayName =
     parentProfile?.displayName ||
@@ -82,6 +84,10 @@ export function useProfile() {
     await user?.update({ unsafeMetadata: { ...metadata, familyPhotoUrl: url } });
   }
 
+  async function updateKidoSettings(data: KidoSettings) {
+    await user?.update({ unsafeMetadata: { ...metadata, kidoSettings: data } });
+  }
+
   async function toggleBookmark(articleId: number) {
     const next = bookmarkedArticles.includes(articleId)
       ? bookmarkedArticles.filter((id) => id !== articleId)
@@ -106,7 +112,9 @@ export function useProfile() {
     subscriptionTier,
     isPremium,
     familyPhotoUrl,
+    kidoSettings,
     updateChildProfile,
+    updateKidoSettings,
     updateParentProfile,
     updateFamilyPhoto,
     saveAssessment,

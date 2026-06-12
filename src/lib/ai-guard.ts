@@ -1,7 +1,7 @@
 import { currentUser, clerkClient } from "@clerk/nextjs/server";
 import type { UserMetadata } from "./types";
 
-type RouteId = "ai-coach" | "kido-chat" | "generate-plan";
+type RouteId = "ai-coach" | "kido-chat" | "generate-plan" | "kido-recommendation";
 type Tier = "free" | "premium" | "pro";
 
 interface RouteConfig {
@@ -30,6 +30,12 @@ const CONFIGS: Record<RouteId, RouteConfig> = {
     resetField:  "planGenResetDate",
     period:      "month",
     limits:      { free: 1, premium: 5, pro: -1 },
+  },
+  "kido-recommendation": {
+    countField: "kidoRecCount",
+    resetField:  "kidoRecResetDate",
+    period:      "day",
+    limits:      { free: 3, premium: 10, pro: -1 },
   },
 };
 

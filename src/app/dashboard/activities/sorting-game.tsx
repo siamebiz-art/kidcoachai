@@ -6,6 +6,7 @@ import { KidoGameOverlay } from "@/components/kido/kido-game-overlay";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, Trophy, CheckCircle2, RotateCcw } from "lucide-react";
+import type { GameResult } from "@/lib/types";
 
 type Category = { label: string; emoji: string; color: string; items: { emoji: string; name: string }[] };
 type SortSet = { name: string; categories: [Category, Category] };
@@ -83,7 +84,7 @@ function buildItems(set: SortSet): Item[] {
   return shuffle(all);
 }
 
-export function SortingGame({ onBack, onComplete }: { onBack: () => void; onComplete: () => void }) {
+export function SortingGame({ onBack, onComplete }: { onBack: () => void; onComplete: (result?: GameResult) => void }) {
   const [setIdx, setSetIdx] = useState<number | null>(null);
   const [items, setItems] = useState<Item[]>([]);
   const [current, setCurrent] = useState(0);
@@ -124,16 +125,16 @@ export function SortingGame({ onBack, onComplete }: { onBack: () => void; onComp
       setSelected(catIndex);
       const item = items[current];
       const correctLabel = SORT_SETS[setIdx].categories[item.catIndex].label;
-      if (catIndex === item.catIndex) {
-        setScore((s) => s + 1);
-        speak(`${item.name} เป็น${correctLabel} ถูกต้องเลย! เก่งมากเลย!`, "celebrating");
-      } else {
-        speak(`${item.name} เป็น${correctLabel}นะ ไม่เป็นไร ลองใหม่ได้เลย!`, "thinking");
-      }
-      setTimeout(() => {
+      const advance = () => {
         if (current + 1 >= items.length) setDone(true);
         else { setCurrent((c) => c + 1); setSelected(null); }
-      }, 1200);
+      };
+      if (catIndex === item.catIndex) {
+        setScore((s) => s + 1);
+        speak(`${item.name} เป็น${correctLabel} ถูกต้องเลย! เก่งมากเลย!`, "celebrating", advance);
+      } else {
+        speak(`${item.name} เป็น${correctLabel}นะ ไม่เป็นไร ลองใหม่ได้เลย!`, "thinking", advance);
+      }
     },
     [selected, current, items, setIdx, speak]
   );
@@ -187,7 +188,7 @@ export function SortingGame({ onBack, onComplete }: { onBack: () => void; onComp
             <RotateCcw className="w-4 h-4" /> เล่นอีกครั้ง
           </Button>
           <Button
-            onClick={() => { onComplete(); onBack(); }}
+            onClick={() => { onComplete({ score, total: items.length }); onBack(); }}
             className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0 rounded-xl gap-2"
           >
             <CheckCircle2 className="w-4 h-4" /> บันทึกเสร็จแล้ว

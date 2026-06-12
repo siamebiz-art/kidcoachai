@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, Trophy, RotateCcw, CheckCircle2 } from "lucide-react";
 import { useKidoVoice } from "@/hooks/use-kido-voice";
 import { KidoGameOverlay } from "@/components/kido/kido-game-overlay";
+import type { GameResult } from "@/lib/types";
 
 const EMOJI_SETS = {
   easy: ["🐱", "🐶", "🐸", "🐰", "🦁", "🐮"],
@@ -25,7 +26,7 @@ export function MemoryMatchGame({
   onComplete,
 }: {
   onBack: () => void;
-  onComplete: () => void;
+  onComplete: (result?: GameResult) => void;
 }) {
   const [difficulty, setDifficulty] = useState<Difficulty | null>(null);
   const [cards, setCards] = useState<Card[]>([]);
@@ -76,8 +77,8 @@ export function MemoryMatchGame({
         setCards(matched);
         setSelected([]);
         setLocked(false);
-        praise();
-        if (matched.every((c) => c.isMatched)) setDone(true);
+        const allDone = matched.every((c) => c.isMatched);
+        praise(allDone ? () => setDone(true) : undefined);
       } else {
         encourage();
         setTimeout(() => {
@@ -144,7 +145,7 @@ export function MemoryMatchGame({
             <RotateCcw className="w-4 h-4" /> เล่นอีกครั้ง
           </Button>
           <Button
-            onClick={() => { onComplete(); onBack(); }}
+            onClick={() => { onComplete({ score: EMOJI_SETS[difficulty!].length, total: moves }); onBack(); }}
             className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0 rounded-xl gap-2"
           >
             <CheckCircle2 className="w-4 h-4" /> บันทึกเสร็จแล้ว

@@ -6,6 +6,7 @@ import { Progress } from "@/components/ui/progress";
 import { ChevronLeft, RotateCcw, CheckCircle2, Trophy } from "lucide-react";
 import { useKidoVoice } from "@/hooks/use-kido-voice";
 import { KidoGameOverlay } from "@/components/kido/kido-game-overlay";
+import type { GameResult } from "@/lib/types";
 
 const VOCAB_CATEGORIES: Record<string, { emoji: string; word: string }[]> = {
   "🐾 สัตว์": [
@@ -47,7 +48,7 @@ export function FlashcardGame({
   onComplete,
 }: {
   onBack: () => void;
-  onComplete: () => void;
+  onComplete: (result?: GameResult) => void;
 }) {
   const [selectedCat, setSelectedCat] = useState<string | null>(null);
   const [cards, setCards] = useState<{ emoji: string; word: string }[]>([]);
@@ -56,6 +57,7 @@ export function FlashcardGame({
   const [done, setDone] = useState(false);
   const { emotion, message, speak } = useKidoVoice();
   const announcedDone = useRef(false);
+  const learnedRef = useRef(0);
 
   useEffect(() => { speak("มาฝึกคำศัพท์กันเลย! เลือกหมวดที่ชอบนะ 📖"); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   // Kido asks about each new card
@@ -77,19 +79,22 @@ export function FlashcardGame({
     setFlipped(false);
     setDone(false);
     announcedDone.current = false;
+    learnedRef.current = 0;
     // question effect will fire for first card
   };
 
   const next = (remember: boolean) => {
     const word = cards[index]?.word ?? "";
     if (remember) {
-      speak(`${word} จำได้แล้ว! เก่งมากเลย!`, "celebrating");
-      if (index + 1 >= cards.length) {
-        setDone(true);
-      } else {
-        setIndex(index + 1);
-        setFlipped(false);
-      }
+      learnedRef.current++;
+      speak(`${word} จำได้แล้ว! เก่งมากเลย!`, "celebrating", () => {
+        if (index + 1 >= cards.length) {
+          setDone(true);
+        } else {
+          setIndex(index + 1);
+          setFlipped(false);
+        }
+      });
     } else {
       speak(`${word} ลองฝึกอีกครั้งนะ จะจำได้เองเลย!`, "thinking");
       setCards((prev) => {
@@ -144,7 +149,7 @@ export function FlashcardGame({
             <RotateCcw className="w-4 h-4" /> เล่นอีกครั้ง
           </Button>
           <Button
-            onClick={() => { onComplete(); onBack(); }}
+            onClick={() => { onComplete({ score: learnedRef.current, total: VOCAB_CATEGORIES[selectedCat!].length }); onBack(); }}
             className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0 rounded-xl gap-2"
           >
             <CheckCircle2 className="w-4 h-4" /> บันทึกเสร็จแล้ว

@@ -13,15 +13,16 @@ import { useProfile } from "@/hooks/use-profile";
 import { DIAGNOSIS_OPTIONS } from "@/lib/profile-utils";
 import toast from "react-hot-toast";
 import {
-  User, Bell, Shield, CreditCard, Baby, Crown, Check, Loader2, Camera,
+  User, Bell, Shield, CreditCard, Baby, Crown, Check, Loader2, Camera, Timer,
 } from "lucide-react";
 
 const tabs = [
-  { id: "profile", label: "โปรไฟล์", icon: User },
-  { id: "child", label: "ข้อมูลเด็ก", icon: Baby },
-  { id: "notifications", label: "การแจ้งเตือน", icon: Bell },
-  { id: "billing", label: "แผนการสมัคร", icon: CreditCard },
-  { id: "privacy", label: "ความเป็นส่วนตัว", icon: Shield },
+  { id: "profile",       label: "โปรไฟล์",       icon: User },
+  { id: "child",         label: "ข้อมูลเด็ก",     icon: Baby },
+  { id: "kido",          label: "Kido",            icon: Timer },
+  { id: "notifications", label: "การแจ้งเตือน",   icon: Bell },
+  { id: "billing",       label: "แผนการสมัคร",    icon: CreditCard },
+  { id: "privacy",       label: "ความเป็นส่วนตัว", icon: Shield },
 ];
 
 function SettingsContent() {
@@ -33,7 +34,7 @@ function SettingsContent() {
   });
 
   const { openUserProfile } = useClerk();
-  const { isLoaded, childProfile, parentProfile, user, subscriptionTier, isPremium, updateChildProfile, updateParentProfile } = useProfile();
+  const { isLoaded, childProfile, parentProfile, user, subscriptionTier, isPremium, updateChildProfile, updateParentProfile, kidoSettings, updateKidoSettings } = useProfile();
   const [isCheckingOut, setIsCheckingOut] = useState<"premium" | "pro" | null>(null);
   const [isPortaling, setIsPortaling] = useState(false);
 
@@ -55,6 +56,11 @@ function SettingsContent() {
 
   const [isSaving, setIsSaving] = useState(false);
 
+  // Kido settings
+  const [kidoLimitEnabled, setKidoLimitEnabled] = useState(false);
+  const [kidoLimitMinutes, setKidoLimitMinutes] = useState(60);
+  const [todayMinutes, setTodayMinutes] = useState(0);
+
   // Reload Clerk user data after returning from Stripe checkout (run once only)
   const reloadedRef = useState(false);
   useEffect(() => {
@@ -66,6 +72,22 @@ function SettingsContent() {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoaded]);
+
+  useEffect(() => {
+    if (!isLoaded) return;
+    setKidoLimitEnabled((kidoSettings.dailyLimitMinutes ?? 0) > 0);
+    setKidoLimitMinutes(kidoSettings.dailyLimitMinutes > 0 ? kidoSettings.dailyLimitMinutes : 60);
+    // load today's usage from localStorage (client-side only)
+    try {
+      const raw = localStorage.getItem("kidocoachai-daily");
+      if (raw) {
+        const d = JSON.parse(raw) as { date: string; minutes?: number; screenMinutes?: number };
+        const today = new Date().toISOString().slice(0, 10);
+        setTodayMinutes(d.date === today ? (d.screenMinutes ?? d.minutes ?? 0) : 0);
+      }
+    } catch { /* ignore */ }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoaded, kidoSettings.dailyLimitMinutes]);
 
   useEffect(() => {
     if (!isLoaded) return;
@@ -128,6 +150,18 @@ function SettingsContent() {
       toast.error(e instanceof Error ? e.message : "อัปโหลดไม่สำเร็จ กรุณาลองใหม่");
     } finally {
       setChildAvatarUploading(false);
+    }
+  };
+
+  const handleSaveKido = async () => {
+    setIsSaving(true);
+    try {
+      await updateKidoSettings({ dailyLimitMinutes: kidoLimitEnabled ? kidoLimitMinutes : 0 });
+      toast.success("บันทึกการตั้งค่า Kido สำเร็จ!");
+    } catch {
+      toast.error("เกิดข้อผิดพลาด กรุณาลองใหม่");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -419,6 +453,113 @@ function SettingsContent() {
               >
                 {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
                 บันทึกข้อมูลเด็ก
+              </Button>
+            </Card>
+          )}
+
+          {/* Kido Tab */}
+          {activeTab === "kido" && (
+            <Card className="p-6 border-gray-100 shadow-sm">
+              <div className="flex items-center gap-3 mb-5">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/kido.png" alt="Kido" className="w-10 h-10 object-contain" />
+                <div>
+                  <h2 className="font-bold text-gray-900">Kido – AI Buddy ของลูก</h2>
+                  <p className="text-xs text-gray-400">ตั้งค่าเวลาเล่นและการดูแลสุขภาพ</p>
+                </div>
+              </div>
+
+              {/* Today usage */}
+              <div className="bg-purple-50 rounded-2xl p-4 mb-5">
+                <p className="text-xs text-gray-500 mb-1">วันนี้ลูกเล่นไปแล้ว</p>
+                <div className="flex items-end gap-1">
+                  <span className="text-3xl font-bold text-purple-600">{todayMinutes}</span>
+                  <span className="text-sm text-gray-500 mb-1">นาที</span>
+                </div>
+                {kidoSettings.dailyLimitMinutes > 0 && (
+                  <div className="mt-2">
+                    <div className="w-full bg-purple-100 rounded-full h-2">
+                      <div
+                        className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full transition-all"
+                        style={{ width: `${Math.min(100, (todayMinutes / kidoSettings.dailyLimitMinutes) * 100)}%` }}
+                      />
+                    </div>
+                    <p className="text-xs text-gray-400 mt-1 text-right">
+                      จาก {kidoSettings.dailyLimitMinutes} นาที/วัน
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Daily limit toggle */}
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <p className="text-sm font-medium text-gray-900">จำกัดเวลาเล่นต่อวัน</p>
+                  <p className="text-xs text-gray-400 mt-0.5">Kido จะบอกให้พักเมื่อครบเวลา</p>
+                </div>
+                <Switch checked={kidoLimitEnabled} onCheckedChange={setKidoLimitEnabled} />
+              </div>
+
+              {kidoLimitEnabled && (
+                <div className="mb-5">
+                  <p className="text-sm font-medium text-gray-700 mb-3">เวลาสูงสุดต่อวัน</p>
+                  <div className="grid grid-cols-4 gap-2 mb-3">
+                    {[30, 45, 60, 90].map((min) => (
+                      <button
+                        key={min}
+                        onClick={() => setKidoLimitMinutes(min)}
+                        className={`py-2.5 rounded-xl text-sm font-bold border-2 transition-all ${
+                          kidoLimitMinutes === min
+                            ? "border-purple-500 bg-purple-50 text-purple-700"
+                            : "border-gray-200 text-gray-600 hover:border-gray-300"
+                        }`}
+                      >
+                        {min}<span className="text-xs font-normal"> นาที</span>
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-xs text-gray-500 shrink-0">กำหนดเอง:</span>
+                    <div className="flex items-center gap-1 flex-1">
+                      <input
+                        type="number"
+                        min={10}
+                        max={180}
+                        value={![30, 45, 60, 90].includes(kidoLimitMinutes) ? kidoLimitMinutes : ""}
+                        onChange={(e) => {
+                          const v = parseInt(e.target.value);
+                          if (!isNaN(v) && v >= 10 && v <= 180) setKidoLimitMinutes(v);
+                        }}
+                        placeholder="10-180"
+                        className="w-20 text-sm border border-gray-200 rounded-xl px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-purple-200"
+                      />
+                      <span className="text-xs text-gray-400">นาที</span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-400">
+                    💡 WHO แนะนำ 60 นาที/วัน สำหรับเด็ก 3-5 ปี
+                  </p>
+                </div>
+              )}
+
+              {/* Auto break info — 3-level system */}
+              <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4 mb-5">
+                <p className="text-sm font-semibold text-amber-800 mb-2">🛡️ ระบบดูแลเวลาอัจฉริยะ (3 ระดับ)</p>
+                <ul className="text-xs text-amber-700 space-y-1.5">
+                  <li>• <span className="font-semibold">ครบ 15 นาที:</span> Kido พูดเตือนให้ยืดเส้นยืดสาย</li>
+                  <li>• <span className="font-semibold">ครบ 20 นาที:</span> ภารกิจออฟไลน์ (กระโดด กอดแม่ วาดรูป)</li>
+                  <li>• <span className="font-semibold">ครบ 30 นาที:</span> พักบังคับ — มินิเกมออกกำลังกายกับ Kido</li>
+                  <li>• <span className="font-semibold">ครบเวลาที่ตั้ง:</span> หยุดเล่นสำหรับวันนี้</li>
+                </ul>
+              </div>
+
+              <Button
+                onClick={handleSaveKido}
+                disabled={isSaving}
+                className="bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0 rounded-xl gap-2"
+              >
+                {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
+                บันทึกการตั้งค่า Kido
               </Button>
             </Card>
           )}

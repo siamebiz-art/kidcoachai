@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, Trophy, CheckCircle2, RotateCcw } from "lucide-react";
 import { useKidoVoice } from "@/hooks/use-kido-voice";
 import { KidoGameOverlay } from "@/components/kido/kido-game-overlay";
+import type { GameResult } from "@/lib/types";
 
 const ALL_VOCAB = [
   { emoji: "🐱", word: "แมว" }, { emoji: "🐶", word: "หมา" }, { emoji: "🐸", word: "กบ" },
@@ -37,7 +38,7 @@ function buildQuestions(count = 10): Question[] {
   });
 }
 
-export function PictureQuizGame({ onBack, onComplete }: { onBack: () => void; onComplete: () => void }) {
+export function PictureQuizGame({ onBack, onComplete }: { onBack: () => void; onComplete: (result?: GameResult) => void }) {
   const [questions, setQuestions] = useState<Question[]>(() => buildQuestions());
   const [index, setIndex] = useState(0);
   const [score, setScore] = useState(0);
@@ -72,16 +73,16 @@ export function PictureQuizGame({ onBack, onComplete }: { onBack: () => void; on
       if (selected !== null) return;
       setSelected(emoji);
       const word = questions[index].prompt;
-      if (emoji === questions[index].correct) {
-        setScore((s) => s + 1);
-        speak(`ใช่เลย! นั่นแหละ${word} เก่งมากเลย!`, "celebrating");
-      } else {
-        speak(`ยังไม่ใช่นะ ลองหา${word}อีกครั้งนะ!`, "thinking");
-      }
-      setTimeout(() => {
+      const advance = () => {
         if (index + 1 >= questions.length) setDone(true);
         else { setIndex((i) => i + 1); setSelected(null); }
-      }, 1200);
+      };
+      if (emoji === questions[index].correct) {
+        setScore((s) => s + 1);
+        speak(`ใช่เลย! นั่นแหละ${word} เก่งมากเลย!`, "celebrating", advance);
+      } else {
+        speak(`ยังไม่ใช่นะ ลองหา${word}อีกครั้งนะ!`, "thinking", advance);
+      }
     },
     [selected, index, questions, speak]
   );
@@ -104,7 +105,7 @@ export function PictureQuizGame({ onBack, onComplete }: { onBack: () => void; on
             <RotateCcw className="w-4 h-4" /> เล่นอีกครั้ง
           </Button>
           <Button
-            onClick={() => { onComplete(); onBack(); }}
+            onClick={() => { onComplete({ score, total: questions.length }); onBack(); }}
             className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0 rounded-xl gap-2"
           >
             <CheckCircle2 className="w-4 h-4" /> บันทึกเสร็จแล้ว

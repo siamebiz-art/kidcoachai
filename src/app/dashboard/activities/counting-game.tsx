@@ -6,6 +6,7 @@ import { useKidoVoice } from "@/hooks/use-kido-voice";
 import { KidoGameOverlay } from "@/components/kido/kido-game-overlay";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, Trophy, CheckCircle2, RotateCcw } from "lucide-react";
+import type { GameResult } from "@/lib/types";
 
 const DOT_THEMES = ["🍎", "⭐", "🌸", "🐾"];
 
@@ -30,7 +31,7 @@ function buildRounds(max: number, total = 10): Round[] {
 
 type Difficulty = "easy" | "hard";
 
-export function CountingGame({ onBack, onComplete }: { onBack: () => void; onComplete: () => void }) {
+export function CountingGame({ onBack, onComplete }: { onBack: () => void; onComplete: (result?: GameResult) => void }) {
   const [difficulty, setDifficulty] = useState<Difficulty | null>(null);
   const [rounds, setRounds] = useState<Round[]>([]);
   const [index, setIndex] = useState(0);
@@ -68,16 +69,16 @@ export function CountingGame({ onBack, onComplete }: { onBack: () => void; onCom
       if (selected !== null) return;
       setSelected(n);
       const correct = rounds[index].count;
-      if (n === correct) {
-        setScore((s) => s + 1);
-        speak(`ถูกต้องเลย! มี ${correct} ตัว เก่งมากเลย!`, "celebrating");
-      } else {
-        speak(`ยังไม่ใช่นะ มี ${correct} ตัวนะ ลองดูอีกครั้งนะ!`, "thinking");
-      }
-      setTimeout(() => {
+      const advance = () => {
         if (index + 1 >= rounds.length) setDone(true);
         else { setIndex((i) => i + 1); setSelected(null); }
-      }, 1200);
+      };
+      if (n === correct) {
+        setScore((s) => s + 1);
+        speak(`ถูกต้องเลย! มี ${correct} ตัว เก่งมากเลย!`, "celebrating", advance);
+      } else {
+        speak(`ยังไม่ใช่นะ มี ${correct} ตัวนะ ลองดูอีกครั้งนะ!`, "thinking", advance);
+      }
     },
     [selected, index, rounds, speak]
   );
@@ -135,7 +136,7 @@ export function CountingGame({ onBack, onComplete }: { onBack: () => void; onCom
             <RotateCcw className="w-4 h-4" /> เล่นอีกครั้ง
           </Button>
           <Button
-            onClick={() => { onComplete(); onBack(); }}
+            onClick={() => { onComplete({ score, total: rounds.length }); onBack(); }}
             className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0 rounded-xl gap-2"
           >
             <CheckCircle2 className="w-4 h-4" /> บันทึกเสร็จแล้ว

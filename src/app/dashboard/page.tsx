@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { loadDailyData, computeBalanceScore, OFFLINE_MISSIONS, type DailyData } from "@/lib/daily-data";
 import Image from "next/image";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,16 @@ import {
   Flame, Zap, Send, Mic, Camera, BarChart3, Volume2, Clock, Star, Trophy,
 } from "lucide-react";
 import toast from "react-hot-toast";
+
+const KIDO_MESSAGES = [
+  "วันนี้หนูเก่งมากเลย! อย่าลืมดื่มน้ำด้วยนะ 💧",
+  "คิโด้ดีใจที่ได้เล่นกับหนูมากเลย! หนูเรียนรู้อะไรใหม่วันนี้เหรอ? 🌟",
+  "อย่าลืมกอดคุณพ่อหรือคุณแม่วันนี้ด้วยนะ 🤗",
+  "ลุกขึ้นเดินสัก 5 นาที แล้วค่อยมาเล่นต่อนะ 🏃",
+  "บอกคุณพ่อแม่ว่าวันนี้หนูชอบอะไรที่สุดนะ 😊",
+  "การนอนหลับช่วยให้สมองแข็งแรง อย่าลืมนอนให้พอนะ 🌙",
+  "ลองวาดรูปหรืออ่านนิทานกับครอบครัวดูนะ 📖",
+];
 
 const rawToday = new Date().getDay();
 const adjustedToday = rawToday === 0 ? 6 : rawToday - 1;
@@ -81,7 +92,13 @@ export default function DashboardPage() {
   const {
     isLoaded, childProfile, childAge, displayName, parentProfile,
     latestAssessment, assessmentHistory, weeklyPlan, activityLog, toggleActivity,
+    isPremium, kidoSettings,
   } = useProfile();
+
+  const [dailyData, setDailyData] = useState<DailyData>({
+    date: "", screenMinutes: 0, physicalMinutes: 0, readingMinutes: 0, parentMinutes: 0, completedMissions: [],
+  });
+  useEffect(() => { setDailyData(loadDailyData()); }, []);
 
   useEffect(() => {
     if (isLoaded && !childProfile) router.replace("/onboarding");
@@ -99,6 +116,12 @@ export default function DashboardPage() {
       ).length
     : 0;
   const level = getStreakLevel(streakDays);
+
+  const limitMinutes = kidoSettings.dailyLimitMinutes || 60;
+  const screenPct    = Math.min(100, (dailyData.screenMinutes / limitMinutes) * 100);
+  const balanceScore = computeBalanceScore(dailyData);
+  const todayMission = OFFLINE_MISSIONS.find((m) => !dailyData.completedMissions.includes(m.id)) ?? null;
+  const kidoMsg      = KIDO_MESSAGES[Math.floor(Date.now() / 86400000) % KIDO_MESSAGES.length];
 
   const progressChange =
     assessmentHistory.length >= 2
@@ -380,6 +403,163 @@ export default function DashboardPage() {
                 </div>
               </div>
             </div>
+
+            {/* ── Kido Healthy Screen Time™ ── */}
+            {childProfile && (
+              <div className="rounded-3xl overflow-hidden border border-purple-100 shadow-sm bg-white">
+
+                {/* Header */}
+                <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 px-5 py-3 flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="/kido.png" alt="Kido" className="w-9 h-9 object-contain" />
+                    <div>
+                      <div className="text-white font-black text-sm">Kido Healthy Screen Time™</div>
+                      <div className="text-white/60 text-[10px]">ระบบดูแลเวลาใช้งานอัจฉริยะ</div>
+                    </div>
+                  </div>
+                  <span className="bg-amber-400 text-gray-900 text-[10px] font-black px-2.5 py-0.5 rounded-full">✨ PREMIUM</span>
+                </div>
+
+                {/* Top row: Screen Time | Daily Balance */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-gray-100">
+
+                  {/* Screen Time */}
+                  <div className="p-4 flex flex-col items-center text-center">
+                    <div className="flex items-center gap-1.5 mb-2">
+                      <div className={`w-2 h-2 rounded-full ${dailyData.screenMinutes < 25 ? "bg-green-400" : "bg-amber-400"}`} />
+                      <span className={`text-xs font-bold ${dailyData.screenMinutes < 25 ? "text-green-600" : "text-amber-600"}`}>
+                        {dailyData.screenMinutes < 25 ? "ปลอดภัย" : "ใกล้ถึงเวลาพัก"}
+                      </span>
+                    </div>
+                    <div className="flex items-end gap-1 mb-1">
+                      <span className="text-4xl font-black text-gray-900">{dailyData.screenMinutes}</span>
+                      <span className="text-gray-400 text-sm font-semibold mb-1">/{limitMinutes} นาที</span>
+                    </div>
+                    <div className="w-full max-w-[160px] h-2.5 bg-gray-100 rounded-full overflow-hidden mb-3">
+                      <div className="h-full rounded-full transition-all"
+                        style={{ width: `${screenPct}%`, background: screenPct < 60 ? "#10B981" : screenPct < 85 ? "#F59E0B" : "#EF4444" }} />
+                    </div>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="/kido.png" alt="Kido" className="w-16 h-16 object-contain my-1" />
+                    <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+                      {dailyData.screenMinutes < 15
+                        ? "Kido แนะนำพักหลังเล่นครบ 15 นาที 😊"
+                        : dailyData.screenMinutes < 30
+                        ? "Kido แนะนำพักหน่อยแล้วเล่นต่อนะ 🔔"
+                        : "ถึงเวลาพักตาสักหน่อยแล้ว! 😴"}
+                    </p>
+                    <Link href="/dashboard/kido" className="mt-3 w-full max-w-[160px]">
+                      <button className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-xs font-bold py-2.5 rounded-xl active:scale-95 transition-transform">
+                        เล่นกับ Kido →
+                      </button>
+                    </Link>
+                  </div>
+
+                  {/* Daily Balance */}
+                  <div className="p-4">
+                    {isPremium ? (
+                      <>
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="text-xs font-bold text-gray-700">⚖️ Daily Balance</span>
+                          <div className="relative w-14 h-14">
+                            <svg viewBox="0 0 36 36" className="w-14 h-14 -rotate-90">
+                              <circle cx="18" cy="18" r="15.9" fill="none" stroke="#f3f4f6" strokeWidth="4" />
+                              <circle cx="18" cy="18" r="15.9" fill="none" stroke="#8B5CF6" strokeWidth="4"
+                                strokeDasharray={`${balanceScore} ${100 - balanceScore}`} strokeLinecap="round" />
+                            </svg>
+                            <div className="absolute inset-0 flex flex-col items-center justify-center">
+                              <span className="text-[11px] font-black text-gray-900">{balanceScore}</span>
+                              <span className="text-[7px] text-gray-400 leading-none">/100</span>
+                            </div>
+                          </div>
+                        </div>
+                        {([
+                          { icon: "📱", label: "Screen Time", minutes: dailyData.screenMinutes, max: 60,  color: "#3B82F6" },
+                          { icon: "🏃", label: "Physical",    minutes: dailyData.physicalMinutes, max: 15, color: "#10B981" },
+                          { icon: "📖", label: "Learning",    minutes: dailyData.readingMinutes,  max: 10, color: "#8B5CF6" },
+                          { icon: "👨‍👩‍👧", label: "Family",    minutes: dailyData.parentMinutes,  max: 10, color: "#F59E0B" },
+                        ] as const).map((m) => (
+                          <div key={m.label} className="flex items-center gap-2 mb-1.5">
+                            <span className="text-xs w-5 shrink-0">{m.icon}</span>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex justify-between text-[10px] text-gray-400 mb-0.5">
+                                <span>{m.label}</span>
+                                <span>{m.minutes} นาที</span>
+                              </div>
+                              <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                <div className="h-full rounded-full transition-all"
+                                  style={{ width: `${Math.min(100, (m.minutes / m.max) * 100)}%`, backgroundColor: m.color }} />
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </>
+                    ) : (
+                      <div className="h-full flex flex-col items-center justify-center text-center py-6">
+                        <div className="text-3xl mb-2">🔒</div>
+                        <div className="font-bold text-gray-700 text-sm mb-1">Daily Balance</div>
+                        <p className="text-[11px] text-gray-400 mb-4 leading-relaxed">
+                          ติดตาม 4 มิติพัฒนาการ<br />ของลูกแบบ Real-time
+                        </p>
+                        <Link href="/dashboard/settings?tab=billing">
+                          <button className="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-bold px-4 py-2 rounded-xl shadow-sm active:scale-95 transition-transform">
+                            อัปเกรด Premium
+                          </button>
+                        </Link>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Bottom row: Mission | Kido Message */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-gray-100 border-t border-gray-100">
+
+                  {/* ภารกิจแนะนำวันนี้ */}
+                  <div className="p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-bold text-gray-700">🎯 ภารกิจแนะนำวันนี้</span>
+                      {todayMission && (
+                        <span className="text-[10px] text-purple-500 font-semibold">+{todayMission.minutes} นาที ⭐</span>
+                      )}
+                    </div>
+                    {todayMission ? (
+                      <div className="flex items-center gap-3 bg-purple-50 rounded-2xl p-3">
+                        <span className="text-2xl">{todayMission.emoji}</span>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-gray-800 truncate">{todayMission.title}</p>
+                          <p className="text-[10px] text-gray-400">
+                            {todayMission.category === "physical" ? "ออกกำลังกาย" : todayMission.category === "parent" ? "เวลากับครอบครัว" : "การเรียนรู้"}
+                          </p>
+                        </div>
+                        <Link href="/dashboard/kido">
+                          <button className="shrink-0 bg-purple-500 text-white text-[10px] font-bold px-2.5 py-1.5 rounded-xl">
+                            เริ่ม
+                          </button>
+                        </Link>
+                      </div>
+                    ) : (
+                      <div className="bg-green-50 rounded-2xl p-3 text-center">
+                        <div className="text-xl mb-0.5">🎉</div>
+                        <p className="text-xs font-semibold text-green-700">ทำภารกิจครบทุกอย่างแล้ว!</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* ข้อความจาก Kido */}
+                  <div className="p-4">
+                    <div className="text-xs font-bold text-gray-700 mb-2">💬 ข้อความจาก Kido</div>
+                    <div className="flex items-start gap-2">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src="/kido.png" alt="Kido" className="w-10 h-10 object-contain shrink-0" />
+                      <div className="bg-indigo-50 rounded-2xl rounded-tl-sm px-3 py-2.5 flex-1">
+                        <p className="text-xs text-gray-700 leading-relaxed">{kidoMsg}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Score Cards */}
             <Card className="p-5 shadow-sm border-gray-100 bg-white">

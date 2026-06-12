@@ -1,4 +1,19 @@
 export type DayKey = "monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday";
+
+export interface KidoSettings {
+  dailyLimitMinutes: number; // 0 = unlimited
+}
+export type GameResult = { score: number; total: number };
+
+export interface GameSession {
+  gameId: string;
+  gameName: string;
+  date: string;          // "YYYY-MM-DD"
+  score: number;
+  total: number;
+  accuracy: number;      // 0-100
+  ts: number;            // epoch ms
+}
 export type ScoreKey = "ภาษา" | "การสื่อสาร" | "การเรียนรู้" | "สมาธิ" | "กล้ามเนื้อ";
 
 export interface AssessmentScores {
@@ -81,5 +96,8 @@ export interface UserMetadata {
   kidoChatResetDate?: string;
   planGenCount?: number;       // monthly
   planGenResetDate?: string;   // "YYYY-MM"
+  kidoRecCount?: number;
+  kidoRecResetDate?: string;
+  kidoSettings?: KidoSettings;
   familyPhotoUrl?: string;
 }
