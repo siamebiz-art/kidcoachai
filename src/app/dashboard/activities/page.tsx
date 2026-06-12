@@ -20,6 +20,11 @@ import { ShapesGame } from "./shapes-game";
 import { SequenceGame } from "./sequence-game";
 import { BubblePopGame } from "./bubble-pop-game";
 import { OppositeGame } from "./opposite-game";
+import { DialogueGame } from "./dialogue-game";
+import { NeedsGame } from "./needs-game";
+import { OddOneOutGame } from "./odd-one-out-game";
+import { RhythmGame } from "./rhythm-game";
+import { WordCategoryGame } from "./word-category-game";
 
 const categories = ["ทั้งหมด", "ภาษา", "การสื่อสาร", "สมาธิ", "กล้ามเนื้อ", "การเรียนรู้"];
 
@@ -38,6 +43,11 @@ const ACTIVITIES = [
   { id: 12, title: "เกมเรียงลำดับ",      category: "การเรียนรู้", duration: "10 นาที",   age: "3-7 ปี",  difficulty: "ปานกลาง", emoji: "📋", color: "from-teal-400 to-cyan-500",     description: "เรียงภาพเหตุการณ์ให้ถูกลำดับ ฝึกการคิดอย่างเป็นระบบและเหตุ-ผล",                     starred: false, materials: [], interactive: "sequence" as const },
   { id: 13, title: "เกมป๊อปบับเบิล",    category: "สมาธิ",       duration: "1 นาที",    age: "3-8 ปี",  difficulty: "ง่าย",     emoji: "🫧", color: "from-yellow-400 to-orange-400", description: "ป๊อปเฉพาะฟองที่มีตัวเลขที่กำหนดภายใน 30 วินาที ฝึกสมาธิและการตอบสนอง",              starred: true,  materials: [], interactive: "bubble-pop" as const },
   { id: 14, title: "เกมคำตรงข้าม",      category: "ภาษา",        duration: "10 นาที",   age: "4-8 ปี",  difficulty: "ปานกลาง", emoji: "🔄", color: "from-indigo-400 to-purple-500", description: "หาคำที่มีความหมายตรงข้าม พัฒนาคลังคำศัพท์และทักษะภาษา",                              starred: false, materials: [], interactive: "opposite" as const },
+  { id: 15, title: "เกมบทสนทนา",       category: "การสื่อสาร", duration: "10 นาที",   age: "3-8 ปี",  difficulty: "ปานกลาง", emoji: "💬", color: "from-sky-400 to-blue-500",     description: "ดูสถานการณ์แล้วเลือกคำพูดหรือการกระทำที่ถูกต้อง ฝึกทักษะสังคมและการสื่อสาร",          starred: true,  materials: [], interactive: "dialogue" as const },
+  { id: 16, title: "เกมบอกความต้องการ", category: "การสื่อสาร", duration: "10 นาที",   age: "2-7 ปี",  difficulty: "ง่าย",     emoji: "🙋", color: "from-emerald-400 to-teal-500", description: "ดูสถานการณ์แล้วเลือกสิ่งที่ควรทำหรือพูด ฝึกการบอกความต้องการและขอความช่วยเหลือ",          starred: true,  materials: [], interactive: "needs" as const },
+  { id: 17, title: "เกมหาตัวแปลก",     category: "สมาธิ",       duration: "10 นาที",   age: "3-7 ปี",  difficulty: "ง่าย",     emoji: "🔍", color: "from-amber-400 to-orange-500", description: "หาสิ่งที่ไม่เข้าพวกใน 4 รายการ ฝึกการสังเกต การจัดหมวดหมู่ และสมาธิ",                    starred: false, materials: [], interactive: "odd-one-out" as const },
+  { id: 18, title: "เกมจับจังหวะสี",   category: "กล้ามเนื้อ",  duration: "5 นาที",    age: "3-8 ปี",  difficulty: "ปานกลาง", emoji: "🥁", color: "from-violet-400 to-purple-500", description: "ดูสีที่กะพริบแล้วกดตามลำดับ เหมือน Simon Says ฝึกความจำระยะสั้น สมาธิ และการประสานมือ",   starred: true,  materials: [], interactive: "rhythm" as const },
+  { id: 19, title: "เกมเลือกหมวดคำ",   category: "ภาษา",        duration: "10 นาที",   age: "3-7 ปี",  difficulty: "ง่าย",     emoji: "🏷️", color: "from-lime-400 to-green-500",   description: "เห็นคำแล้วเลือกหมวดที่ถูกต้อง เช่น สัตว์ ผลไม้ ยานพาหนะ ฝึกคลังคำศัพท์และการแบ่งกลุ่ม", starred: false, materials: [], interactive: "word-category" as const },
 ];
 
 const difficultyColor: Record<string, string> = {
@@ -184,6 +194,21 @@ function ActivitiesContent() {
   }
   if (selected?.interactive === "opposite") {
     return <OppositeGame onBack={() => setSelected(null)} onComplete={() => handleComplete(selected)} />;
+  }
+  if (selected?.interactive === "dialogue") {
+    return <DialogueGame onBack={() => setSelected(null)} onComplete={(r) => handleComplete(selected, r)} />;
+  }
+  if (selected?.interactive === "needs") {
+    return <NeedsGame onBack={() => setSelected(null)} onComplete={(r) => handleComplete(selected, r)} />;
+  }
+  if (selected?.interactive === "odd-one-out") {
+    return <OddOneOutGame onBack={() => setSelected(null)} onComplete={(r) => handleComplete(selected, r)} />;
+  }
+  if (selected?.interactive === "rhythm") {
+    return <RhythmGame onBack={() => setSelected(null)} onComplete={(r) => handleComplete(selected, r)} />;
+  }
+  if (selected?.interactive === "word-category") {
+    return <WordCategoryGame onBack={() => setSelected(null)} onComplete={(r) => handleComplete(selected, r)} />;
   }
 
   if (selected) {

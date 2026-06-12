@@ -16,8 +16,13 @@ const GAME_INFO: Record<string, { title: string; emoji: string; color: string }>
   "emotion":      { title: "เกมรู้จักอารมณ์", emoji: "🫀", color: "from-pink-400 to-rose-500"     },
   "shapes":       { title: "เกมรูปทรงและสี",  emoji: "🔴", color: "from-blue-400 to-indigo-500"   },
   "sequence":     { title: "เกมเรียงลำดับ",   emoji: "📋", color: "from-teal-400 to-cyan-500"     },
-  "bubble-pop":   { title: "เกมป๊อปบับเบิล",  emoji: "🫧", color: "from-yellow-400 to-orange-400" },
-  "opposite":     { title: "เกมคำตรงข้าม",    emoji: "🔄", color: "from-indigo-400 to-purple-500" },
+  "bubble-pop":    { title: "เกมป๊อปบับเบิล",     emoji: "🫧", color: "from-yellow-400 to-orange-400"  },
+  "opposite":      { title: "เกมคำตรงข้าม",       emoji: "🔄", color: "from-indigo-400 to-purple-500"  },
+  "dialogue":      { title: "เกมบทสนทนา",          emoji: "💬", color: "from-sky-400 to-blue-500"       },
+  "needs":         { title: "เกมบอกความต้องการ",    emoji: "🙋", color: "from-emerald-400 to-teal-500"   },
+  "odd-one-out":   { title: "เกมหาตัวแปลก",         emoji: "🔍", color: "from-amber-400 to-orange-500"   },
+  "rhythm":        { title: "เกมจับจังหวะสี",       emoji: "🥁", color: "from-violet-400 to-purple-500"  },
+  "word-category": { title: "เกมเลือกหมวดคำ",       emoji: "🏷️", color: "from-lime-400 to-green-500"    },
 };
 
 interface Props {
@@ -68,10 +73,11 @@ export function KidoNextGame({
 
         // Mastery check: < 60% → repeat same skill, ≥ 60% → advance
         const SKILL_GROUPS: Record<string, string[]> = {
-          "ภาษา":        ["flashcard", "picture-quiz", "opposite"],
-          "การสื่อสาร":  ["emotion"],
+          "ภาษา":        ["flashcard", "picture-quiz", "opposite", "word-category"],
+          "การสื่อสาร":  ["emotion", "dialogue", "needs"],
           "การเรียนรู้": ["sorting", "shapes", "sequence", "memory"],
-          "สมาธิ":       ["bubble-pop", "counting"],
+          "สมาธิ":       ["bubble-pop", "counting", "odd-one-out"],
+          "กล้ามเนื้อ":  ["rhythm"],
         };
         const currentSkill = Object.entries(SKILL_GROUPS).find(([, ids]) => ids.includes(currentGameId))?.[0];
         const sameSkillGames = currentSkill ? SKILL_GROUPS[currentSkill].filter((id) => id !== currentGameId) : [];
