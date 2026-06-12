@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { loadDailyData, computeBalanceScore, OFFLINE_MISSIONS, type DailyData } from "@/lib/daily-data";
+import { GameStatsCard } from "@/components/kido/game-stats-card";
 import Image from "next/image";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -92,13 +93,17 @@ export default function DashboardPage() {
   const {
     isLoaded, childProfile, childAge, displayName, parentProfile,
     latestAssessment, assessmentHistory, weeklyPlan, activityLog, toggleActivity,
-    isPremium, kidoSettings,
+    isPremium, kidoSettings, gameSessions,
   } = useProfile();
 
   const [dailyData, setDailyData] = useState<DailyData>({
     date: "", screenMinutes: 0, physicalMinutes: 0, readingMinutes: 0, parentMinutes: 0, completedMissions: [],
   });
-  useEffect(() => { setDailyData(loadDailyData()); }, []);
+  useEffect(() => {
+    setDailyData(loadDailyData());
+    const t = setInterval(() => setDailyData(loadDailyData()), 30_000);
+    return () => clearInterval(t);
+  }, []);
 
   useEffect(() => {
     if (isLoaded && !childProfile) router.replace("/onboarding");
@@ -568,6 +573,9 @@ export default function DashboardPage() {
                 </div>
               </div>
             )}
+
+            {/* ── Game Stats ── */}
+            <GameStatsCard gameSessions={gameSessions} compact />
 
             {/* Score Cards */}
             <Card className="p-5 shadow-sm border-gray-100 bg-white">

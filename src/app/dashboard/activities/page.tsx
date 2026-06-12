@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
+import { addScreenMinute } from "@/lib/daily-data";
 import { useSearchParams } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -68,6 +69,13 @@ function ActivitiesContent() {
   const [selected, setSelected]     = useState<Activity | null>(null);
   const [completing, setCompleting] = useState(false);
   const [lastResult, setLastResult] = useState<GameResult | null>(null);
+
+  // Track screen time every minute while a game is active
+  useEffect(() => {
+    if (!selected?.interactive) return;
+    const t = setInterval(() => addScreenMinute(), 60_000);
+    return () => clearInterval(t);
+  }, [selected?.interactive]);
 
   // Auto-start a game when ?game= param is present (from dashboard hero CTA)
   useEffect(() => {

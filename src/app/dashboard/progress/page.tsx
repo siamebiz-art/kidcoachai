@@ -15,6 +15,7 @@ import {
   LineChart, Line, Legend,
 } from "recharts";
 import { TrendingUp, Calendar, Plus, Loader2, Sparkles } from "lucide-react";
+import { GameStatsCard } from "@/components/kido/game-stats-card";
 
 const catColors: Record<string, string> = {
   ภาษา: "bg-emerald-500", การสื่อสาร: "bg-blue-500",
@@ -27,7 +28,7 @@ export default function ProgressPage() {
   const router = useRouter();
   const {
     isLoaded, childProfile, childAge, latestAssessment, assessmentHistory,
-    weeklyPlan, activityLog, milestones, addMilestone,
+    weeklyPlan, activityLog, milestones, addMilestone, gameSessions,
   } = useProfile();
 
   const [newEvent, setNewEvent] = useState("");
@@ -214,6 +215,11 @@ export default function ProgressPage() {
           </ResponsiveContainer>
         </Card>
       )}
+
+      {/* Game Stats */}
+      <div className="mb-6">
+        <GameStatsCard gameSessions={gameSessions} />
+      </div>
 
       {/* Weekly Activity Bar */}
       <Card className="p-5 border-gray-100 shadow-sm mb-6">
