@@ -412,7 +412,7 @@ export default function DashboardPage() {
                 <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 px-5 py-3 flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src="/kido.png" alt="Kido" className="w-9 h-9 object-contain" />
+                    <img src="/kido-point.png" alt="Kido" className="w-9 h-9 object-contain" />
                     <div>
                       <div className="text-white font-black text-sm">Kido Healthy Screen Time™</div>
                       <div className="text-white/60 text-[10px]">ระบบดูแลเวลาใช้งานอัจฉริยะ</div>
@@ -441,7 +441,7 @@ export default function DashboardPage() {
                         style={{ width: `${screenPct}%`, background: screenPct < 60 ? "#10B981" : screenPct < 85 ? "#F59E0B" : "#EF4444" }} />
                     </div>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src="/kido.png" alt="Kido" className="w-16 h-16 object-contain my-1" />
+                    <img src="/kido-sleep.png" alt="Kido" className="w-16 h-16 object-contain my-1" />
                     <p className="text-xs text-gray-500 mt-1 leading-relaxed">
                       {dailyData.screenMinutes < 15
                         ? "Kido แนะนำพักหลังเล่นครบ 15 นาที 😊"
@@ -551,7 +551,7 @@ export default function DashboardPage() {
                     <div className="text-xs font-bold text-gray-700 mb-2">💬 ข้อความจาก Kido</div>
                     <div className="flex items-start gap-2">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src="/kido.png" alt="Kido" className="w-10 h-10 object-contain shrink-0" />
+                      <img src="/kido-point.png" alt="Kido" className="w-10 h-10 object-contain shrink-0" />
                       <div className="bg-indigo-50 rounded-2xl rounded-tl-sm px-3 py-2.5 flex-1">
                         <p className="text-xs text-gray-700 leading-relaxed">{kidoMsg}</p>
                       </div>

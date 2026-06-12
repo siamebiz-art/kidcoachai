@@ -51,8 +51,9 @@ export function KidoMissionOverlay({
         style={{ animation: "missionPop 0.35s cubic-bezier(0.34,1.56,0.64,1) forwards" }}
       >
         {done ? (
-          <div className="py-6">
-            <div className="text-6xl mb-3 animate-bounce">🎉</div>
+          <div className="py-4">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/kido-celebrate.png" alt="Kido" className="w-24 h-24 object-contain mx-auto mb-1 animate-bounce" />
             <h2 className="text-xl font-black text-gray-900 mb-1">เก่งมากเลย!</h2>
             <p className="text-gray-500 text-sm">+{mission.minutes} นาที บันทึกแล้ว ✓</p>
           </div>
@@ -60,7 +61,7 @@ export function KidoMissionOverlay({
           <>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/kido.png" alt="Kido"
+              src="/kido-point.png" alt="Kido"
               className="w-20 h-20 object-contain mx-auto mb-2"
               style={{ animation: "missionFloat 2.5s ease-in-out infinite" }}
             />

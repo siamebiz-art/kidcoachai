@@ -36,7 +36,7 @@ export function KidoBreakOverlay({
         <style dangerouslySetInnerHTML={{ __html: ANIM_CSS }} />
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/kido.png" alt="Kido"
+          src="/kido-sleep.png" alt="Kido"
           className="w-36 h-36 object-contain mb-2"
           style={{ animation: "kidoBounce 0.8s ease-in-out infinite", filter: "drop-shadow(0 8px 24px rgba(139,92,246,0.6))" }}
         />
@@ -66,7 +66,7 @@ export function KidoBreakOverlay({
       <style dangerouslySetInnerHTML={{ __html: ANIM_CSS }} />
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src="/kido.png" alt="Kido"
+        src={isDone ? "/kido-celebrate.png" : "/kido-point.png"} alt="Kido"
         className="w-28 h-28 object-contain mb-1"
         style={{
           animation: isDone ? "kidoBounce 0.4s ease-in-out infinite" : "kidoWiggle 1.5s ease-in-out infinite",

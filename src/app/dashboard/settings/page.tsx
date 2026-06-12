@@ -462,7 +462,7 @@ function SettingsContent() {
             <Card className="p-6 border-gray-100 shadow-sm">
               <div className="flex items-center gap-3 mb-5">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/kido.png" alt="Kido" className="w-10 h-10 object-contain" />
+                <img src="/kido-point.png" alt="Kido" className="w-10 h-10 object-contain" />
                 <div>
                   <h2 className="font-bold text-gray-900">Kido – AI Buddy ของลูก</h2>
                   <p className="text-xs text-gray-400">ตั้งค่าเวลาเล่นและการดูแลสุขภาพ</p>

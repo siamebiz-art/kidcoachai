@@ -32,6 +32,13 @@ const KIDO_ANIM: Record<KidoEmotion, string> = {
   thinking:    "kidoWiggle 1.5s ease-in-out infinite",
   listening:   "kidoPulse 1s ease-in-out infinite",
 };
+const KIDO_IMG: Record<KidoEmotion, string> = {
+  idle:        "/kido.png",
+  talking:     "/kido-point.png",
+  celebrating: "/kido-celebrate.png",
+  thinking:    "/kido-think.png",
+  listening:   "/kido.png",
+};
 
 /* ─── game registry ─── */
 const GAME_ITEMS = [
@@ -474,7 +481,7 @@ export default function KidoPage() {
           <div className="absolute inset-0 rounded-full bg-purple-400/30 blur-3xl scale-125"
             style={{ animation: "kidoGlow 3s ease-in-out infinite" }} />
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/kido.png" alt="Kido" className="w-36 h-36 sm:w-44 sm:h-44"
+          <img src={KIDO_IMG[emotion]} alt="Kido" className="w-36 h-36 sm:w-44 sm:h-44"
             style={{ animation: KIDO_ANIM[emotion], objectFit: "contain", filter: "drop-shadow(0 8px 24px rgba(139,92,246,0.5))" }} />
         </div>
 
