@@ -54,7 +54,7 @@ export function FlashcardGame({
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [done, setDone] = useState(false);
-  const { emotion, message, speak, praise, encourage } = useKidoVoice();
+  const { emotion, message, speak } = useKidoVoice();
   const announcedDone = useRef(false);
 
   useEffect(() => { speak("มาฝึกคำศัพท์กันเลย! เลือกหมวดที่ชอบนะ 📖"); }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -81,8 +81,9 @@ export function FlashcardGame({
   };
 
   const next = (remember: boolean) => {
+    const word = cards[index]?.word ?? "";
     if (remember) {
-      praise();
+      speak(`${word} จำได้แล้ว! เก่งมากเลย!`, "celebrating");
       if (index + 1 >= cards.length) {
         setDone(true);
       } else {
@@ -90,7 +91,7 @@ export function FlashcardGame({
         setFlipped(false);
       }
     } else {
-      encourage();
+      speak(`${word} ลองฝึกอีกครั้งนะ จะจำได้เองเลย!`, "thinking");
       setCards((prev) => {
         const updated = [...prev];
         const [current] = updated.splice(index, 1);
@@ -170,7 +171,7 @@ export function FlashcardGame({
 
       {/* Flip card */}
       <div
-        onClick={() => setFlipped(!flipped)}
+        onClick={() => { if (!flipped) speak(`${card.word}`, "talking"); setFlipped(!flipped); }}
         className="w-full h-64 rounded-3xl cursor-pointer select-none mb-6"
         style={{ perspective: "1000px" }}
       >

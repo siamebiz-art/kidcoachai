@@ -37,7 +37,7 @@ export function CountingGame({ onBack, onComplete }: { onBack: () => void; onCom
   const [score, setScore] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const [done, setDone] = useState(false);
-  const { emotion, message, speak, praise, encourage } = useKidoVoice();
+  const { emotion, message, speak } = useKidoVoice();
   const announcedDone = useRef(false);
 
   useEffect(() => { speak("มาฝึกนับจำนวนกันเลย! เลือกระดับที่ชอบนะ 🔢"); }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -67,14 +67,19 @@ export function CountingGame({ onBack, onComplete }: { onBack: () => void; onCom
     (n: number) => {
       if (selected !== null) return;
       setSelected(n);
-      if (n === rounds[index].count) { setScore((s) => s + 1); praise(); }
-      else encourage();
+      const correct = rounds[index].count;
+      if (n === correct) {
+        setScore((s) => s + 1);
+        speak(`ถูกต้องเลย! มี ${correct} ตัว เก่งมากเลย!`, "celebrating");
+      } else {
+        speak(`ยังไม่ใช่นะ มี ${correct} ตัวนะ ลองดูอีกครั้งนะ!`, "thinking");
+      }
       setTimeout(() => {
         if (index + 1 >= rounds.length) setDone(true);
         else { setIndex((i) => i + 1); setSelected(null); }
-      }, 700);
+      }, 1200);
     },
-    [selected, index, rounds, praise, encourage]
+    [selected, index, rounds, speak]
   );
 
   if (!difficulty) {

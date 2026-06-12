@@ -43,7 +43,7 @@ export function PictureQuizGame({ onBack, onComplete }: { onBack: () => void; on
   const [score, setScore] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
   const [done, setDone] = useState(false);
-  const { emotion, message, speak, praise, encourage } = useKidoVoice();
+  const { emotion, message, speak } = useKidoVoice();
   const announcedDone = useRef(false);
 
   // Kido speaks each question aloud
@@ -71,14 +71,19 @@ export function PictureQuizGame({ onBack, onComplete }: { onBack: () => void; on
     (emoji: string) => {
       if (selected !== null) return;
       setSelected(emoji);
-      if (emoji === questions[index].correct) { setScore((s) => s + 1); praise(); }
-      else encourage();
+      const word = questions[index].prompt;
+      if (emoji === questions[index].correct) {
+        setScore((s) => s + 1);
+        speak(`ใช่เลย! นั่นแหละ${word} เก่งมากเลย!`, "celebrating");
+      } else {
+        speak(`ยังไม่ใช่นะ ลองหา${word}อีกครั้งนะ!`, "thinking");
+      }
       setTimeout(() => {
         if (index + 1 >= questions.length) setDone(true);
         else { setIndex((i) => i + 1); setSelected(null); }
-      }, 700);
+      }, 1200);
     },
-    [selected, index, questions, praise, encourage]
+    [selected, index, questions, speak]
   );
 
   if (done) {

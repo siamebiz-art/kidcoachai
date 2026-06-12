@@ -90,7 +90,7 @@ export function SortingGame({ onBack, onComplete }: { onBack: () => void; onComp
   const [score, setScore] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const [done, setDone] = useState(false);
-  const { emotion, message, speak, praise, encourage } = useKidoVoice();
+  const { emotion, message, speak } = useKidoVoice();
   const announcedDone = useRef(false);
 
   useEffect(() => { speak("มาจัดหมวดหมู่กันเลย! เลือกชุดที่ชอบนะ 🗂️"); }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -100,7 +100,7 @@ export function SortingGame({ onBack, onComplete }: { onBack: () => void; onComp
     const item = items[current];
     if (!item) return;
     const prefix = current === 0 ? "เริ่มเลย! " : "";
-    speak(`${prefix}${item.name} ใส่ในหมวดไหนดีนะ?`, "talking");
+    speak(`${prefix}${item.name} เป็นอะไรนะ?`, "talking");
   }, [current, done, setIdx, items.length]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (done && !announcedDone.current) {
@@ -120,16 +120,22 @@ export function SortingGame({ onBack, onComplete }: { onBack: () => void; onComp
 
   const handleSort = useCallback(
     (catIndex: number) => {
-      if (selected !== null) return;
+      if (selected !== null || setIdx === null) return;
       setSelected(catIndex);
-      if (catIndex === items[current].catIndex) { setScore((s) => s + 1); praise(); }
-      else encourage();
+      const item = items[current];
+      const correctLabel = SORT_SETS[setIdx].categories[item.catIndex].label;
+      if (catIndex === item.catIndex) {
+        setScore((s) => s + 1);
+        speak(`${item.name} เป็น${correctLabel} ถูกต้องเลย! เก่งมากเลย!`, "celebrating");
+      } else {
+        speak(`${item.name} เป็น${correctLabel}นะ ไม่เป็นไร ลองใหม่ได้เลย!`, "thinking");
+      }
       setTimeout(() => {
         if (current + 1 >= items.length) setDone(true);
         else { setCurrent((c) => c + 1); setSelected(null); }
-      }, 700);
+      }, 1200);
     },
-    [selected, current, items, praise, encourage]
+    [selected, current, items, setIdx, speak]
   );
 
   if (setIdx === null) {
