@@ -10,6 +10,7 @@ import type {
   Milestone,
   KidoSettings,
   PendingPayment,
+  GameSession,
 } from "@/lib/types";
 import { calculateAge } from "@/lib/profile-utils";
 
@@ -97,6 +98,13 @@ export function useProfile() {
     await user?.update({ unsafeMetadata: { ...metadata, bookmarkedArticles: next } });
   }
 
+  const gameSessions: GameSession[] = metadata.gameSessions ?? [];
+
+  async function saveGameSession(session: GameSession) {
+    const next = [...gameSessions, session].slice(-30);
+    await user?.update({ unsafeMetadata: { ...metadata, gameSessions: next } });
+  }
+
   return {
     isLoaded,
     isSignedIn,
@@ -126,5 +134,7 @@ export function useProfile() {
     toggleActivity,
     addMilestone,
     toggleBookmark,
+    gameSessions,
+    saveGameSession,
   };
 }

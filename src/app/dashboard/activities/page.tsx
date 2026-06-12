@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { useProfile } from "@/hooks/use-profile";
 import { Search, Star, Clock, CheckCircle2, Sparkles, Gamepad2 } from "lucide-react";
 import toast from "react-hot-toast";
+import { KidoNextGame } from "@/components/kido/kido-next-game";
+import type { GameResult } from "@/lib/types";
 import { FlashcardGame } from "./flashcard-game";
 import { MemoryMatchGame } from "./memory-game";
 import { PictureQuizGame } from "./picture-quiz";
@@ -47,12 +49,13 @@ const difficultyColor: Record<string, string> = {
 type Activity = (typeof ACTIVITIES)[0];
 
 function ActivitiesContent() {
-  const { latestAssessment, activityLog, toggleActivity } = useProfile();
+  const { latestAssessment, activityLog, toggleActivity, childProfile, gameSessions, saveGameSession } = useProfile();
   const searchParams = useSearchParams();
   const [selectedCat, setSelectedCat] = useState("ทั้งหมด");
   const [search, setSearch] = useState("");
-  const [selected, setSelected] = useState<Activity | null>(null);
+  const [selected, setSelected]     = useState<Activity | null>(null);
   const [completing, setCompleting] = useState(false);
+  const [lastResult, setLastResult] = useState<GameResult | null>(null);
 
   // Auto-start a game when ?game= param is present (from dashboard hero CTA)
   useEffect(() => {
@@ -81,12 +84,25 @@ function ActivitiesContent() {
 
   const isDone = (id: number) => !!activityLog[`lib-${id}`];
 
-  const handleComplete = async (act: Activity) => {
+  const handleComplete = async (act: Activity, result?: GameResult) => {
     setCompleting(true);
     try {
       await toggleActivity(`lib-${act.id}`);
-      if (!isDone(act.id)) {
+      if (result && act.interactive) {
+        const accuracy = result.total > 0 ? Math.round((result.score / result.total) * 100) : 0;
+        await saveGameSession({
+          gameId:   act.interactive,
+          gameName: act.title,
+          date:     new Date().toISOString().slice(0, 10),
+          score:    result.score,
+          total:    result.total,
+          accuracy,
+          ts:       Date.now(),
+        });
+        setLastResult(result);
+      } else {
         toast.success(`บันทึก "${act.title}" เสร็จแล้ว! 🎉`);
+        setSelected(null);
       }
     } catch {
       toast.error("เกิดข้อผิดพลาด");
@@ -95,11 +111,31 @@ function ActivitiesContent() {
     }
   };
 
+  // Show Kido next-game screen after any interactive game
+  if (selected?.interactive && lastResult) {
+    return (
+      <KidoNextGame
+        result={lastResult}
+        currentGameId={selected.interactive}
+        currentGameName={selected.title}
+        childProfile={childProfile}
+        gameSessions={gameSessions}
+        onStartGame={(gameId) => {
+          setLastResult(null);
+          const next = ACTIVITIES.find((a) => a.interactive === gameId);
+          if (next) setSelected(next);
+          else setSelected(null);
+        }}
+        onBack={() => { setLastResult(null); setSelected(null); }}
+      />
+    );
+  }
+
   if (selected?.interactive === "flashcard") {
     return (
       <FlashcardGame
         onBack={() => setSelected(null)}
-        onComplete={() => handleComplete(selected)}
+        onComplete={(r) => handleComplete(selected, r)}
       />
     );
   }
@@ -108,7 +144,7 @@ function ActivitiesContent() {
     return (
       <MemoryMatchGame
         onBack={() => setSelected(null)}
-        onComplete={() => handleComplete(selected)}
+        onComplete={(r) => handleComplete(selected, r)}
       />
     );
   }
@@ -117,7 +153,7 @@ function ActivitiesContent() {
     return (
       <PictureQuizGame
         onBack={() => setSelected(null)}
-        onComplete={() => handleComplete(selected)}
+        onComplete={(r) => handleComplete(selected, r)}
       />
     );
   }
@@ -126,7 +162,7 @@ function ActivitiesContent() {
     return (
       <CountingGame
         onBack={() => setSelected(null)}
-        onComplete={() => handleComplete(selected)}
+        onComplete={(r) => handleComplete(selected, r)}
       />
     );
   }

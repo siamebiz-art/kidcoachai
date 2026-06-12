@@ -100,6 +100,8 @@ export interface UserMetadata {
   kidoRecResetDate?: string;
   kidoSettings?: KidoSettings;
   familyPhotoUrl?: string;
+  // Game sessions history
+  gameSessions?: GameSession[];
   // PromptPay payment
   pendingPayment?: PendingPayment;
 }
