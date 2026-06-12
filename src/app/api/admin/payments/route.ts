@@ -29,6 +29,7 @@ export async function GET() {
         submittedAt: pp.submittedAt,
         status:      pp.status,
         rejectedReason: pp.rejectedReason ?? "",
+        aiCheck:     pp.aiCheck ?? null,
       };
     });
 

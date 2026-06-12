@@ -71,10 +71,11 @@ async function sendEmail(p: NotifyPayload) {
   });
 }
 
-/* ── Line Notify ── */
-async function sendLineNotify(p: NotifyPayload) {
-  const token = process.env.LINE_NOTIFY_TOKEN;
-  if (!token) return;
+/* ── LINE Messaging API ── */
+async function sendLineMessage(p: NotifyPayload) {
+  const token  = process.env.LINE_CHANNEL_ACCESS_TOKEN;
+  const userId = process.env.LINE_ADMIN_USER_ID;
+  if (!token || !userId) return;
 
   const aiSummary = p.aiCheck
     ? `\n🤖 AI: ${p.aiCheck.valid ? "✅ ผ่าน" : "❌ ไม่ผ่าน"} · ${p.aiCheck.bank} · ฿${p.aiCheck.amount} (${p.aiCheck.confidence})\n${p.aiCheck.reason}`
@@ -82,8 +83,7 @@ async function sendLineNotify(p: NotifyPayload) {
 
   const status = p.autoApproved ? "🤖 AI อนุมัติอัตโนมัติแล้ว" : "⏳ รอตรวจสอบ";
 
-  const message = [
-    "",
+  const text = [
     "🧾 สลิปชำระเงินใหม่ — KidCoach AI",
     `📋 ${p.ref}`,
     `💎 ${p.tier.toUpperCase()} · ฿${p.amount}`,
@@ -93,15 +93,19 @@ async function sendLineNotify(p: NotifyPayload) {
     `🔗 https://kidcoachai.com/admin`,
   ].join("\n");
 
-  const form = new FormData();
-  form.append("message", message);
-  form.append("imageFullsize",    p.slipUrl);
-  form.append("imageThumbnail",   p.slipUrl);
-
-  await fetch("https://notify-api.line.me/api/notify", {
+  await fetch("https://api.line.me/v2/bot/message/push", {
     method: "POST",
-    headers: { Authorization: `Bearer ${token}` },
-    body: form,
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      to: userId,
+      messages: [
+        { type: "text", text },
+        { type: "image", originalContentUrl: p.slipUrl, previewImageUrl: p.slipUrl },
+      ],
+    }),
   });
 }
 
@@ -109,6 +113,6 @@ async function sendLineNotify(p: NotifyPayload) {
 export async function notifyAdmin(payload: NotifyPayload) {
   await Promise.allSettled([
     sendEmail(payload),
-    sendLineNotify(payload),
+    sendLineMessage(payload),
   ]);
 }

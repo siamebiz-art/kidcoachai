@@ -37,6 +37,26 @@ function SettingsContent() {
   const { isLoaded, childProfile, parentProfile, user, subscriptionTier, isPremium, updateChildProfile, updateParentProfile, kidoSettings, updateKidoSettings, pendingPayment } = useProfile();
   const [isPortaling, setIsPortaling] = useState(false);
 
+  const [isCheckingOut, setIsCheckingOut] = useState<"premium" | "pro" | null>(null);
+
+  async function handleStripeCheckout(tier: "premium" | "pro") {
+    setIsCheckingOut(tier);
+    try {
+      const res = await fetch("/api/create-checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tier }),
+      });
+      const data = await res.json();
+      if (data.url) window.location.href = data.url;
+      else toast.error("ไม่สามารถเปิดหน้าชำระเงินได้");
+    } catch {
+      toast.error("เกิดข้อผิดพลาด");
+    } finally {
+      setIsCheckingOut(null);
+    }
+  }
+
   // PromptPay modal
   const [showQRModal, setShowQRModal] = useState<"premium" | "pro" | null>(null);
   const [slipFile, setSlipFile] = useState<File | null>(null);
@@ -720,16 +740,27 @@ function SettingsContent() {
                           </li>
                         ))}
                       </ul>
-                      <Button
-                        disabled={pendingPayment?.status === "pending"}
-                        onClick={() => setShowQRModal(plan.tier)}
-                        className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0 rounded-xl gap-2"
-                      >
-                        💳 ชำระผ่าน PromptPay
-                      </Button>
-                      {pendingPayment?.status === "pending" && (
-                        <p className="text-xs text-center text-amber-600 mt-2">รอตรวจสอบสลิปอยู่...</p>
-                      )}
+                      <div className="flex flex-col gap-2">
+                        <Button
+                          disabled={isCheckingOut !== null}
+                          onClick={() => handleStripeCheckout(plan.tier)}
+                          className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0 rounded-xl gap-2"
+                        >
+                          {isCheckingOut === plan.tier ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                          💳 ชำระด้วยบัตรเครดิต
+                        </Button>
+                        <Button
+                          disabled={pendingPayment?.status === "pending"}
+                          onClick={() => setShowQRModal(plan.tier)}
+                          variant="outline"
+                          className="w-full border-purple-300 text-purple-700 hover:bg-purple-50 rounded-xl gap-2"
+                        >
+                          📱 ชำระผ่าน PromptPay
+                        </Button>
+                        {pendingPayment?.status === "pending" && (
+                          <p className="text-xs text-center text-amber-600">รอตรวจสอบสลิปอยู่...</p>
+                        )}
+                      </div>
                     </Card>
                   ))}
                 </div>
