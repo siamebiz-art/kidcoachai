@@ -3,7 +3,7 @@ import { openai } from "@ai-sdk/openai";
 import { aiGuard, guardErrorResponse } from "@/lib/ai-guard";
 import type { GameSession } from "@/lib/types";
 
-type GameId = "matching" | "picture-quiz" | "flashcard" | "counting" | "sorting";
+type GameId = "matching" | "picture-quiz" | "flashcard" | "counting" | "sorting" | "emotion" | "shapes" | "sequence" | "bubble-pop" | "opposite";
 
 const GAME_DESCRIPTIONS: Record<GameId, string> = {
   "flashcard":    "บัตรคำ — ฝึกจำคำศัพท์ ภาษา การอ่าน",
@@ -11,27 +11,34 @@ const GAME_DESCRIPTIONS: Record<GameId, string> = {
   "sorting":      "จัดหมวดหมู่ — ฝึกคิดแยกประเภท ตรรกะ",
   "counting":     "นับจำนวน — ฝึกคณิตศาสตร์เบื้องต้น สมาธิ",
   "matching":     "จับคู่ภาพ — ฝึกความจำระยะสั้น สมาธิ จดจำ pattern",
+  "emotion":      "รู้จักอารมณ์ — ฝึก EQ อ่านความรู้สึก เหมาะ autism",
+  "shapes":       "รูปทรงและสี — จับคู่รูปทรง/สี ฝึกการแยกแยะ cognitive",
+  "sequence":     "เรียงลำดับ — เรียงเหตุการณ์ตามลำดับ ฝึกตรรกะ",
+  "bubble-pop":   "ป๊อปบับเบิล — กดฟองเลขที่กำหนดภายในเวลา ฝึกสมาธิ",
+  "opposite":     "คำตรงข้าม — ฝึกคลังคำศัพท์ ความเข้าใจภาษา",
 };
 
-// rule-based fallback — no AI needed
 function getRuleBasedOrder(diagnosisKey: string, ageMonths: number): GameId[] {
-  if (ageMonths > 0 && ageMonths < 36) {
-    return ["picture-quiz", "counting", "flashcard", "sorting", "matching"];
+  if (ageMonths > 0 && ageMonths < 30) {
+    return ["picture-quiz", "shapes", "counting", "flashcard", "bubble-pop", "matching", "sorting", "emotion", "sequence", "opposite"];
   }
   const key = diagnosisKey.toLowerCase();
   if (key.includes("speech") || key.includes("พูด") || key.includes("ภาษา")) {
-    return ["flashcard", "picture-quiz", "sorting", "counting", "matching"];
+    return ["flashcard", "picture-quiz", "opposite", "emotion", "sorting", "counting", "shapes", "matching", "sequence", "bubble-pop"];
   }
   if (key.includes("adhd") || key.includes("สมาธิ")) {
-    return ["counting", "sorting", "matching", "picture-quiz", "flashcard"];
+    return ["bubble-pop", "counting", "sorting", "matching", "shapes", "sequence", "picture-quiz", "flashcard", "emotion", "opposite"];
   }
   if (key.includes("autism") || key.includes("asd") || key.includes("ออทิ")) {
-    return ["sorting", "matching", "counting", "flashcard", "picture-quiz"];
+    return ["emotion", "sorting", "sequence", "matching", "shapes", "counting", "flashcard", "picture-quiz", "opposite", "bubble-pop"];
+  }
+  if (key.includes("down") || key.includes("ดาวน์")) {
+    return ["shapes", "picture-quiz", "counting", "flashcard", "sorting", "emotion", "matching", "sequence", "bubble-pop", "opposite"];
   }
   if (key.includes("global") || key.includes("พัฒนาการช้า")) {
-    return ["picture-quiz", "counting", "flashcard", "sorting", "matching"];
+    return ["picture-quiz", "shapes", "counting", "flashcard", "emotion", "sorting", "matching", "bubble-pop", "sequence", "opposite"];
   }
-  return ["picture-quiz", "flashcard", "sorting", "counting", "matching"];
+  return ["picture-quiz", "flashcard", "emotion", "shapes", "counting", "sorting", "bubble-pop", "opposite", "matching", "sequence"];
 }
 
 export async function POST(req: Request) {
@@ -78,14 +85,14 @@ ${sessionSummary}
 เกมที่มี:
 ${(Object.entries(GAME_DESCRIPTIONS) as [GameId, string][]).map(([id, desc]) => `- "${id}": ${desc}`).join("\n")}
 
-เรียงลำดับ 5 เกมจากเหมาะสมที่สุดไปน้อยสุด โดยพิจารณา:
+เรียงลำดับ 10 เกมจากเหมาะสมที่สุดไปน้อยสุด โดยพิจารณา:
 1. ความต้องการพิเศษของเด็ก (ฝึกด้านที่อ่อนแอก่อน)
 2. คะแนนที่ต่ำในประวัติ (ต้องฝึกซ้ำ)
 3. ความหลากหลาย (ไม่ซ้ำเกมเดิมทุกวัน)
 
 ตอบเป็น JSON เท่านั้น ไม่มีข้อความอื่น:
 {
-  "order": ["game-id-1","game-id-2","game-id-3","game-id-4","game-id-5"],
+  "order": ["game-id-1","game-id-2",...,"game-id-10"],
   "highlight": "game-id-1",
   "reason": "ประโยคสั้นๆ บอก kido ว่าทำไมแนะนำเกมนี้ก่อน (ภาษาไทย ≤15 คำ)"
 }`;
@@ -109,12 +116,11 @@ ${(Object.entries(GAME_DESCRIPTIONS) as [GameId, string][]).map(([id, desc]) => 
     // validate all game IDs are valid
     const validIds = new Set(Object.keys(GAME_DESCRIPTIONS) as GameId[]);
     const safeOrder = data.order.filter((id) => validIds.has(id));
-    // ensure all 5 games present (fill missing with rule-based)
     const fallback = getRuleBasedOrder(diagnosisKey ?? "", ageMonths ?? 0);
     const finalOrder = [
       ...safeOrder,
       ...fallback.filter((id) => !safeOrder.includes(id)),
-    ].slice(0, 5) as GameId[];
+    ].slice(0, 10) as GameId[];
 
     return Response.json({
       order: finalOrder,

@@ -13,6 +13,11 @@ import { MemoryMatchGame } from "./memory-game";
 import { PictureQuizGame } from "./picture-quiz";
 import { CountingGame } from "./counting-game";
 import { SortingGame } from "./sorting-game";
+import { EmotionGame } from "./emotion-game";
+import { ShapesGame } from "./shapes-game";
+import { SequenceGame } from "./sequence-game";
+import { BubblePopGame } from "./bubble-pop-game";
+import { OppositeGame } from "./opposite-game";
 
 const categories = ["ทั้งหมด", "ภาษา", "การสื่อสาร", "สมาธิ", "กล้ามเนื้อ", "การเรียนรู้"];
 
@@ -25,7 +30,12 @@ const ACTIVITIES = [
   { id: 6, title: "ร้องเพลงพร้อมท่าทาง",   category: "ภาษา",        duration: "5-10 นาที",  age: "1-6 ปี",  difficulty: "ง่าย",     emoji: "🎵", color: "from-yellow-400 to-orange-500", description: "ร้องเพลงเด็กง่ายๆ พร้อมท่าทางประกอบ เช่น หัวไหล่เข่าเท้า พัฒนาภาษาและกล้ามเนื้อ", starred: false, materials: ["เพลงเด็ก (YouTube)"],               interactive: null },
   { id: 7, title: "เกมนับจำนวน",           category: "การเรียนรู้", duration: "10 นาที",    age: "2-6 ปี",  difficulty: "ง่าย",     emoji: "🔢", color: "from-red-400 to-rose-500",      description: "นับของแล้วแตะตัวเลขที่ถูกต้อง ฝึกทักษะตัวเลขและการนับ",                           starred: false, materials: [],                                   interactive: "counting" as const },
   { id: 8, title: "ระบายสี",                category: "กล้ามเนื้อ", duration: "15 นาที",    age: "2-8 ปี",  difficulty: "ง่าย",     emoji: "🎨", color: "from-indigo-400 to-purple-500", description: "ระบายสีในแบบที่กำหนด ฝึกกล้ามเนื้อมัดเล็ก การจับดินสอ และสมาธิ",                   starred: false, materials: ["สีเทียน", "กระดาษระบายสี"],         interactive: null },
-  { id: 9, title: "เกมจัดหมวดหมู่",        category: "การเรียนรู้", duration: "10 นาที",    age: "3-7 ปี",  difficulty: "ง่าย",     emoji: "🗂️", color: "from-teal-400 to-green-500",    description: "แยกสิ่งของใส่หมวดหมู่ที่ถูกต้อง ฝึกการคิดแบบจัดกลุ่มและแยกแยะ",                  starred: false, materials: [],                                   interactive: "sorting" as const },
+  { id: 9,  title: "เกมจัดหมวดหมู่",     category: "การเรียนรู้", duration: "10 นาที",   age: "3-7 ปี",  difficulty: "ง่าย",     emoji: "🗂️", color: "from-teal-400 to-green-500",    description: "แยกสิ่งของใส่หมวดหมู่ที่ถูกต้อง ฝึกการคิดแบบจัดกลุ่มและแยกแยะ",                   starred: false, materials: [], interactive: "sorting" as const },
+  { id: 10, title: "เกมรู้จักอารมณ์",    category: "การสื่อสาร", duration: "10 นาที",   age: "3-8 ปี",  difficulty: "ง่าย",     emoji: "🫀", color: "from-pink-400 to-rose-500",     description: "ดูสถานการณ์แล้วเลือกความรู้สึกที่ถูกต้อง เสริมทักษะ EQ และการอ่านอารมณ์คน",          starred: true,  materials: [], interactive: "emotion" as const },
+  { id: 11, title: "เกมรูปทรงและสี",     category: "การเรียนรู้", duration: "10 นาที",   age: "2-6 ปี",  difficulty: "ง่าย",     emoji: "🔴", color: "from-blue-400 to-indigo-500",   description: "จับคู่รูปทรงและสีที่ถูกต้อง ฝึกการแยกแยะและจดจำรูปร่าง",                             starred: true,  materials: [], interactive: "shapes" as const },
+  { id: 12, title: "เกมเรียงลำดับ",      category: "การเรียนรู้", duration: "10 นาที",   age: "3-7 ปี",  difficulty: "ปานกลาง", emoji: "📋", color: "from-teal-400 to-cyan-500",     description: "เรียงภาพเหตุการณ์ให้ถูกลำดับ ฝึกการคิดอย่างเป็นระบบและเหตุ-ผล",                     starred: false, materials: [], interactive: "sequence" as const },
+  { id: 13, title: "เกมป๊อปบับเบิล",    category: "สมาธิ",       duration: "1 นาที",    age: "3-8 ปี",  difficulty: "ง่าย",     emoji: "🫧", color: "from-yellow-400 to-orange-400", description: "ป๊อปเฉพาะฟองที่มีตัวเลขที่กำหนดภายใน 30 วินาที ฝึกสมาธิและการตอบสนอง",              starred: true,  materials: [], interactive: "bubble-pop" as const },
+  { id: 14, title: "เกมคำตรงข้าม",      category: "ภาษา",        duration: "10 นาที",   age: "4-8 ปี",  difficulty: "ปานกลาง", emoji: "🔄", color: "from-indigo-400 to-purple-500", description: "หาคำที่มีความหมายตรงข้าม พัฒนาคลังคำศัพท์และทักษะภาษา",                              starred: false, materials: [], interactive: "opposite" as const },
 ];
 
 const difficultyColor: Record<string, string> = {
@@ -122,12 +132,22 @@ function ActivitiesContent() {
   }
 
   if (selected?.interactive === "sorting") {
-    return (
-      <SortingGame
-        onBack={() => setSelected(null)}
-        onComplete={() => handleComplete(selected)}
-      />
-    );
+    return <SortingGame onBack={() => setSelected(null)} onComplete={() => handleComplete(selected)} />;
+  }
+  if (selected?.interactive === "emotion") {
+    return <EmotionGame onBack={() => setSelected(null)} onComplete={() => handleComplete(selected)} />;
+  }
+  if (selected?.interactive === "shapes") {
+    return <ShapesGame onBack={() => setSelected(null)} onComplete={() => handleComplete(selected)} />;
+  }
+  if (selected?.interactive === "sequence") {
+    return <SequenceGame onBack={() => setSelected(null)} onComplete={() => handleComplete(selected)} />;
+  }
+  if (selected?.interactive === "bubble-pop") {
+    return <BubblePopGame onBack={() => setSelected(null)} onComplete={() => handleComplete(selected)} />;
+  }
+  if (selected?.interactive === "opposite") {
+    return <OppositeGame onBack={() => setSelected(null)} onComplete={() => handleComplete(selected)} />;
   }
 
   if (selected) {
