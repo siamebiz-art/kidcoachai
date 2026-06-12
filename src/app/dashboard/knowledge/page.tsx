@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useProfile } from "@/hooks/use-profile";
@@ -127,12 +129,29 @@ function renderBody(body: string) {
   });
 }
 
-export default function KnowledgePage() {
+function KnowledgeContent() {
   const { childProfile, bookmarkedArticles, toggleBookmark } = useProfile();
+  const searchParams = useSearchParams();
   const [cat, setCat] = useState("ทั้งหมด");
   const [search, setSearch] = useState("");
   const [savingId, setSavingId] = useState<number | null>(null);
   const [openId, setOpenId] = useState<number | null>(null);
+
+  // Auto-open article from ?open= param (from ticker click)
+  useEffect(() => {
+    const openParam = searchParams.get("open");
+    if (openParam) {
+      const id = parseInt(openParam);
+      if (!isNaN(id)) {
+        setOpenId(id);
+        // Scroll to article after render
+        setTimeout(() => {
+          document.getElementById(`article-${id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 300);
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const diagnosisKey = childProfile?.diagnosisKey ?? "";
 
@@ -239,7 +258,7 @@ function ArticleCard({ article, bookmarked, saving, highlighted, open, onToggle,
   onBookmark: (e: React.MouseEvent, id: number) => void;
 }) {
   return (
-    <Card className={`border overflow-hidden ${article.color} ${highlighted ? "ring-2 ring-purple-300" : ""} transition-shadow hover:shadow-md`}>
+    <Card id={`article-${article.id}`} className={`border overflow-hidden ${article.color} ${highlighted ? "ring-2 ring-purple-300" : ""} transition-shadow hover:shadow-md`}>
       {/* Card header — always visible */}
       <div className="p-5 cursor-pointer" onClick={onToggle}>
         <div className="flex items-start gap-4 pr-6 relative">
@@ -285,5 +304,13 @@ function ArticleCard({ article, bookmarked, saving, highlighted, open, onToggle,
         </div>
       )}
     </Card>
+  );
+}
+
+export default function KnowledgePage() {
+  return (
+    <Suspense>
+      <KnowledgeContent />
+    </Suspense>
   );
 }
