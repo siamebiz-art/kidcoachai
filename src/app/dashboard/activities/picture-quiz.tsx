@@ -46,7 +46,12 @@ export function PictureQuizGame({ onBack, onComplete }: { onBack: () => void; on
   const { emotion, message, speak, praise, encourage } = useKidoVoice();
   const announcedDone = useRef(false);
 
-  useEffect(() => { speak("มาดูกันว่าน้องรู้จักอะไรบ้าง! เลือกรูปที่ถูกต้องนะ 🌟"); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // Kido speaks each question aloud
+  useEffect(() => {
+    if (done) return;
+    const prefix = index === 0 ? "มาเริ่มเลย! " : "";
+    speak(`${prefix}${questions[index].prompt} อยู่ตรงไหนนะ? ลองชี้ให้คิโด้ดูหน่อย!`, "talking");
+  }, [index, done]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (done && !announcedDone.current) {
       announcedDone.current = true;

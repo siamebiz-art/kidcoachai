@@ -41,6 +41,12 @@ export function CountingGame({ onBack, onComplete }: { onBack: () => void; onCom
   const announcedDone = useRef(false);
 
   useEffect(() => { speak("มาฝึกนับจำนวนกันเลย! เลือกระดับที่ชอบนะ 🔢"); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // Kido asks each counting question
+  useEffect(() => {
+    if (!difficulty || done) return;
+    const prefix = index === 0 ? "เริ่มเลย! " : "";
+    speak(`${prefix}มีกี่ตัว? ลองนับดูนะ!`, "talking");
+  }, [index, done, difficulty]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (done && !announcedDone.current) {
       announcedDone.current = true;

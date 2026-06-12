@@ -94,6 +94,14 @@ export function SortingGame({ onBack, onComplete }: { onBack: () => void; onComp
   const announcedDone = useRef(false);
 
   useEffect(() => { speak("มาจัดหมวดหมู่กันเลย! เลือกชุดที่ชอบนะ 🗂️"); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // Kido names each item and asks which category
+  useEffect(() => {
+    if (setIdx === null || done || items.length === 0) return;
+    const item = items[current];
+    if (!item) return;
+    const prefix = current === 0 ? "เริ่มเลย! " : "";
+    speak(`${prefix}${item.name} ใส่ในหมวดไหนดีนะ?`, "talking");
+  }, [current, done, setIdx, items.length]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (done && !announcedDone.current) {
       announcedDone.current = true;

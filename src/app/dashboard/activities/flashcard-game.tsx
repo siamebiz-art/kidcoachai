@@ -58,6 +58,11 @@ export function FlashcardGame({
   const announcedDone = useRef(false);
 
   useEffect(() => { speak("มาฝึกคำศัพท์กันเลย! เลือกหมวดที่ชอบนะ 📖"); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // Kido asks about each new card
+  useEffect(() => {
+    if (!selectedCat || done) return;
+    speak("รู้จักรูปนี้ไหมนะ? ลองดูแล้วแตะการ์ดได้เลย!", "talking");
+  }, [index, done, selectedCat]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (done && !announcedDone.current) {
       announcedDone.current = true;
@@ -72,7 +77,7 @@ export function FlashcardGame({
     setFlipped(false);
     setDone(false);
     announcedDone.current = false;
-    speak("เริ่มเลย! แตะการ์ดเพื่อดูคำนะ 🃏");
+    // question effect will fire for first card
   };
 
   const next = (remember: boolean) => {
