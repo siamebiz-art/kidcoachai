@@ -403,8 +403,9 @@ export default function DashboardPage() {
                     </button>
                   </Link>
                   <Link href="/dashboard/kido" className="flex-1 lg:flex-none">
-                    <button className="w-full bg-amber-400/20 text-amber-200 font-semibold text-xs px-3 py-2.5 lg:py-3 rounded-2xl flex items-center justify-center gap-1.5 hover:bg-amber-400/30 transition-colors border border-amber-300/30">
-                      🤖 Kido
+                    <button className="w-full bg-amber-400/20 text-amber-200 font-semibold text-xs px-3 py-2.5 lg:py-3 rounded-2xl flex flex-col items-center justify-center gap-0 hover:bg-amber-400/30 transition-colors border border-amber-300/30">
+                      <span className="flex items-center gap-1">🤖 Kido</span>
+                      <span>Buddy</span>
                     </button>
                   </Link>
                 </div>
