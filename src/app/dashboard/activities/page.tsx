@@ -178,22 +178,22 @@ function ActivitiesContent() {
   }
 
   if (selected?.interactive === "sorting") {
-    return <SortingGame onBack={() => setSelected(null)} onComplete={() => handleComplete(selected)} />;
+    return <SortingGame onBack={() => setSelected(null)} onComplete={(r) => handleComplete(selected, r)} />;
   }
   if (selected?.interactive === "emotion") {
-    return <EmotionGame onBack={() => setSelected(null)} onComplete={() => handleComplete(selected)} />;
+    return <EmotionGame onBack={() => setSelected(null)} onComplete={(r) => handleComplete(selected, r)} />;
   }
   if (selected?.interactive === "shapes") {
-    return <ShapesGame onBack={() => setSelected(null)} onComplete={() => handleComplete(selected)} />;
+    return <ShapesGame onBack={() => setSelected(null)} onComplete={(r) => handleComplete(selected, r)} />;
   }
   if (selected?.interactive === "sequence") {
-    return <SequenceGame onBack={() => setSelected(null)} onComplete={() => handleComplete(selected)} />;
+    return <SequenceGame onBack={() => setSelected(null)} onComplete={(r) => handleComplete(selected, r)} />;
   }
   if (selected?.interactive === "bubble-pop") {
-    return <BubblePopGame onBack={() => setSelected(null)} onComplete={() => handleComplete(selected)} />;
+    return <BubblePopGame onBack={() => setSelected(null)} onComplete={(r) => handleComplete(selected, r)} />;
   }
   if (selected?.interactive === "opposite") {
-    return <OppositeGame onBack={() => setSelected(null)} onComplete={() => handleComplete(selected)} />;
+    return <OppositeGame onBack={() => setSelected(null)} onComplete={(r) => handleComplete(selected, r)} />;
   }
   if (selected?.interactive === "dialogue") {
     return <DialogueGame onBack={() => setSelected(null)} onComplete={(r) => handleComplete(selected, r)} />;

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
@@ -127,7 +127,7 @@ export function BubblePopGame({ onBack, onComplete }: { onBack: () => void; onCo
           <Button variant="outline" onClick={() => { setScore(0); setWrong(0); setTimeLeft(GAME_TIME); setDone(false); setStarted(false); setRound(0); }} className="flex-1 rounded-xl gap-2">
             <RotateCcw className="w-4 h-4" /> เล่นอีกครั้ง
           </Button>
-          <Button onClick={() => { onComplete({ score, total: score + wrong }); onBack(); }} className="flex-1 bg-gradient-to-r from-yellow-400 to-orange-500 text-white border-0 rounded-xl gap-2">
+          <Button onClick={() => { onComplete({ score, total: score + wrong }) }} className="flex-1 bg-gradient-to-r from-yellow-400 to-orange-500 text-white border-0 rounded-xl gap-2">
             <CheckCircle2 className="w-4 h-4" /> บันทึก
           </Button>
         </div>

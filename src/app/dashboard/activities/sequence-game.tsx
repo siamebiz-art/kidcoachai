@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useRef } from "react";
 import { Progress } from "@/components/ui/progress";
@@ -96,7 +96,7 @@ export function SequenceGame({ onBack, onComplete }: { onBack: () => void; onCom
           <Button variant="outline" onClick={() => { setIndex(0); setScore(0); setDone(false); setOrder([]); }} className="flex-1 rounded-xl gap-2">
             <RotateCcw className="w-4 h-4" /> เล่นอีกครั้ง
           </Button>
-          <Button onClick={() => { onComplete({ score, total: questions.length }); onBack(); }} className="flex-1 bg-gradient-to-r from-teal-500 to-green-500 text-white border-0 rounded-xl gap-2">
+          <Button onClick={() => { onComplete({ score, total: questions.length }) }} className="flex-1 bg-gradient-to-r from-teal-500 to-green-500 text-white border-0 rounded-xl gap-2">
             <CheckCircle2 className="w-4 h-4" /> บันทึก
           </Button>
         </div>
