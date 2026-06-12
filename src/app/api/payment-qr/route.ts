@@ -4,6 +4,7 @@ import QRCode from "qrcode";
 import { generateText } from "ai";
 import { openai } from "@ai-sdk/openai";
 import type { AiSlipCheck } from "@/lib/types";
+import { notifyAdmin } from "@/lib/notify-admin";
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const generatePayload = require("promptpay-qr") as (
@@ -118,6 +119,11 @@ export async function POST(req: NextRequest) {
       pendingPayment,
     },
   });
+
+  // Fire-and-forget: notify admin via email + Line Notify
+  const userEmail = user.emailAddresses[0]?.emailAddress ?? "";
+  const userName  = user.firstName ? `${user.firstName} ${user.lastName ?? ""}`.trim() : "ไม่ระบุ";
+  notifyAdmin({ ref, tier, amount, userEmail, userName, slipUrl, autoApproved: autoApproved ?? false, aiCheck }).catch(() => {});
 
   return NextResponse.json({ ok: true, ref, autoApproved: autoApproved ?? false });
 }
