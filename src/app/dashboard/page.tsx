@@ -17,9 +17,24 @@ import {
 } from "recharts";
 import {
   Bell, ChevronRight, CheckCircle2, Circle, Info, Loader2, Sparkles,
-  Flame, Zap, Send, Mic, Camera, BarChart3, Volume2, Clock, Star, Trophy,
+  Flame, Zap, Send, Mic, Camera, BarChart3, Volume2, Clock, Star, Trophy, BookOpen,
 } from "lucide-react";
 import toast from "react-hot-toast";
+
+const TICKER_ARTICLES = [
+  { emoji: "💬", title: "5 สัญญาณเตือนที่บ่งบอกว่าลูกอาจพูดช้า" },
+  { emoji: "🤝", title: "เทคนิค Floor Time: เล่นกับลูกอย่างมีความหมาย" },
+  { emoji: "🧩", title: "ABA Therapy คืออะไร ผู้ปกครองทำเองได้ไหม?" },
+  { emoji: "🌊", title: "วิธีจัดการลูกที่มีพฤติกรรม Meltdown" },
+  { emoji: "🎬", title: "สอนลูกพูด: 10 กิจกรรมที่ทำได้ทุกวัน" },
+  { emoji: "⭐", title: "ดาวน์ซินโดรม: แผนพัฒนาการตามอายุ" },
+  { emoji: "🎯", title: "ADHD ในเด็ก: ช่วยลูกโฟกัสโดยไม่ต้องตะโกน" },
+  { emoji: "📅", title: "วิธีสร้าง Routine ที่ได้ผลสำหรับเด็กพิเศษ" },
+  { emoji: "🥗", title: "โภชนาการสำหรับเด็กที่มีความต้องการพิเศษ" },
+  { emoji: "🌙", title: "การนอนหลับในเด็กออทิสติกและวิธีแก้ปัญหา" },
+  { emoji: "👨‍👩‍👧‍👦", title: "สร้างสัมพันธ์พี่น้องเมื่อน้องหรือพี่มีความต้องการพิเศษ" },
+  { emoji: "📱", title: "เทคโนโลยี AAC: เมื่อลูกสื่อสารด้วยการพูดไม่ได้" },
+];
 
 const KIDO_MESSAGES = [
   "วันนี้หนูเก่งมากเลย! อย่าลืมดื่มน้ำด้วยนะ 💧",
@@ -181,6 +196,32 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50/40 via-white to-purple-50/30">
+
+      {/* ── Knowledge Ticker ── */}
+      <div className="bg-gradient-to-r from-purple-600 to-indigo-600 overflow-hidden">
+        <div className="flex items-center">
+          <div className="shrink-0 bg-purple-800/40 px-3 py-2 flex items-center gap-1.5 z-10">
+            <BookOpen className="w-3.5 h-3.5 text-white/90" />
+            <span className="text-white text-[11px] font-bold whitespace-nowrap">คลังความรู้</span>
+          </div>
+          <div className="overflow-hidden flex-1">
+            <Link href="/dashboard/knowledge">
+              <div
+                className="inline-flex gap-8 py-2 cursor-pointer hover:opacity-80 transition-opacity"
+                style={{ animation: "marquee 35s linear infinite", whiteSpace: "nowrap" }}
+              >
+                {[...TICKER_ARTICLES, ...TICKER_ARTICLES].map((a, i) => (
+                  <span key={i} className="text-white/90 text-[11px] font-medium">
+                    {a.emoji} {a.title}
+                    <span className="text-white/40 mx-3">•</span>
+                  </span>
+                ))}
+              </div>
+            </Link>
+          </div>
+        </div>
+      </div>
+
       <div className="p-3 lg:p-6 max-w-[1400px] mx-auto">
 
         {!childProfile && (
