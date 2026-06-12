@@ -1,7 +1,7 @@
-import { auth } from "@clerk/nextjs/server";
 import { generateText } from "ai";
 import { openai } from "@ai-sdk/openai";
 import type { ChildProfile, AssessmentScores } from "@/lib/types";
+import { aiGuard, guardErrorResponse } from "@/lib/ai-guard";
 
 function calcAge(birthdate: string): string {
   if (!birthdate) return "ไม่ระบุ";
@@ -15,8 +15,9 @@ function calcAge(birthdate: string): string {
 }
 
 export async function POST(req: Request) {
-  const { userId } = await auth();
-  if (!userId) return Response.json({ error: "Unauthorized" }, { status: 401 });
+  const guard = await aiGuard("generate-plan");
+  if (!guard.ok) return guardErrorResponse(guard);
+  const { userId } = guard;
 
   const { childProfile, assessmentScores } = (await req.json()) as {
     childProfile: ChildProfile;

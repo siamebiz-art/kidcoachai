@@ -2,6 +2,7 @@ import { streamText, convertToModelMessages } from "ai";
 import { openai } from "@ai-sdk/openai";
 import { currentUser } from "@clerk/nextjs/server";
 import type { UserMetadata } from "@/lib/types";
+import { aiGuard, guardErrorResponse } from "@/lib/ai-guard";
 
 const BASE_PROMPT = `คุณคือ KidCoach AI ผู้ช่วยฝึกพัฒนาการเด็กที่เป็นมิตรและเชี่ยวชาญ
 
@@ -25,6 +26,9 @@ const BASE_PROMPT = `คุณคือ KidCoach AI ผู้ช่วยฝึ�
 จำ: คุณคือ "ผู้ช่วยฝึกพัฒนาการ" ไม่ใช่แพทย์หรือนักบำบัด`;
 
 export async function POST(req: Request) {
+  const guard = await aiGuard("ai-coach");
+  if (!guard.ok) return guardErrorResponse(guard);
+
   const { messages } = await req.json();
 
   // Get child context from Clerk

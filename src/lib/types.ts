@@ -74,8 +74,12 @@ export interface UserMetadata {
   subscriptionStatus?: "active" | "trialing" | "past_due" | "canceled";
   stripeCustomerId?: string;
   stripeSubscriptionId?: string;
-  // Usage
+  // Usage counters (daily unless noted)
   aiChatCount?: number;
   aiChatResetDate?: string;
+  kidoChatCount?: number;
+  kidoChatResetDate?: string;
+  planGenCount?: number;       // monthly
+  planGenResetDate?: string;   // "YYYY-MM"
   familyPhotoUrl?: string;
 }

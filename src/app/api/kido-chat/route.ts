@@ -1,6 +1,6 @@
 import { generateText } from "ai";
 import { openai } from "@ai-sdk/openai";
-import { currentUser } from "@clerk/nextjs/server";
+import { aiGuard, guardErrorResponse } from "@/lib/ai-guard";
 
 const SYSTEM = `คุณคือ Kido หุ่นยนต์เพื่อนน้อยที่น่ารักและสนุกสนาน
 พูดภาษาไทยสั้นๆ ง่าย อบอุ่น กระตุ้นให้เด็กอยากเรียนรู้
@@ -19,8 +19,8 @@ const SYSTEM = `คุณคือ Kido หุ่นยนต์เพื่อ�
 }`;
 
 export async function POST(req: Request) {
-  const user = await currentUser();
-  if (!user) return Response.json({ error: "Unauthorized" }, { status: 401 });
+  const guard = await aiGuard("kido-chat");
+  if (!guard.ok) return guardErrorResponse(guard);
 
   const { message, childName, childAge, context } = await req.json() as {
     message: string;

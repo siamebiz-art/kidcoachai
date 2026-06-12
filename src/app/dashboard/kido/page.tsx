@@ -189,6 +189,14 @@ export default function KidoPage() {
           method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ message: transcript, childName: childProfile?.name, childAge }),
         });
+        if (!res.ok) {
+          const err = await res.json() as { error?: string };
+          speak(res.status === 429
+            ? "วันนี้คุยได้แค่นี้แล้วนะ พรุ่งนี้ค่อยคุยกันอีกนะ!"
+            : (err.error ?? "ขอโทษนะ ลองใหม่ภายหลัง!"),
+            "idle", () => setPhase("menu"));
+          return;
+        }
         const data = await res.json() as { reply: string; emotion?: KidoEmotion };
         setPhase("responding");
         speak(data.reply, data.emotion ?? "talking", () => setPhase("menu"));
