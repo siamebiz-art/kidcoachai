@@ -25,6 +25,7 @@ import { NeedsGame } from "./needs-game";
 import { OddOneOutGame } from "./odd-one-out-game";
 import { RhythmGame } from "./rhythm-game";
 import { WordCategoryGame } from "./word-category-game";
+import { ColorGame } from "./color-game";
 
 const categories = ["ทั้งหมด", "ภาษา", "การสื่อสาร", "สมาธิ", "กล้ามเนื้อ", "การเรียนรู้"];
 
@@ -48,6 +49,7 @@ const ACTIVITIES = [
   { id: 17, title: "เกมหาตัวแปลก",     category: "สมาธิ",       duration: "10 นาที",   age: "3-7 ปี",  difficulty: "ง่าย",     emoji: "🔍", color: "from-amber-400 to-orange-500", description: "หาสิ่งที่ไม่เข้าพวกใน 4 รายการ ฝึกการสังเกต การจัดหมวดหมู่ และสมาธิ",                    starred: false, materials: [], interactive: "odd-one-out" as const },
   { id: 18, title: "เกมจับจังหวะสี",   category: "กล้ามเนื้อ",  duration: "5 นาที",    age: "3-8 ปี",  difficulty: "ปานกลาง", emoji: "🥁", color: "from-violet-400 to-purple-500", description: "ดูสีที่กะพริบแล้วกดตามลำดับ เหมือน Simon Says ฝึกความจำระยะสั้น สมาธิ และการประสานมือ",   starred: true,  materials: [], interactive: "rhythm" as const },
   { id: 19, title: "เกมเลือกหมวดคำ",   category: "ภาษา",        duration: "10 นาที",   age: "3-7 ปี",  difficulty: "ง่าย",     emoji: "🏷️", color: "from-lime-400 to-green-500",   description: "เห็นคำแล้วเลือกหมวดที่ถูกต้อง เช่น สัตว์ ผลไม้ ยานพาหนะ ฝึกคลังคำศัพท์และการแบ่งกลุ่ม", starred: false, materials: [], interactive: "word-category" as const },
+  { id: 20, title: "เกมทายสี",         category: "การเรียนรู้", duration: "10 นาที",   age: "2-6 ปี",  difficulty: "ง่าย",     emoji: "🎨", color: "from-pink-400 to-orange-400",  description: "ดูเสื้อ กางเกง และสิ่งของ แล้วทายว่าสีอะไร ฝึกรู้จักสี 10 สี และชื่อสิ่งของในชีวิตประจำวัน", starred: true,  materials: [], interactive: "color" as const },
 ];
 
 const difficultyColor: Record<string, string> = {
@@ -209,6 +211,9 @@ function ActivitiesContent() {
   }
   if (selected?.interactive === "word-category") {
     return <WordCategoryGame onBack={() => setSelected(null)} onComplete={(r) => handleComplete(selected, r)} />;
+  }
+  if (selected?.interactive === "color") {
+    return <ColorGame onBack={() => setSelected(null)} onComplete={(r) => handleComplete(selected, r)} />;
   }
 
   if (selected) {

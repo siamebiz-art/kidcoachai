@@ -23,6 +23,7 @@ const GAME_INFO: Record<string, { title: string; emoji: string; color: string }>
   "odd-one-out":   { title: "เกมหาตัวแปลก",         emoji: "🔍", color: "from-amber-400 to-orange-500"   },
   "rhythm":        { title: "เกมจับจังหวะสี",       emoji: "🥁", color: "from-violet-400 to-purple-500"  },
   "word-category": { title: "เกมเลือกหมวดคำ",       emoji: "🏷️", color: "from-lime-400 to-green-500"    },
+  "color":         { title: "เกมทายสี",              emoji: "🎨", color: "from-pink-400 to-orange-400"   },
 };
 
 interface Props {
@@ -75,7 +76,7 @@ export function KidoNextGame({
         const SKILL_GROUPS: Record<string, string[]> = {
           "ภาษา":        ["flashcard", "picture-quiz", "opposite", "word-category"],
           "การสื่อสาร":  ["emotion", "dialogue", "needs"],
-          "การเรียนรู้": ["sorting", "shapes", "sequence", "memory"],
+          "การเรียนรู้": ["sorting", "shapes", "sequence", "memory", "color"],
           "สมาธิ":       ["bubble-pop", "counting", "odd-one-out"],
           "กล้ามเนื้อ":  ["rhythm"],
         };

@@ -6,7 +6,7 @@ import type { GameSession } from "@/lib/types";
 type GameId =
   | "matching" | "picture-quiz" | "flashcard" | "counting" | "sorting"
   | "emotion" | "shapes" | "sequence" | "bubble-pop" | "opposite"
-  | "dialogue" | "needs" | "odd-one-out" | "rhythm" | "word-category";
+  | "dialogue" | "needs" | "odd-one-out" | "rhythm" | "word-category" | "color";
 
 const GAME_DESCRIPTIONS: Record<GameId, string> = {
   "flashcard":       "บัตรคำ — ฝึกจำคำศัพท์ ภาษา การอ่าน",
@@ -24,29 +24,30 @@ const GAME_DESCRIPTIONS: Record<GameId, string> = {
   "odd-one-out":     "หาตัวแปลก — จับผิดสิ่งที่ไม่เข้าพวก ฝึกสมาธิ การสังเกต",
   "rhythm":          "จับจังหวะสี — จำและกดสีตามลำดับ ฝึกความจำ กล้ามเนื้อ สมาธิ",
   "word-category":   "เลือกหมวดคำ — จัดหมวดคำศัพท์ ฝึกภาษาและการคิดจัดกลุ่ม",
+  "color":           "ทายสีจากสิ่งของ — ดูเสื้อผ้า/ของใช้แล้วบอกสี ฝึกรู้จักสี 10 สีและชื่อสิ่งของ",
 };
 
 function getRuleBasedOrder(diagnosisKey: string, ageMonths: number): GameId[] {
   if (ageMonths > 0 && ageMonths < 30) {
-    return ["picture-quiz", "shapes", "counting", "needs", "flashcard", "rhythm", "bubble-pop", "matching", "sorting", "emotion", "sequence", "word-category", "opposite", "dialogue", "odd-one-out"];
+    return ["picture-quiz", "color", "shapes", "counting", "needs", "flashcard", "rhythm", "bubble-pop", "matching", "sorting", "emotion", "sequence", "word-category", "opposite", "dialogue", "odd-one-out"];
   }
   const key = diagnosisKey.toLowerCase();
   if (key.includes("speech") || key.includes("พูด") || key.includes("ภาษา")) {
-    return ["flashcard", "picture-quiz", "needs", "opposite", "word-category", "emotion", "dialogue", "sorting", "counting", "shapes", "matching", "sequence", "bubble-pop", "odd-one-out", "rhythm"];
+    return ["flashcard", "picture-quiz", "color", "needs", "opposite", "word-category", "emotion", "dialogue", "sorting", "counting", "shapes", "matching", "sequence", "bubble-pop", "odd-one-out", "rhythm"];
   }
   if (key.includes("adhd") || key.includes("สมาธิ")) {
-    return ["bubble-pop", "rhythm", "odd-one-out", "counting", "sorting", "matching", "shapes", "sequence", "picture-quiz", "flashcard", "emotion", "word-category", "opposite", "dialogue", "needs"];
+    return ["bubble-pop", "rhythm", "odd-one-out", "counting", "sorting", "matching", "color", "shapes", "sequence", "picture-quiz", "flashcard", "emotion", "word-category", "opposite", "dialogue", "needs"];
   }
   if (key.includes("autism") || key.includes("asd") || key.includes("ออทิ")) {
-    return ["emotion", "dialogue", "needs", "sorting", "sequence", "matching", "shapes", "counting", "flashcard", "picture-quiz", "word-category", "odd-one-out", "opposite", "bubble-pop", "rhythm"];
+    return ["emotion", "dialogue", "needs", "color", "sorting", "sequence", "matching", "shapes", "counting", "flashcard", "picture-quiz", "word-category", "odd-one-out", "opposite", "bubble-pop", "rhythm"];
   }
   if (key.includes("down") || key.includes("ดาวน์")) {
-    return ["shapes", "picture-quiz", "counting", "needs", "flashcard", "sorting", "emotion", "word-category", "matching", "sequence", "dialogue", "bubble-pop", "opposite", "odd-one-out", "rhythm"];
+    return ["color", "shapes", "picture-quiz", "counting", "needs", "flashcard", "sorting", "emotion", "word-category", "matching", "sequence", "dialogue", "bubble-pop", "opposite", "odd-one-out", "rhythm"];
   }
   if (key.includes("global") || key.includes("พัฒนาการช้า")) {
-    return ["picture-quiz", "shapes", "counting", "needs", "flashcard", "emotion", "sorting", "matching", "bubble-pop", "word-category", "sequence", "odd-one-out", "dialogue", "opposite", "rhythm"];
+    return ["color", "picture-quiz", "shapes", "counting", "needs", "flashcard", "emotion", "sorting", "matching", "bubble-pop", "word-category", "sequence", "odd-one-out", "dialogue", "opposite", "rhythm"];
   }
-  return ["picture-quiz", "flashcard", "emotion", "dialogue", "shapes", "counting", "needs", "sorting", "bubble-pop", "opposite", "word-category", "matching", "sequence", "odd-one-out", "rhythm"];
+  return ["picture-quiz", "color", "flashcard", "emotion", "dialogue", "shapes", "counting", "needs", "sorting", "bubble-pop", "opposite", "word-category", "matching", "sequence", "odd-one-out", "rhythm"];
 }
 
 export async function POST(req: Request) {
@@ -93,14 +94,14 @@ ${sessionSummary}
 เกมที่มี:
 ${(Object.entries(GAME_DESCRIPTIONS) as [GameId, string][]).map(([id, desc]) => `- "${id}": ${desc}`).join("\n")}
 
-เรียงลำดับ 15 เกมจากเหมาะสมที่สุดไปน้อยสุด โดยพิจารณา:
+เรียงลำดับ 16 เกมจากเหมาะสมที่สุดไปน้อยสุด โดยพิจารณา:
 1. ความต้องการพิเศษของเด็ก (ฝึกด้านที่อ่อนแอก่อน)
 2. คะแนนที่ต่ำในประวัติ (ต้องฝึกซ้ำ)
 3. ความหลากหลาย (ไม่ซ้ำเกมเดิมทุกวัน)
 
 ตอบเป็น JSON เท่านั้น ไม่มีข้อความอื่น:
 {
-  "order": ["game-id-1","game-id-2",...,"game-id-15"],
+  "order": ["game-id-1","game-id-2",...,"game-id-16"],
   "highlight": "game-id-1",
   "reason": "ประโยคสั้นๆ บอก kido ว่าทำไมแนะนำเกมนี้ก่อน (ภาษาไทย ≤15 คำ)"
 }`;
@@ -128,7 +129,7 @@ ${(Object.entries(GAME_DESCRIPTIONS) as [GameId, string][]).map(([id, desc]) => 
     const finalOrder = [
       ...safeOrder,
       ...fallback.filter((id) => !safeOrder.includes(id)),
-    ].slice(0, 15) as GameId[];
+    ].slice(0, 16) as GameId[];
 
     return Response.json({
       order: finalOrder,
