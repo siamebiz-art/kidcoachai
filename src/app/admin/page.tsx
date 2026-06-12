@@ -9,6 +9,16 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import toast from "react-hot-toast";
 
+interface AiSlipCheck {
+  valid: boolean;
+  amount: number;
+  amountMatch: boolean;
+  bank: string;
+  confidence: "high" | "medium" | "low";
+  reason: string;
+  checkedAt: string;
+}
+
 interface PaymentRecord {
   userId: string;
   email: string;
@@ -18,8 +28,9 @@ interface PaymentRecord {
   slipUrl: string;
   ref: string;
   submittedAt: string;
-  status: "pending" | "approved" | "rejected";
+  status: "pending" | "ai_approved" | "approved" | "rejected";
   rejectedReason?: string;
+  aiCheck?: AiSlipCheck;
 }
 
 export default function AdminPage() {
@@ -86,8 +97,8 @@ export default function AdminPage() {
     );
   }
 
-  const pending  = payments.filter((p) => p.status === "pending");
-  const resolved = payments.filter((p) => p.status !== "pending");
+  const pending  = payments.filter((p) => p.status === "pending" || p.status === "ai_approved");
+  const resolved = payments.filter((p) => p.status === "approved" || p.status === "rejected");
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -129,11 +140,14 @@ export default function AdminPage() {
 
                     {/* Info */}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <Badge className={p.tier === "pro" ? "bg-amber-100 text-amber-700 border-amber-200" : "bg-purple-100 text-purple-700 border-purple-200"}>
                           {p.tier.toUpperCase()}
                         </Badge>
                         <span className="font-bold text-gray-900">฿{p.amount}</span>
+                        {p.status === "ai_approved" && (
+                          <Badge className="bg-green-100 text-green-700 border-green-200 text-xs">🤖 AI ผ่าน</Badge>
+                        )}
                         <span className="text-xs text-gray-400 ml-auto">{p.ref}</span>
                       </div>
                       <p className="text-sm font-medium text-gray-800 truncate">{p.name}</p>
@@ -141,6 +155,21 @@ export default function AdminPage() {
                       <p className="text-xs text-gray-400 mt-1">
                         {new Date(p.submittedAt).toLocaleString("th-TH")}
                       </p>
+
+                      {/* AI check result */}
+                      {p.aiCheck && (
+                        <div className={`mt-2 rounded-xl px-3 py-2 text-xs ${
+                          p.aiCheck.valid && p.aiCheck.amountMatch ? "bg-green-50 text-green-800" :
+                          !p.aiCheck.valid ? "bg-red-50 text-red-800" : "bg-amber-50 text-amber-800"
+                        }`}>
+                          <span className="font-semibold">🤖 AI:</span>{" "}
+                          {p.aiCheck.bank} · ฿{p.aiCheck.amount} ·{" "}
+                          {p.aiCheck.amountMatch ? "✅ ยอดตรง" : "⚠️ ยอดไม่ตรง"} ·{" "}
+                          Confidence: <span className="font-medium">{p.aiCheck.confidence}</span>
+                          <br />
+                          <span className="text-gray-500">{p.aiCheck.reason}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
 

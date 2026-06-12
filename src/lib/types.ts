@@ -104,12 +104,23 @@ export interface UserMetadata {
   pendingPayment?: PendingPayment;
 }
 
+export interface AiSlipCheck {
+  valid: boolean;
+  amount: number;
+  amountMatch: boolean;
+  bank: string;
+  confidence: "high" | "medium" | "low";
+  reason: string;
+  checkedAt: string;
+}
+
 export interface PendingPayment {
   tier: "premium" | "pro";
   amount: number;
   slipUrl: string;
   ref: string;
   submittedAt: string;
-  status: "pending" | "approved" | "rejected";
+  status: "pending" | "ai_approved" | "approved" | "rejected";
   rejectedReason?: string;
+  aiCheck?: AiSlipCheck;
 }

@@ -604,23 +604,33 @@ function SettingsContent() {
               {/* Pending payment banner */}
               {pendingPayment && (
                 <Card className={`p-4 border-2 shadow-sm ${
-                  pendingPayment.status === "pending"  ? "border-amber-300 bg-amber-50" :
-                  pendingPayment.status === "approved" ? "border-green-300 bg-green-50" :
-                                                         "border-red-300 bg-red-50"
+                  pendingPayment.status === "pending"     ? "border-amber-300 bg-amber-50" :
+                  pendingPayment.status === "ai_approved" ? "border-green-300 bg-green-50" :
+                  pendingPayment.status === "approved"    ? "border-green-300 bg-green-50" :
+                                                            "border-red-300 bg-red-50"
                 }`}>
                   <div className="flex items-start gap-3">
                     <span className="text-2xl">
-                      {pendingPayment.status === "pending" ? "⏳" : pendingPayment.status === "approved" ? "✅" : "❌"}
+                      {pendingPayment.status === "pending"     && "⏳"}
+                      {pendingPayment.status === "ai_approved" && "🤖"}
+                      {pendingPayment.status === "approved"    && "✅"}
+                      {pendingPayment.status === "rejected"    && "❌"}
                     </span>
-                    <div>
+                    <div className="flex-1">
                       <p className="font-semibold text-sm text-gray-900">
-                        {pendingPayment.status === "pending"  && "รอตรวจสอบสลิปการชำระเงิน"}
-                        {pendingPayment.status === "approved" && "ชำระเงินสำเร็จ — เปิดใช้งานแล้ว!"}
-                        {pendingPayment.status === "rejected" && "สลิปไม่ผ่านการตรวจสอบ"}
+                        {pendingPayment.status === "pending"     && "รอตรวจสอบสลิปการชำระเงิน"}
+                        {pendingPayment.status === "ai_approved" && "AI ตรวจสอบผ่านแล้ว — เปิดใช้งานแล้ว! 🎉"}
+                        {pendingPayment.status === "approved"    && "ชำระเงินสำเร็จ — เปิดใช้งานแล้ว!"}
+                        {pendingPayment.status === "rejected"    && "สลิปไม่ผ่านการตรวจสอบ"}
                       </p>
                       <p className="text-xs text-gray-500 mt-0.5">
                         แพ็กเกจ {pendingPayment.tier} · ฿{pendingPayment.amount} · อ้างอิง {pendingPayment.ref}
                       </p>
+                      {pendingPayment.aiCheck && (
+                        <p className="text-xs text-gray-400 mt-1">
+                          🤖 AI: {pendingPayment.aiCheck.bank} · ฿{pendingPayment.aiCheck.amount} · {pendingPayment.aiCheck.reason}
+                        </p>
+                      )}
                       {pendingPayment.status === "rejected" && pendingPayment.rejectedReason && (
                         <p className="text-xs text-red-600 mt-1">เหตุผล: {pendingPayment.rejectedReason}</p>
                       )}
@@ -853,7 +863,11 @@ function SettingsContent() {
                   });
                   const data = await res.json();
                   if (!res.ok) throw new Error(data.error || "ส่งข้อมูลไม่สำเร็จ");
-                  toast.success(`ส่งสลิปสำเร็จ! 🎉 อ้างอิง: ${data.ref}`);
+                  if (data.autoApproved) {
+                    toast.success(`AI ตรวจสอบผ่าน ✅ เปิดใช้งาน ${showQRModal} แล้ว! อ้างอิง: ${data.ref}`);
+                  } else {
+                    toast.success(`ส่งสลิปสำเร็จ! 🎉 ทีมงานจะตรวจสอบ อ้างอิง: ${data.ref}`);
+                  }
                   setShowQRModal(null);
                   setSlipFile(null);
                   setSlipPreview("");
