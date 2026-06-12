@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { loadDailyData, computeBalanceScore, OFFLINE_MISSIONS, type DailyData } from "@/lib/daily-data";
+import { loadDailyData, computeBalanceScore, completeMission, OFFLINE_MISSIONS, type DailyData } from "@/lib/daily-data";
 import { GameStatsCard } from "@/components/kido/game-stats-card";
 import Image from "next/image";
 import { Card } from "@/components/ui/card";
@@ -90,6 +90,7 @@ function getStreakLevel(days: number) {
 export default function DashboardPage() {
   const router = useRouter();
   const [chatInput, setChatInput] = useState("");
+  const [missionDone, setMissionDone] = useState(false);
   const {
     isLoaded, childProfile, childAge, displayName, parentProfile,
     latestAssessment, assessmentHistory, weeklyPlan, activityLog, toggleActivity,
@@ -536,7 +537,12 @@ export default function DashboardPage() {
                         <span className="text-[10px] text-purple-500 font-semibold">+{todayMission.minutes} นาที ⭐</span>
                       )}
                     </div>
-                    {todayMission ? (
+                    {missionDone ? (
+                      <div className="bg-green-50 rounded-2xl p-3 text-center">
+                        <div className="text-xl mb-0.5">🎉</div>
+                        <p className="text-xs font-semibold text-green-700">เก่งมาก! ทำภารกิจเสร็จแล้ว</p>
+                      </div>
+                    ) : todayMission ? (
                       <div className="flex items-center gap-3 bg-purple-50 rounded-2xl p-3">
                         <span className="text-2xl">{todayMission.emoji}</span>
                         <div className="flex-1 min-w-0">
@@ -545,11 +551,16 @@ export default function DashboardPage() {
                             {todayMission.category === "physical" ? "ออกกำลังกาย" : todayMission.category === "parent" ? "เวลากับครอบครัว" : "การเรียนรู้"}
                           </p>
                         </div>
-                        <Link href="/dashboard/kido">
-                          <button className="shrink-0 bg-purple-500 text-white text-[10px] font-bold px-2.5 py-1.5 rounded-xl">
-                            เริ่ม
-                          </button>
-                        </Link>
+                        <button
+                          onClick={() => {
+                            const updated = completeMission(todayMission);
+                            setDailyData(updated);
+                            setMissionDone(true);
+                          }}
+                          className="shrink-0 bg-purple-500 text-white text-[10px] font-bold px-2.5 py-1.5 rounded-xl active:scale-95 transition-transform"
+                        >
+                          ทำเสร็จแล้ว ✓
+                        </button>
                       </div>
                     ) : (
                       <div className="bg-green-50 rounded-2xl p-3 text-center">
