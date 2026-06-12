@@ -8,24 +8,33 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, Trophy, CheckCircle2, RotateCcw } from "lucide-react";
 import type { GameResult } from "@/lib/types";
 
-const DOT_THEMES = ["🍎", "⭐", "🌸", "🐾"];
+const DOT_THEMES = [
+  { emoji: "🍎", label: "แอปเปิ้ล", classifier: "ลูก"  },
+  { emoji: "⭐", label: "ดาว",       classifier: "ดวง"  },
+  { emoji: "🌸", label: "ดอกไม้",   classifier: "ดอก"  },
+  { emoji: "🐶", label: "หมา",       classifier: "ตัว"  },
+  { emoji: "🚗", label: "รถยนต์",   classifier: "คัน"  },
+  { emoji: "🎈", label: "ลูกโป่ง",  classifier: "ลูก"  },
+  { emoji: "🦋", label: "ผีเสื้อ",  classifier: "ตัว"  },
+  { emoji: "📚", label: "หนังสือ",  classifier: "เล่ม" },
+];
 
 function shuffle<T>(arr: T[]): T[] {
   return [...arr].sort(() => Math.random() - 0.5);
 }
 
-type Round = { count: number; options: number[]; dot: string };
+type Round = { count: number; options: number[]; emoji: string; label: string; classifier: string };
 
 function buildRounds(max: number, total = 10): Round[] {
-  const dots = DOT_THEMES;
   return Array.from({ length: total }, (_, i) => {
+    const theme = DOT_THEMES[i % DOT_THEMES.length];
     const count = Math.floor(Math.random() * max) + 1;
     const wrongs = new Set<number>();
     while (wrongs.size < 3) {
       const w = Math.floor(Math.random() * max) + 1;
       if (w !== count) wrongs.add(w);
     }
-    return { count, options: shuffle([count, ...Array.from(wrongs)]), dot: dots[i % dots.length] };
+    return { count, options: shuffle([count, ...Array.from(wrongs)]), ...theme };
   });
 }
 
@@ -44,9 +53,10 @@ export function CountingGame({ onBack, onComplete }: { onBack: () => void; onCom
   useEffect(() => { speak("มาฝึกนับจำนวนกันเลย! เลือกระดับที่ชอบนะ 🔢"); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   // Kido asks each counting question
   useEffect(() => {
-    if (!difficulty || done) return;
+    if (!difficulty || done || rounds.length === 0) return;
+    const { label, classifier } = rounds[index] ?? {};
     const prefix = index === 0 ? "เริ่มเลย! " : "";
-    speak(`${prefix}มีกี่ตัว? ลองนับดูนะ!`, "talking");
+    speak(`${prefix}มี${label}กี่${classifier}? ลองนับดูนะ!`, "talking");
   }, [index, done, difficulty]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (done && !announcedDone.current) {
@@ -73,11 +83,12 @@ export function CountingGame({ onBack, onComplete }: { onBack: () => void; onCom
         if (index + 1 >= rounds.length) setDone(true);
         else { setIndex((i) => i + 1); setSelected(null); }
       };
+      const { classifier } = rounds[index];
       if (n === correct) {
         setScore((s) => s + 1);
-        speak(`ถูกต้องเลย! มี ${correct} ตัว เก่งมากเลย!`, "celebrating", advance);
+        speak(`ถูกต้องเลย! มี ${correct} ${classifier} เก่งมากเลย!`, "celebrating", advance);
       } else {
-        speak(`ยังไม่ใช่นะ มี ${correct} ตัวนะ ลองดูอีกครั้งนะ!`, "thinking", advance);
+        speak(`ยังไม่ใช่นะ มี ${correct} ${classifier}นะ ลองดูอีกครั้งนะ!`, "thinking", advance);
       }
     },
     [selected, index, rounds, speak]
@@ -136,7 +147,7 @@ export function CountingGame({ onBack, onComplete }: { onBack: () => void; onCom
             <RotateCcw className="w-4 h-4" /> เล่นอีกครั้ง
           </Button>
           <Button
-            onClick={() => { onComplete({ score, total: rounds.length }); onBack(); }}
+            onClick={() => onComplete({ score, total: rounds.length })}
             className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0 rounded-xl gap-2"
           >
             <CheckCircle2 className="w-4 h-4" /> บันทึกเสร็จแล้ว
@@ -158,11 +169,11 @@ export function CountingGame({ onBack, onComplete }: { onBack: () => void; onCom
       </div>
       <Progress value={(index / rounds.length) * 100} className="mb-6 h-2" />
 
-      <p className="text-center text-gray-400 text-sm mb-4">มีกี่ตัว?</p>
+      <p className="text-center text-gray-400 text-sm mb-4">มี{round.label}กี่{round.classifier}?</p>
 
       <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-3xl p-6 mb-8 min-h-32 flex flex-wrap gap-2 justify-center items-center">
         {Array.from({ length: round.count }).map((_, i) => (
-          <span key={i} className="text-4xl">{round.dot}</span>
+          <span key={i} className="text-4xl">{round.emoji}</span>
         ))}
       </div>
 
