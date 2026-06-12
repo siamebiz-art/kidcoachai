@@ -307,7 +307,10 @@ export default function DashboardPage() {
                 <img src="/kido-celebrate.png" alt="" className="w-32 h-32 object-contain select-none" />
               </div>
 
-              <div className="relative flex flex-row items-start gap-3 lg:gap-5">
+              <div className="relative flex flex-col lg:flex-row items-start gap-3 lg:gap-5">
+
+                {/* Row: Avatar + Message (side by side on all sizes) */}
+                <div className="flex items-start gap-3 flex-1 min-w-0">
 
                 {/* AI Avatar */}
                 <div className="shrink-0">
@@ -377,8 +380,10 @@ export default function DashboardPage() {
                   )}
                 </div>
 
-                {/* CTA buttons */}
-                <div className="flex flex-row lg:flex-col gap-2 w-full lg:w-auto mt-3 lg:mt-0 shrink-0">
+                </div>{/* end inner avatar+message row */}
+
+                {/* CTA buttons — full-width row on mobile, column on desktop */}
+                <div className="flex flex-row lg:flex-col gap-2 w-full lg:w-44 shrink-0">
                   <Link
                     href={
                       aiRec
@@ -387,18 +392,18 @@ export default function DashboardPage() {
                     }
                     className="flex-1 lg:flex-none"
                   >
-                    <button className="w-full lg:w-44 bg-white text-purple-700 font-bold text-xs lg:text-sm px-3 py-2.5 lg:py-3 rounded-2xl flex items-center justify-center gap-1.5 hover:bg-white/90 transition-colors shadow-md">
+                    <button className="w-full bg-white text-purple-700 font-bold text-xs px-3 py-2.5 lg:py-3 rounded-2xl flex items-center justify-center gap-1.5 hover:bg-white/90 transition-colors shadow-md">
                       <Sparkles className="w-3.5 h-3.5" />
                       {aiRec ? "เริ่มกิจกรรม" : "ประเมินลูกเลย"}
                     </button>
                   </Link>
                   <Link href="/dashboard/ai-coach" className="flex-1 lg:flex-none">
-                    <button className="w-full lg:w-44 bg-white/20 text-white font-semibold text-xs lg:text-sm px-3 py-2.5 lg:py-3 rounded-2xl flex items-center justify-center gap-1.5 hover:bg-white/30 transition-colors border border-white/30">
+                    <button className="w-full bg-white/20 text-white font-semibold text-xs px-3 py-2.5 lg:py-3 rounded-2xl flex items-center justify-center gap-1.5 hover:bg-white/30 transition-colors border border-white/30">
                       <Mic className="w-3.5 h-3.5" /> พูดคุยกับ AI
                     </button>
                   </Link>
                   <Link href="/dashboard/kido" className="flex-1 lg:flex-none">
-                    <button className="w-full lg:w-44 bg-amber-400/20 text-amber-200 font-semibold text-xs lg:text-sm px-3 py-2.5 lg:py-3 rounded-2xl flex items-center justify-center gap-1.5 hover:bg-amber-400/30 transition-colors border border-amber-300/30">
+                    <button className="w-full bg-amber-400/20 text-amber-200 font-semibold text-xs px-3 py-2.5 lg:py-3 rounded-2xl flex items-center justify-center gap-1.5 hover:bg-amber-400/30 transition-colors border border-amber-300/30">
                       🤖 Kido
                     </button>
                   </Link>
