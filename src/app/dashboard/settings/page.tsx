@@ -34,9 +34,15 @@ function SettingsContent() {
   });
 
   const { openUserProfile } = useClerk();
-  const { isLoaded, childProfile, parentProfile, user, subscriptionTier, isPremium, updateChildProfile, updateParentProfile, kidoSettings, updateKidoSettings } = useProfile();
-  const [isCheckingOut, setIsCheckingOut] = useState<"premium" | "pro" | null>(null);
+  const { isLoaded, childProfile, parentProfile, user, subscriptionTier, isPremium, updateChildProfile, updateParentProfile, kidoSettings, updateKidoSettings, pendingPayment } = useProfile();
   const [isPortaling, setIsPortaling] = useState(false);
+
+  // PromptPay modal
+  const [showQRModal, setShowQRModal] = useState<"premium" | "pro" | null>(null);
+  const [slipFile, setSlipFile] = useState<File | null>(null);
+  const [slipPreview, setSlipPreview] = useState<string>("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const slipInputRef = useRef<HTMLInputElement>(null);
 
   // Parent form
   const [parentName, setParentName] = useState("");
@@ -594,6 +600,35 @@ function SettingsContent() {
           {/* Billing Tab */}
           {activeTab === "billing" && (
             <div className="space-y-4">
+
+              {/* Pending payment banner */}
+              {pendingPayment && (
+                <Card className={`p-4 border-2 shadow-sm ${
+                  pendingPayment.status === "pending"  ? "border-amber-300 bg-amber-50" :
+                  pendingPayment.status === "approved" ? "border-green-300 bg-green-50" :
+                                                         "border-red-300 bg-red-50"
+                }`}>
+                  <div className="flex items-start gap-3">
+                    <span className="text-2xl">
+                      {pendingPayment.status === "pending" ? "⏳" : pendingPayment.status === "approved" ? "✅" : "❌"}
+                    </span>
+                    <div>
+                      <p className="font-semibold text-sm text-gray-900">
+                        {pendingPayment.status === "pending"  && "รอตรวจสอบสลิปการชำระเงิน"}
+                        {pendingPayment.status === "approved" && "ชำระเงินสำเร็จ — เปิดใช้งานแล้ว!"}
+                        {pendingPayment.status === "rejected" && "สลิปไม่ผ่านการตรวจสอบ"}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        แพ็กเกจ {pendingPayment.tier} · ฿{pendingPayment.amount} · อ้างอิง {pendingPayment.ref}
+                      </p>
+                      {pendingPayment.status === "rejected" && pendingPayment.rejectedReason && (
+                        <p className="text-xs text-red-600 mt-1">เหตุผล: {pendingPayment.rejectedReason}</p>
+                      )}
+                    </div>
+                  </div>
+                </Card>
+              )}
+
               {/* Current plan */}
               <Card className="p-5 border-gray-100 shadow-sm">
                 <h2 className="font-bold text-gray-900 mb-4">แผนปัจจุบัน</h2>
@@ -638,7 +673,7 @@ function SettingsContent() {
                 </div>
               </Card>
 
-              {/* Upgrade plans */}
+              {/* Upgrade plans — PromptPay */}
               {subscriptionTier !== "pro" && (
                 <div className="grid md:grid-cols-2 gap-4">
                   {([
@@ -676,30 +711,24 @@ function SettingsContent() {
                         ))}
                       </ul>
                       <Button
-                        disabled={isCheckingOut !== null}
-                        onClick={async () => {
-                          setIsCheckingOut(plan.tier);
-                          try {
-                            const res = await fetch("/api/create-checkout", {
-                              method: "POST",
-                              headers: { "Content-Type": "application/json" },
-                              body: JSON.stringify({ tier: plan.tier }),
-                            });
-                            const data = await res.json();
-                            if (data.url) window.location.href = data.url;
-                            else toast.error("ไม่สามารถเปิดหน้าชำระเงินได้");
-                          } catch { toast.error("เกิดข้อผิดพลาด"); }
-                          finally { setIsCheckingOut(null); }
-                        }}
+                        disabled={pendingPayment?.status === "pending"}
+                        onClick={() => setShowQRModal(plan.tier)}
                         className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0 rounded-xl gap-2"
                       >
-                        {isCheckingOut === plan.tier ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-                        อัปเกรดเป็น {plan.name}
+                        💳 ชำระผ่าน PromptPay
                       </Button>
+                      {pendingPayment?.status === "pending" && (
+                        <p className="text-xs text-center text-amber-600 mt-2">รอตรวจสอบสลิปอยู่...</p>
+                      )}
                     </Card>
                   ))}
                 </div>
               )}
+
+              {/* PromptPay info note */}
+              <p className="text-xs text-center text-gray-400">
+                ชำระผ่าน PromptPay · โอนเงินแล้วอัปโหลดสลิป · ทีมงานเปิดใช้งานภายใน 24 ชั่วโมง
+              </p>
             </div>
           )}
 
@@ -732,6 +761,120 @@ function SettingsContent() {
           )}
         </div>
       </div>
+      {/* PromptPay QR Modal */}
+      {showQRModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-bold text-gray-900 text-lg">ชำระผ่าน PromptPay</h3>
+              <button
+                onClick={() => { setShowQRModal(null); setSlipFile(null); setSlipPreview(""); }}
+                className="text-gray-400 hover:text-gray-600 text-xl leading-none"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Price */}
+            <div className="text-center mb-4">
+              <p className="text-sm text-gray-500 mb-1">แพ็กเกจ {showQRModal === "premium" ? "Premium" : "Pro"}</p>
+              <p className="text-4xl font-bold text-purple-600">
+                ฿{showQRModal === "premium" ? "299" : "599"}
+              </p>
+              <p className="text-xs text-gray-400">ต่อเดือน</p>
+            </div>
+
+            {/* QR Code SVG from API */}
+            <div className="flex justify-center mb-3">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={`/api/payment-qr?tier=${showQRModal}`}
+                alt="PromptPay QR Code"
+                className="w-48 h-48 border border-gray-200 rounded-2xl bg-white"
+              />
+            </div>
+            <p className="text-xs text-center text-gray-500 mb-4">
+              สแกน QR ด้วยแอปธนาคาร → โอนเงิน → อัปโหลดสลิปด้านล่าง
+            </p>
+
+            {/* Slip upload */}
+            <input
+              ref={slipInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (!f) return;
+                setSlipFile(f);
+                const reader = new FileReader();
+                reader.onload = (ev) => setSlipPreview(ev.target?.result as string);
+                reader.readAsDataURL(f);
+              }}
+            />
+
+            {slipPreview ? (
+              <div className="relative mb-3 rounded-xl overflow-hidden border border-gray-200">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={slipPreview} alt="สลิป" className="w-full max-h-40 object-cover" />
+                <button
+                  onClick={() => { setSlipFile(null); setSlipPreview(""); }}
+                  className="absolute top-2 right-2 bg-white rounded-full px-2 py-0.5 text-xs shadow font-medium text-gray-700"
+                >
+                  เปลี่ยน
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => slipInputRef.current?.click()}
+                className="w-full border-2 border-dashed border-purple-300 rounded-2xl py-4 text-sm text-purple-600 hover:border-purple-400 hover:bg-purple-50 transition-colors mb-3"
+              >
+                📎 อัปโหลดสลิปการโอนเงิน
+              </button>
+            )}
+
+            <Button
+              disabled={!slipFile || isSubmitting}
+              onClick={async () => {
+                if (!slipFile) return;
+                setIsSubmitting(true);
+                try {
+                  const form = new FormData();
+                  form.append("file", slipFile);
+                  form.append("prefix", "slip");
+                  const upRes = await fetch("/api/upload-child-photo", { method: "POST", body: form });
+                  const upData = await upRes.json();
+                  if (!upRes.ok) throw new Error(upData.error || "อัปโหลดสลิปไม่สำเร็จ");
+
+                  const res = await fetch("/api/payment-qr", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ tier: showQRModal, slipUrl: upData.url }),
+                  });
+                  const data = await res.json();
+                  if (!res.ok) throw new Error(data.error || "ส่งข้อมูลไม่สำเร็จ");
+                  toast.success(`ส่งสลิปสำเร็จ! 🎉 อ้างอิง: ${data.ref}`);
+                  setShowQRModal(null);
+                  setSlipFile(null);
+                  setSlipPreview("");
+                  await user?.reload();
+                } catch (e: unknown) {
+                  toast.error(e instanceof Error ? e.message : "เกิดข้อผิดพลาด กรุณาลองใหม่");
+                } finally {
+                  setIsSubmitting(false);
+                }
+              }}
+              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0 rounded-xl gap-2"
+            >
+              {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
+              ยืนยันการชำระเงิน
+            </Button>
+            <p className="text-xs text-center text-gray-400 mt-2">
+              ทีมงานจะตรวจสอบและเปิดใช้งานภายใน 24 ชั่วโมง
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

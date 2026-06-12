@@ -100,4 +100,16 @@ export interface UserMetadata {
   kidoRecResetDate?: string;
   kidoSettings?: KidoSettings;
   familyPhotoUrl?: string;
+  // PromptPay payment
+  pendingPayment?: PendingPayment;
+}
+
+export interface PendingPayment {
+  tier: "premium" | "pro";
+  amount: number;
+  slipUrl: string;
+  ref: string;
+  submittedAt: string;
+  status: "pending" | "approved" | "rejected";
+  rejectedReason?: string;
 }

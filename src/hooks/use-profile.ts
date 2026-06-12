@@ -9,6 +9,7 @@ import type {
   WeeklyPlan,
   Milestone,
   KidoSettings,
+  PendingPayment,
 } from "@/lib/types";
 import { calculateAge } from "@/lib/profile-utils";
 
@@ -30,6 +31,7 @@ export function useProfile() {
   const subscriptionTier = metadata.subscriptionTier ?? "free";
   const isPremium = subscriptionTier === "premium" || subscriptionTier === "pro";
   const kidoSettings: KidoSettings = metadata.kidoSettings ?? { dailyLimitMinutes: 0 };
+  const pendingPayment: PendingPayment | undefined = metadata.pendingPayment;
 
   const displayName =
     parentProfile?.displayName ||
@@ -114,6 +116,7 @@ export function useProfile() {
     familyPhotoUrl,
     kidoSettings,
     updateChildProfile,
+    pendingPayment,
     updateKidoSettings,
     updateParentProfile,
     updateFamilyPhoto,
