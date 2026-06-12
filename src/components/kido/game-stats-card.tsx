@@ -166,7 +166,8 @@ export function GameStatsCard({ gameSessions, compact = false }: Props) {
               <YAxis hide allowDecimals={false} />
               <Tooltip
                 contentStyle={{ fontSize: 11, borderRadius: 8, border: "1px solid #E5E7EB", padding: "4px 8px" }}
-                formatter={(v: number | string | undefined) => [`${v ?? 0} เกม`, ""]}
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                formatter={(v: any) => [`${v ?? 0} เกม`, ""]}
                 labelStyle={{ fontWeight: "bold" }}
               />
               <Bar dataKey="count" radius={[5, 5, 0, 0]} maxBarSize={32}>
