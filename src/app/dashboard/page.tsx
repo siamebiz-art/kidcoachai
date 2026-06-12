@@ -175,7 +175,7 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50/40 via-white to-purple-50/30">
-      <div className="p-4 lg:p-6 max-w-[1400px] mx-auto">
+      <div className="p-3 lg:p-6 max-w-[1400px] mx-auto">
 
         {!childProfile && (
           <div className="mb-4 p-4 bg-purple-50 border border-purple-200 rounded-2xl pl-12 lg:pl-0">
@@ -190,33 +190,33 @@ export default function DashboardPage() {
         )}
 
         {/* ── Top Bar ── */}
-        <div className="flex items-center gap-4 mb-5 pl-12 lg:pl-0">
+        <div className="flex items-center gap-3 mb-3 pl-12 lg:pl-0">
           {/* Left: avatar + greeting + chips */}
-          <div className="flex items-center gap-4 flex-1 min-w-0">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
             <div className="relative shrink-0">
-              <div className="w-16 h-16 lg:w-20 lg:h-20 rounded-full ring-4 ring-pink-200 ring-offset-2 bg-gradient-to-br from-pink-200 via-purple-200 to-blue-200 flex items-center justify-center shadow-lg overflow-hidden">
+              <div className="w-11 h-11 lg:w-16 lg:h-16 rounded-full ring-2 ring-pink-200 ring-offset-1 bg-gradient-to-br from-pink-200 via-purple-200 to-blue-200 flex items-center justify-center shadow-md overflow-hidden">
                 {childProfile?.avatar?.startsWith("http") ? (
-                  <Image src={childProfile.avatar} alt={childProfile.name} width={80} height={80} className="w-full h-full object-cover" />
+                  <Image src={childProfile.avatar} alt={childProfile.name} width={64} height={64} className="w-full h-full object-cover" />
                 ) : (
-                  <span className="text-3xl lg:text-4xl select-none">{childProfile?.gender === "ชาย" ? "👦" : "👧"}</span>
+                  <span className="text-xl lg:text-3xl select-none">{childProfile?.gender === "ชาย" ? "👦" : "👧"}</span>
                 )}
               </div>
               {childProfile && (
-                <span className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-400 rounded-full border-2 border-white flex items-center justify-center text-[10px]">✓</span>
+                <span className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-green-400 rounded-full border-2 border-white flex items-center justify-center text-[8px]">✓</span>
               )}
             </div>
             <div className="min-w-0">
-              <h1 className="text-lg lg:text-xl font-bold text-gray-900 truncate">สวัสดีค่ะ {displayName} 👋</h1>
-              <p className="text-sm lg:text-base font-semibold text-gray-700 mt-0.5">
+              <h1 className="text-sm lg:text-xl font-bold text-gray-900 truncate leading-tight">สวัสดีค่ะ {displayName} 👋</h1>
+              <p className="text-xs lg:text-base font-semibold text-gray-700 truncate">
                 {childProfile ? `วันนี้${childProfile.name}เก่งมากเลย! ⭐ 💗` : "เริ่มต้นใช้งาน KidCoach AI 💗"}
               </p>
               {childProfile && (
-                <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                  <span className="inline-flex items-center gap-1 bg-orange-50 border border-orange-100 rounded-full px-2.5 py-0.5 text-xs font-semibold text-orange-600">
-                    <Flame className="w-3 h-3" /> ฝึกต่อเนื่อง {streakDays} วัน
+                <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                  <span className="inline-flex items-center gap-0.5 bg-orange-50 border border-orange-100 rounded-full px-2 py-0.5 text-[10px] font-semibold text-orange-600">
+                    <Flame className="w-2.5 h-2.5" /> {streakDays} วัน
                   </span>
-                  <span className="inline-flex items-center gap-1 bg-purple-50 border border-purple-100 rounded-full px-2.5 py-0.5 text-xs font-semibold text-purple-600">
-                    {level.emoji} ระดับ {level.title}
+                  <span className="inline-flex items-center gap-0.5 bg-purple-50 border border-purple-100 rounded-full px-2 py-0.5 text-[10px] font-semibold text-purple-600">
+                    {level.emoji} {level.title}
                   </span>
                 </div>
               )}
@@ -266,22 +266,22 @@ export default function DashboardPage() {
           )}
 
           {/* Right: bell + avatar */}
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex items-center gap-2 shrink-0">
             <div className="relative">
               <button
                 onClick={() => incompleteTodayCount > 0 && toast(`มีกิจกรรมวันนี้อีก ${incompleteTodayCount} รายการที่ยังไม่เสร็จ 📋`)}
-                className="w-10 h-10 bg-white rounded-full shadow-sm border border-gray-100 flex items-center justify-center hover:bg-gray-50 transition-colors"
+                className="w-8 h-8 lg:w-10 lg:h-10 bg-white rounded-full shadow-sm border border-gray-100 flex items-center justify-center hover:bg-gray-50 transition-colors"
               >
-                <Bell className="w-5 h-5 text-gray-600" />
+                <Bell className="w-4 h-4 lg:w-5 lg:h-5 text-gray-600" />
               </button>
               {incompleteTodayCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-white text-[10px] font-bold">
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center text-white text-[9px] font-bold">
                   {incompleteTodayCount}
                 </span>
               )}
             </div>
             <Link href="/dashboard/settings">
-              <Avatar className="w-9 h-9 cursor-pointer ring-2 ring-purple-200">
+              <Avatar className="w-8 h-8 lg:w-9 lg:h-9 cursor-pointer ring-2 ring-purple-200">
                 <AvatarImage src={parentProfile?.avatarUrl} alt={displayName} className="object-cover" />
                 <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white text-xs font-bold">
                   {displayName[0]}
@@ -299,7 +299,7 @@ export default function DashboardPage() {
           <div className="space-y-5">
 
             {/* ── HERO: AI Coach Card ── */}
-            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 p-6 lg:p-8 shadow-xl">
+            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 p-4 lg:p-8 shadow-xl">
               <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(255,255,255,0.15),_transparent_55%)]" />
               <div className="absolute -bottom-10 -right-10 w-52 h-52 rounded-full bg-white/5 pointer-events-none" />
               <div className="absolute top-2 right-4 pointer-events-none opacity-10">
@@ -307,12 +307,12 @@ export default function DashboardPage() {
                 <img src="/kido-celebrate.png" alt="" className="w-32 h-32 object-contain select-none" />
               </div>
 
-              <div className="relative flex flex-col lg:flex-row items-start gap-5">
+              <div className="relative flex flex-row items-start gap-3 lg:gap-5">
 
                 {/* AI Avatar */}
                 <div className="shrink-0">
                   <div className="relative">
-                    <div className="w-20 h-20 rounded-3xl bg-white/20 backdrop-blur-sm border border-white/30 flex items-center justify-center shadow-lg overflow-hidden">
+                    <div className="w-14 h-14 lg:w-20 lg:h-20 rounded-3xl bg-white/20 backdrop-blur-sm border border-white/30 flex items-center justify-center shadow-lg overflow-hidden">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src="/kido-point.png" alt="Kido" className="w-full h-full object-contain scale-110" />
                     </div>
@@ -378,7 +378,7 @@ export default function DashboardPage() {
                 </div>
 
                 {/* CTA buttons */}
-                <div className="flex flex-row lg:flex-col gap-2 w-full lg:w-auto shrink-0">
+                <div className="flex flex-row lg:flex-col gap-2 w-full lg:w-auto mt-3 lg:mt-0 shrink-0">
                   <Link
                     href={
                       aiRec
@@ -387,19 +387,19 @@ export default function DashboardPage() {
                     }
                     className="flex-1 lg:flex-none"
                   >
-                    <button className="w-full lg:w-44 bg-white text-purple-700 font-bold text-sm px-4 py-3 rounded-2xl flex items-center justify-center gap-2 hover:bg-white/90 transition-colors shadow-md">
-                      <Sparkles className="w-4 h-4" />
+                    <button className="w-full lg:w-44 bg-white text-purple-700 font-bold text-xs lg:text-sm px-3 py-2.5 lg:py-3 rounded-2xl flex items-center justify-center gap-1.5 hover:bg-white/90 transition-colors shadow-md">
+                      <Sparkles className="w-3.5 h-3.5" />
                       {aiRec ? "เริ่มกิจกรรม" : "ประเมินลูกเลย"}
                     </button>
                   </Link>
                   <Link href="/dashboard/ai-coach" className="flex-1 lg:flex-none">
-                    <button className="w-full lg:w-44 bg-white/20 text-white font-semibold text-sm px-4 py-3 rounded-2xl flex items-center justify-center gap-2 hover:bg-white/30 transition-colors border border-white/30">
-                      <Mic className="w-4 h-4" /> พูดคุยกับ AI
+                    <button className="w-full lg:w-44 bg-white/20 text-white font-semibold text-xs lg:text-sm px-3 py-2.5 lg:py-3 rounded-2xl flex items-center justify-center gap-1.5 hover:bg-white/30 transition-colors border border-white/30">
+                      <Mic className="w-3.5 h-3.5" /> พูดคุยกับ AI
                     </button>
                   </Link>
                   <Link href="/dashboard/kido" className="flex-1 lg:flex-none">
-                    <button className="w-full lg:w-44 bg-amber-400/20 text-amber-200 font-semibold text-sm px-4 py-3 rounded-2xl flex items-center justify-center gap-2 hover:bg-amber-400/30 transition-colors border border-amber-300/30">
-                      🤖 Kido – AI Buddy ของลูก
+                    <button className="w-full lg:w-44 bg-amber-400/20 text-amber-200 font-semibold text-xs lg:text-sm px-3 py-2.5 lg:py-3 rounded-2xl flex items-center justify-center gap-1.5 hover:bg-amber-400/30 transition-colors border border-amber-300/30">
+                      🤖 Kido
                     </button>
                   </Link>
                 </div>
