@@ -302,8 +302,9 @@ export default function DashboardPage() {
             <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 p-6 lg:p-8 shadow-xl">
               <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(255,255,255,0.15),_transparent_55%)]" />
               <div className="absolute -bottom-10 -right-10 w-52 h-52 rounded-full bg-white/5 pointer-events-none" />
-              <div className="absolute top-4 right-4 pointer-events-none">
-                <div className="text-[120px] opacity-5 select-none leading-none">🤖</div>
+              <div className="absolute top-2 right-4 pointer-events-none opacity-10">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/kido-celebrate.png" alt="" className="w-32 h-32 object-contain select-none" />
               </div>
 
               <div className="relative flex flex-col lg:flex-row items-start gap-5">
@@ -311,8 +312,9 @@ export default function DashboardPage() {
                 {/* AI Avatar */}
                 <div className="shrink-0">
                   <div className="relative">
-                    <div className="w-20 h-20 rounded-3xl bg-white/20 backdrop-blur-sm border border-white/30 flex items-center justify-center shadow-lg">
-                      <span className="text-5xl select-none">🤖</span>
+                    <div className="w-20 h-20 rounded-3xl bg-white/20 backdrop-blur-sm border border-white/30 flex items-center justify-center shadow-lg overflow-hidden">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src="/kido-point.png" alt="Kido" className="w-full h-full object-contain scale-110" />
                     </div>
                     <div className="absolute -bottom-1.5 -right-1.5 flex items-center gap-1 bg-green-400 rounded-full px-2 py-0.5 shadow-sm">
                       <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
@@ -320,7 +322,7 @@ export default function DashboardPage() {
                     </div>
                   </div>
                   <div className="mt-2 text-center">
-                    <span className="text-white/60 text-[11px] font-semibold">AI Coach</span>
+                    <span className="text-white/60 text-[11px] font-semibold">Kido AI</span>
                   </div>
                 </div>
 
@@ -853,9 +855,12 @@ export default function DashboardPage() {
             <Card className="overflow-hidden shadow-sm border-gray-100">
               <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 p-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-2xl bg-white/20 flex items-center justify-center text-xl shrink-0">🤖</div>
+                  <div className="w-11 h-11 rounded-2xl bg-white/20 flex items-center justify-center shrink-0 overflow-hidden">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="/kido-point.png" alt="Kido" className="w-full h-full object-contain scale-110" />
+                  </div>
                   <div className="flex-1">
-                    <div className="text-white font-bold">AI Coach</div>
+                    <div className="text-white font-bold">Kido AI Coach</div>
                     <div className="flex items-center gap-1.5">
                       <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
                       <span className="text-blue-100 text-xs">พร้อมช่วยเสมอ</span>

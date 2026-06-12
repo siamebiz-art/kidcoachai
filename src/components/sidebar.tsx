@@ -120,7 +120,8 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
         <div className="px-3 pt-3 pb-1">
           <Link href={KIDO_HREF} onClick={onClose}>
             <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 p-3 flex items-center gap-3 hover:opacity-90 transition-opacity cursor-pointer shadow-md">
-              <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center shrink-0 text-xl">🤖</div>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/kido-point.png" alt="Kido" className="w-10 h-10 object-contain shrink-0 drop-shadow-lg" />
               <div>
                 <div className="text-white font-bold text-sm leading-tight">Kido – AI Buddy ของลูก</div>
                 <div className="text-white/70 text-[10px]">แตะเพื่อให้ลูกเล่นได้เลย</div>
