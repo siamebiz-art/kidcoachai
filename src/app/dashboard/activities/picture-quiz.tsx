@@ -9,18 +9,38 @@ import { KidoGameOverlay } from "@/components/kido/kido-game-overlay";
 import type { GameResult } from "@/lib/types";
 
 const ALL_VOCAB = [
-  { emoji: "🐱", word: "แมว" }, { emoji: "🐶", word: "หมา" }, { emoji: "🐸", word: "กบ" },
-  { emoji: "🐰", word: "กระต่าย" }, { emoji: "🐻", word: "หมี" }, { emoji: "🦁", word: "สิงโต" },
-  { emoji: "🐮", word: "วัว" }, { emoji: "🐷", word: "หมู" }, { emoji: "🐟", word: "ปลา" },
-  { emoji: "🐘", word: "ช้าง" }, { emoji: "🍎", word: "แอปเปิ้ล" }, { emoji: "🍌", word: "กล้วย" },
-  { emoji: "🍊", word: "ส้ม" }, { emoji: "🍇", word: "องุ่น" }, { emoji: "🍓", word: "สตรอว์เบอร์รี่" },
-  { emoji: "🍉", word: "แตงโม" }, { emoji: "🥭", word: "มะม่วง" }, { emoji: "🍍", word: "สับปะรด" },
-  { emoji: "📚", word: "หนังสือ" }, { emoji: "✏️", word: "ดินสอ" }, { emoji: "🎒", word: "กระเป๋า" },
-  { emoji: "🚗", word: "รถ" }, { emoji: "🏠", word: "บ้าน" }, { emoji: "☀️", word: "ดวงอาทิตย์" },
-  { emoji: "🌙", word: "พระจันทร์" }, { emoji: "⭐", word: "ดาว" },
+  // สัตว์ → ตัว
+  { emoji: "🐱", word: "แมว",           classifier: "ตัว" },
+  { emoji: "🐶", word: "หมา",           classifier: "ตัว" },
+  { emoji: "🐸", word: "กบ",            classifier: "ตัว" },
+  { emoji: "🐰", word: "กระต่าย",      classifier: "ตัว" },
+  { emoji: "🐻", word: "หมี",           classifier: "ตัว" },
+  { emoji: "🦁", word: "สิงโต",        classifier: "ตัว" },
+  { emoji: "🐮", word: "วัว",           classifier: "ตัว" },
+  { emoji: "🐷", word: "หมู",           classifier: "ตัว" },
+  { emoji: "🐟", word: "ปลา",          classifier: "ตัว" },
+  { emoji: "🐘", word: "ช้าง",         classifier: "ตัว" },
+  // ผลไม้ → ลูก
+  { emoji: "🍎", word: "แอปเปิ้ล",    classifier: "ลูก" },
+  { emoji: "🍌", word: "กล้วย",        classifier: "ลูก" },
+  { emoji: "🍊", word: "ส้ม",          classifier: "ลูก" },
+  { emoji: "🍇", word: "องุ่น",        classifier: "ลูก" },
+  { emoji: "🍓", word: "สตรอว์เบอร์รี่", classifier: "ลูก" },
+  { emoji: "🍉", word: "แตงโม",        classifier: "ลูก" },
+  { emoji: "🥭", word: "มะม่วง",       classifier: "ลูก" },
+  { emoji: "🍍", word: "สับปะรด",      classifier: "ลูก" },
+  // สิ่งของ → ลักษณะนามเฉพาะ
+  { emoji: "📚", word: "หนังสือ",       classifier: "เล่ม" },
+  { emoji: "✏️", word: "ดินสอ",        classifier: "แท่ง" },
+  { emoji: "🎒", word: "กระเป๋า",      classifier: "ใบ"   },
+  { emoji: "🚗", word: "รถ",           classifier: "คัน"  },
+  { emoji: "🏠", word: "บ้าน",         classifier: "หลัง" },
+  { emoji: "☀️", word: "ดวงอาทิตย์",  classifier: "ดวง"  },
+  { emoji: "🌙", word: "พระจันทร์",    classifier: "ดวง"  },
+  { emoji: "⭐", word: "ดาว",          classifier: "ดวง"  },
 ];
 
-type Question = { prompt: string; correct: string; options: string[] };
+type Question = { prompt: string; classifier: string; correct: string; options: string[] };
 
 function shuffle<T>(arr: T[]): T[] {
   return [...arr].sort(() => Math.random() - 0.5);
@@ -31,9 +51,10 @@ function buildQuestions(count = 10): Question[] {
   return pool.slice(0, count).map((item) => {
     const wrong = shuffle(ALL_VOCAB.filter((p) => p.emoji !== item.emoji)).slice(0, 3);
     return {
-      prompt: item.word,
-      correct: item.emoji,
-      options: shuffle([item, ...wrong]).map((o) => o.emoji),
+      prompt:     item.word,
+      classifier: item.classifier,
+      correct:    item.emoji,
+      options:    shuffle([item, ...wrong]).map((o) => o.emoji),
     };
   });
 }
@@ -50,8 +71,9 @@ export function PictureQuizGame({ onBack, onComplete }: { onBack: () => void; on
   // Kido speaks each question aloud
   useEffect(() => {
     if (done) return;
+    const { prompt, classifier } = questions[index];
     const prefix = index === 0 ? "มาเริ่มเลย! " : "";
-    speak(`${prefix}${questions[index].prompt} อยู่ตรงไหนนะ? ลองชี้ให้คิโด้ดูหน่อย!`, "talking");
+    speak(`${prefix}${prompt}${classifier}ไหนนะ? ลองชี้ให้คิโด้ดูหน่อย!`, "talking");
   }, [index, done]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (done && !announcedDone.current) {
@@ -77,11 +99,12 @@ export function PictureQuizGame({ onBack, onComplete }: { onBack: () => void; on
         if (index + 1 >= questions.length) setDone(true);
         else { setIndex((i) => i + 1); setSelected(null); }
       };
+      const cl = questions[index].classifier;
       if (emoji === questions[index].correct) {
         setScore((s) => s + 1);
-        speak(`ใช่เลย! นั่นแหละ${word} เก่งมากเลย!`, "celebrating", advance);
+        speak(`ใช่เลย! นั่นแหละ${word}${cl}นั้น เก่งมากเลย!`, "celebrating", advance);
       } else {
-        speak(`ยังไม่ใช่นะ ลองหา${word}อีกครั้งนะ!`, "thinking", advance);
+        speak(`ยังไม่ใช่นะ ลองหา${word}สัก${cl}อีกครั้งนะ!`, "thinking", advance);
       }
     },
     [selected, index, questions, speak]
