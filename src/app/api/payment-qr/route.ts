@@ -87,8 +87,14 @@ export async function POST(req: NextRequest) {
   // AI slip verification
   const aiCheck = await verifySlipWithAI(slipUrl, amount);
 
-  // Reject immediately if AI is confident this is invalid/fake
-  if (aiCheck && !aiCheck.valid && aiCheck.confidence === "high") {
+  // Reject if AI says invalid, or if AI couldn't read a valid slip at all
+  if (!aiCheck) {
+    return NextResponse.json(
+      { error: "ไม่สามารถตรวจสอบสลิปได้ กรุณาส่งภาพสลิปที่ชัดเจน" },
+      { status: 400 },
+    );
+  }
+  if (!aiCheck.valid) {
     return NextResponse.json(
       { error: `สลิปไม่ผ่านการตรวจสอบ: ${aiCheck.reason}` },
       { status: 400 },
