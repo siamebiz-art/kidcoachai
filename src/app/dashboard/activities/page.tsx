@@ -104,34 +104,32 @@ function ActivitiesContent() {
 
   const isDone = (id: number) => !!activityLog[`lib-${id}`];
 
-  const handleComplete = async (act: Activity, result?: GameResult) => {
-    setCompleting(true);
-    // Show KidoNextGame immediately — don't wait for save operations
+  const handleComplete = (act: Activity, result?: GameResult) => {
     if (result && act.interactive) {
+      // Set state synchronously — no await so Clerk re-renders can't interfere
       setLastResult(result);
+      // Save in background (fire-and-forget)
+      const accuracy = result.total > 0 ? Math.round((result.score / result.total) * 100) : 0;
+      saveGameSession({
+        gameId:   act.interactive,
+        gameName: act.title,
+        date:     new Date().toISOString().slice(0, 10),
+        score:    result.score,
+        total:    result.total,
+        accuracy,
+        ts:       Date.now(),
+      }).catch(() => toast.error("บันทึกสถิติไม่สำเร็จ"));
+      return;
     }
-    try {
-      await toggleActivity(`lib-${act.id}`);
-      if (!result || !act.interactive) {
+    // Non-interactive activity: toggle and close
+    setCompleting(true);
+    toggleActivity(`lib-${act.id}`)
+      .then(() => {
         toast.success(`บันทึก "${act.title}" เสร็จแล้ว! 🎉`);
         setSelected(null);
-      } else {
-        const accuracy = result.total > 0 ? Math.round((result.score / result.total) * 100) : 0;
-        await saveGameSession({
-          gameId:   act.interactive,
-          gameName: act.title,
-          date:     new Date().toISOString().slice(0, 10),
-          score:    result.score,
-          total:    result.total,
-          accuracy,
-          ts:       Date.now(),
-        });
-      }
-    } catch {
-      toast.error("เกิดข้อผิดพลาด");
-    } finally {
-      setCompleting(false);
-    }
+      })
+      .catch(() => toast.error("เกิดข้อผิดพลาด"))
+      .finally(() => setCompleting(false));
   };
 
   // Show Kido next-game screen after any interactive game
