@@ -50,7 +50,9 @@ const GAME_ITEMS = [
 ] as const;
 type GameId = typeof GAME_ITEMS[number]["game"];
 
-const GAME_MAP: Record<GameId, React.ComponentType<{ onBack: () => void; onComplete: (result?: GameResult) => void }>> = {
+type KidoGameNextHint = { emoji: string; label: string; color: string };
+type KidoGameProps   = { onBack: () => void; onComplete: (result?: GameResult) => void; nextGame?: KidoGameNextHint };
+const GAME_MAP: Record<GameId, React.ComponentType<KidoGameProps>> = {
   "matching":     MemoryMatchGame,
   "picture-quiz": PictureQuizGame,
   "flashcard":    FlashcardGame,
@@ -127,6 +129,7 @@ export default function KidoPage() {
   const [showMission, setShowMission] = useState<Mission | null>(null);
   const [dailyMinutes, setDailyMinutes] = useState(0);
   const [resumeCount, setResumeCount] = useState(0);
+  const [nextGameHint, setNextGameHint] = useState<typeof GAME_ITEMS[number] | null>(null);
 
   const synthRef     = useRef<SpeechSynthesis | null>(null);
   const typeTimer    = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -284,6 +287,14 @@ export default function KidoPage() {
     setResumeCount((c) => c + 1);
   }
 
+  /* ── pre-compute next game whenever active game changes ── */
+  useEffect(() => {
+    if (!activeGame) { setNextGameHint(null); return; }
+    const others = GAME_ITEMS.filter((g) => g.game !== activeGame);
+    setNextGameHint(others[Math.floor(Math.random() * others.length)]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeGame]);
+
   /* ── game handlers ── */
   function handleGameSelect(item: typeof GAME_ITEMS[number]) {
     speak(item.say, "talking", () => setActiveGame(item.game));
@@ -318,9 +329,9 @@ export default function KidoPage() {
       } catch { /* ignore */ }
     }
 
-    // Go directly to next game — no intermediate screen
+    // Go directly to next game — use the pre-computed hint so it matches what was shown
     const others = GAME_ITEMS.filter((g) => g.game !== finished);
-    const next = others[Math.floor(Math.random() * others.length)];
+    const next = nextGameHint ?? others[Math.floor(Math.random() * others.length)];
     const accuracy = result ? Math.round((result.score / Math.max(result.total, 1)) * 100) : 0;
     const praise = PRAISE[Math.floor(Math.random() * PRAISE.length)];
     speak(`${praise} ${accuracy >= 80 ? "เจ๋งสุดๆ! " : ""}ต่อไปลองเล่น${next.label}กันเลยนะ!`, "celebrating", () => {
@@ -432,7 +443,11 @@ export default function KidoPage() {
         </div>
         {/* Game */}
         <div className="flex-1 overflow-y-auto">
-          <GameComponent onBack={handleGameBack} onComplete={handleGameComplete} />
+          <GameComponent
+            onBack={handleGameBack}
+            onComplete={handleGameComplete}
+            nextGame={nextGameHint ?? undefined}
+          />
         </div>
       </div>
     );

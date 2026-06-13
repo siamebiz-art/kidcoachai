@@ -21,12 +21,15 @@ function createCards(emojis: string[]): Card[] {
     .map((emoji, i) => ({ id: i, emoji, isFlipped: false, isMatched: false }));
 }
 
+type NextGame = { emoji: string; label: string; color: string };
 export function MemoryMatchGame({
   onBack,
   onComplete,
+  nextGame,
 }: {
   onBack: () => void;
   onComplete: (result?: GameResult) => void;
+  nextGame?: NextGame;
 }) {
   const [difficulty, setDifficulty] = useState<Difficulty | null>(null);
   const [cards, setCards] = useState<Card[]>([]);
@@ -151,6 +154,20 @@ export function MemoryMatchGame({
             <CheckCircle2 className="w-4 h-4" /> บันทึกเสร็จแล้ว
           </Button>
         </div>
+        {nextGame && (
+          <button
+            onClick={() => onComplete({ score: EMOJI_SETS[difficulty!].length, total: moves })}
+            className={`w-full mt-5 rounded-3xl bg-gradient-to-br ${nextGame.color} p-5 flex items-center gap-4 shadow-lg active:scale-95 transition-transform text-left`}
+          >
+            <span className="text-5xl">{nextGame.emoji}</span>
+            <div className="flex-1">
+              <p className="text-white/70 text-xs mb-0.5">เกมถัดไป 🎯</p>
+              <p className="text-white font-bold text-xl">{nextGame.label}</p>
+              <p className="text-white/60 text-xs mt-0.5">แตะเพื่อเล่นเลย!</p>
+            </div>
+            <span className="text-white/80 text-3xl font-light">›</span>
+          </button>
+        )}
       </div>
     );
   }
