@@ -106,9 +106,16 @@ function ActivitiesContent() {
 
   const handleComplete = async (act: Activity, result?: GameResult) => {
     setCompleting(true);
+    // Show KidoNextGame immediately — don't wait for save operations
+    if (result && act.interactive) {
+      setLastResult(result);
+    }
     try {
       await toggleActivity(`lib-${act.id}`);
-      if (result && act.interactive) {
+      if (!result || !act.interactive) {
+        toast.success(`บันทึก "${act.title}" เสร็จแล้ว! 🎉`);
+        setSelected(null);
+      } else {
         const accuracy = result.total > 0 ? Math.round((result.score / result.total) * 100) : 0;
         await saveGameSession({
           gameId:   act.interactive,
@@ -119,10 +126,6 @@ function ActivitiesContent() {
           accuracy,
           ts:       Date.now(),
         });
-        setLastResult(result);
-      } else {
-        toast.success(`บันทึก "${act.title}" เสร็จแล้ว! 🎉`);
-        setSelected(null);
       }
     } catch {
       toast.error("เกิดข้อผิดพลาด");

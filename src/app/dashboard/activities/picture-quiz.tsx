@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, Trophy, CheckCircle2, RotateCcw } from "lucide-react";
 import { useKidoVoice } from "@/hooks/use-kido-voice";
 import { KidoGameOverlay } from "@/components/kido/kido-game-overlay";
+import { CorrectEffect } from "@/components/kido/correct-effect";
+import { useCorrectEffect } from "@/hooks/use-correct-effect";
 import type { GameResult } from "@/lib/types";
 
 const ALL_VOCAB = [
@@ -66,6 +68,7 @@ export function PictureQuizGame({ onBack, onComplete }: { onBack: () => void; on
   const [selected, setSelected] = useState<string | null>(null);
   const [done, setDone] = useState(false);
   const { emotion, message, speak } = useKidoVoice();
+  const { effectKey, trigger } = useCorrectEffect();
   const announcedDone = useRef(false);
 
   // Kido speaks each question aloud
@@ -102,6 +105,7 @@ export function PictureQuizGame({ onBack, onComplete }: { onBack: () => void; on
       const cl = questions[index].classifier;
       if (emoji === questions[index].correct) {
         setScore((s) => s + 1);
+        trigger();
         speak(`ใช่เลย! นั่นแหละ${word}${cl}นั้น เก่งมากเลย!`, "celebrating", advance);
       } else {
         speak(`ยังไม่ใช่นะ ลองหา${word}สัก${cl}อีกครั้งนะ!`, "thinking", advance);
@@ -141,6 +145,7 @@ export function PictureQuizGame({ onBack, onComplete }: { onBack: () => void; on
   const q = questions[index];
   return (
     <div className="p-6 max-w-2xl mx-auto">
+      <CorrectEffect effectKey={effectKey} />
       <KidoGameOverlay emotion={emotion} message={message} />
       <div className="flex items-center justify-between mb-4">
         <button onClick={onBack} className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700">

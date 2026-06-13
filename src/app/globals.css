@@ -133,3 +133,11 @@
   0%   { transform: translateX(0); }
   100% { transform: translateX(-50%); }
 }
+
+@keyframes correct-burst {
+  0%   { transform: scale(0.1) rotate(-20deg); opacity: 0; }
+  25%  { transform: scale(1.5) rotate(8deg);   opacity: 1; }
+  55%  { transform: scale(1.1) rotate(-4deg);  opacity: 1; }
+  80%  { transform: scale(1)   rotate(0deg);   opacity: 1; }
+  100% { transform: scale(0.4) rotate(12deg);  opacity: 0; }
+}

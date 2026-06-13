@@ -26,6 +26,8 @@ const GAME_INFO: Record<string, { title: string; emoji: string; color: string }>
   "color":         { title: "เกมทายสี",              emoji: "🎨", color: "from-pink-400 to-orange-400"   },
 };
 
+const REWARD_GAME_IDS = ["bubble-pop", "rhythm"];
+
 interface Props {
   result: GameResult;
   currentGameId: string;
@@ -46,6 +48,7 @@ export function KidoNextGame({
   const [nextGameId, setNextGameId] = useState<string | null>(null);
   const [reason, setReason]         = useState("");
   const [loading, setLoading]       = useState(true);
+  const [isReward, setIsReward]     = useState(false);
   const [countdown, setCountdown]   = useState(5);
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const startedRef   = useRef(false);
@@ -59,12 +62,29 @@ export function KidoNextGame({
           ? Math.floor((Date.now() - new Date(childProfile.birthdate).getTime()) / (1000 * 60 * 60 * 24 * 30))
           : 0;
 
+        const todayDate = new Date().toISOString().slice(0, 10);
+        const todayDevCount =
+          gameSessions.filter((s) => s.date === todayDate && !REWARD_GAME_IDS.includes(s.gameId)).length +
+          (!REWARD_GAME_IDS.includes(currentGameId) ? 1 : 0);
+
+        // Reward game after 3+ development games today
+        if (todayDevCount >= 3 && accuracy >= 50 && !REWARD_GAME_IDS.includes(currentGameId)) {
+          const played = new Set(gameSessions.filter((s) => s.date === todayDate).map((s) => s.gameId));
+          const rewardId = REWARD_GAME_IDS.find((id) => !played.has(id)) ?? "bubble-pop";
+          setNextGameId(rewardId);
+          setIsReward(true);
+          setReason(`น้องเก่งมาก! เล่นเกมพัฒนาการมาแล้ว ${todayDevCount} เกมวันนี้ รับรางวัลด้วยเกมสนุกๆ ผ่อนคลายได้เลย! 🎁`);
+          speak("เก่งมากเลย! เล่นมาเยอะแล้ว มาพักผ่อนด้วยเกมสนุกๆ กันนะ!", "celebrating");
+          setLoading(false);
+          return;
+        }
+
         const recentSessions = [
           ...gameSessions.slice(-10),
           {
             gameId: currentGameId,
             gameName: currentGameName,
-            date: new Date().toISOString().slice(0, 10),
+            date: todayDate,
             score: result.score,
             total: result.total,
             accuracy,
@@ -189,9 +209,18 @@ export function KidoNextGame({
         <div className="space-y-4">
           {reason && <p className="text-sm text-gray-500 leading-relaxed">{reason}</p>}
 
+          {/* Reward badge */}
+          {isReward && (
+            <div className="flex items-center justify-center gap-2 bg-amber-50 border-2 border-amber-200 rounded-2xl px-4 py-2">
+              <span className="text-2xl">🎁</span>
+              <span className="text-sm font-black text-amber-700">รางวัลพิเศษ! เกมผ่อนคลาย</span>
+              <span className="text-2xl">🎁</span>
+            </div>
+          )}
+
           {/* Next game card */}
           <div className={`rounded-3xl bg-gradient-to-br ${nextInfo.color} p-6 text-white shadow-lg`}>
-            <p className="text-sm opacity-80 mb-1">เกมถัดไป</p>
+            <p className="text-sm opacity-80 mb-1">{isReward ? "เกมรางวัล 🎁" : "เกมถัดไป"}</p>
             <div className="text-5xl mb-2">{nextInfo.emoji}</div>
             <p className="text-xl font-bold">{nextInfo.title}</p>
           </div>
