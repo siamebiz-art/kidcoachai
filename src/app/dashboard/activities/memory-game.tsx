@@ -145,7 +145,7 @@ export function MemoryMatchGame({
             <RotateCcw className="w-4 h-4" /> เล่นอีกครั้ง
           </Button>
           <Button
-            onClick={() => { onComplete({ score: EMOJI_SETS[difficulty!].length, total: moves }); onBack(); }}
+            onClick={() => onComplete({ score: EMOJI_SETS[difficulty!].length, total: moves })}
             className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0 rounded-xl gap-2"
           >
             <CheckCircle2 className="w-4 h-4" /> บันทึกเสร็จแล้ว
