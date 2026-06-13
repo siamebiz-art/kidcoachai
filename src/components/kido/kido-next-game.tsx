@@ -8,22 +8,27 @@ import { useKidoVoice } from "@/hooks/use-kido-voice";
 import type { GameResult, GameSession, ChildProfile, AssessmentResult } from "@/lib/types";
 
 const GAME_INFO: Record<string, { title: string; emoji: string; color: string }> = {
-  "picture-quiz": { title: "เกมชี้รูปภาพ",   emoji: "👆", color: "from-orange-400 to-amber-500"  },
-  "flashcard":    { title: "บัตรคำศัพท์",     emoji: "🃏", color: "from-blue-400 to-cyan-500"     },
-  "memory":       { title: "เกมจับคู่ภาพ",    emoji: "🧩", color: "from-purple-400 to-violet-500" },
-  "counting":     { title: "เกมนับจำนวน",     emoji: "🔢", color: "from-red-400 to-rose-500"      },
-  "sorting":      { title: "เกมจัดหมวดหมู่",  emoji: "🗂️", color: "from-teal-400 to-green-500"   },
-  "emotion":      { title: "เกมรู้จักอารมณ์", emoji: "🫀", color: "from-pink-400 to-rose-500"     },
-  "shapes":       { title: "เกมรูปทรงและสี",  emoji: "🔴", color: "from-blue-400 to-indigo-500"   },
-  "sequence":     { title: "เกมเรียงลำดับ",   emoji: "📋", color: "from-teal-400 to-cyan-500"     },
-  "bubble-pop":    { title: "เกมป๊อปบับเบิล",     emoji: "🫧", color: "from-yellow-400 to-orange-400"  },
-  "opposite":      { title: "เกมคำตรงข้าม",       emoji: "🔄", color: "from-indigo-400 to-purple-500"  },
-  "dialogue":      { title: "เกมบทสนทนา",          emoji: "💬", color: "from-sky-400 to-blue-500"       },
-  "needs":         { title: "เกมบอกความต้องการ",    emoji: "🙋", color: "from-emerald-400 to-teal-500"   },
-  "odd-one-out":   { title: "เกมหาตัวแปลก",         emoji: "🔍", color: "from-amber-400 to-orange-500"   },
-  "rhythm":        { title: "เกมจับจังหวะสี",       emoji: "🥁", color: "from-violet-400 to-purple-500"  },
-  "word-category": { title: "เกมเลือกหมวดคำ",       emoji: "🏷️", color: "from-lime-400 to-green-500"    },
-  "color":         { title: "เกมทายสี",              emoji: "🎨", color: "from-pink-400 to-orange-400"   },
+  "picture-quiz":   { title: "เกมชี้รูปภาพ",        emoji: "👆", color: "from-orange-400 to-amber-500"  },
+  "flashcard":      { title: "บัตรคำศัพท์",          emoji: "🃏", color: "from-blue-400 to-cyan-500"     },
+  "memory":         { title: "เกมจับคู่ภาพ",         emoji: "🧩", color: "from-purple-400 to-violet-500" },
+  "counting":       { title: "เกมนับจำนวน",          emoji: "🔢", color: "from-red-400 to-rose-500"      },
+  "sorting":        { title: "เกมจัดหมวดหมู่",       emoji: "🗂️", color: "from-teal-400 to-green-500"   },
+  "emotion":        { title: "เกมรู้จักอารมณ์",      emoji: "🫀", color: "from-pink-400 to-rose-500"     },
+  "shapes":         { title: "เกมรูปทรงและสี",       emoji: "🔴", color: "from-blue-400 to-indigo-500"   },
+  "sequence":       { title: "เกมเรียงลำดับ",        emoji: "📋", color: "from-teal-400 to-cyan-500"     },
+  "bubble-pop":     { title: "เกมป๊อปบับเบิล",      emoji: "🫧", color: "from-yellow-400 to-orange-400" },
+  "opposite":       { title: "เกมคำตรงข้าม",        emoji: "🔄", color: "from-indigo-400 to-purple-500" },
+  "dialogue":       { title: "เกมบทสนทนา",           emoji: "💬", color: "from-sky-400 to-blue-500"      },
+  "needs":          { title: "เกมบอกความต้องการ",    emoji: "🙋", color: "from-emerald-400 to-teal-500"  },
+  "odd-one-out":    { title: "เกมหาตัวแปลก",         emoji: "🔍", color: "from-amber-400 to-orange-500"  },
+  "rhythm":         { title: "เกมจับจังหวะสี",       emoji: "🥁", color: "from-violet-400 to-purple-500" },
+  "word-category":  { title: "เกมเลือกหมวดคำ",      emoji: "🏷️", color: "from-lime-400 to-green-500"   },
+  "color":          { title: "เกมทายสี",              emoji: "🎨", color: "from-pink-400 to-orange-400"  },
+  "quiz-fruits":    { title: "ชี้รูปผลไม้",          emoji: "🍎", color: "from-green-400 to-emerald-500" },
+  "quiz-pets":      { title: "ชี้รูปสัตว์เลี้ยง",   emoji: "🐾", color: "from-amber-400 to-orange-500"  },
+  "quiz-household": { title: "ชี้รูปของในบ้าน",     emoji: "🏠", color: "from-sky-400 to-blue-500"      },
+  "quiz-school":    { title: "ชี้อุปกรณ์การเรียน",  emoji: "📚", color: "from-violet-400 to-purple-500" },
+  "quiz-personal":  { title: "ชี้รูปของใช้ตัวเอง",  emoji: "🧴", color: "from-pink-400 to-rose-500"     },
 };
 
 const REWARD_GAME_IDS = ["bubble-pop", "rhythm"];
@@ -94,7 +99,7 @@ export function KidoNextGame({
 
         // Mastery check: < 60% → repeat same skill, ≥ 60% → advance
         const SKILL_GROUPS: Record<string, string[]> = {
-          "ภาษา":        ["flashcard", "picture-quiz", "opposite", "word-category"],
+          "ภาษา":        ["flashcard", "picture-quiz", "opposite", "word-category", "quiz-fruits", "quiz-pets", "quiz-household", "quiz-school", "quiz-personal"],
           "การสื่อสาร":  ["emotion", "dialogue", "needs"],
           "การเรียนรู้": ["sorting", "shapes", "sequence", "memory", "color"],
           "สมาธิ":       ["bubble-pop", "counting", "odd-one-out"],

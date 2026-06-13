@@ -51,6 +51,11 @@ const ACTIVITIES = [
   { id: 18, title: "เกมจับจังหวะสี",   category: "กล้ามเนื้อ",  duration: "5 นาที",    age: "3-8 ปี",  difficulty: "ปานกลาง", emoji: "🥁", color: "from-violet-400 to-purple-500", description: "ดูสีที่กะพริบแล้วกดตามลำดับ เหมือน Simon Says ฝึกความจำระยะสั้น สมาธิ และการประสานมือ",   starred: true,  materials: [], interactive: "rhythm" as const },
   { id: 19, title: "เกมเลือกหมวดคำ",   category: "ภาษา",        duration: "10 นาที",   age: "3-7 ปี",  difficulty: "ง่าย",     emoji: "🏷️", color: "from-lime-400 to-green-500",   description: "เห็นคำแล้วเลือกหมวดที่ถูกต้อง เช่น สัตว์ ผลไม้ ยานพาหนะ ฝึกคลังคำศัพท์และการแบ่งกลุ่ม", starred: false, materials: [], interactive: "word-category" as const },
   { id: 20, title: "เกมทายสี",         category: "การเรียนรู้", duration: "10 นาที",   age: "2-6 ปี",  difficulty: "ง่าย",     emoji: "🎨", color: "from-pink-400 to-orange-400",  description: "ดูเสื้อ กางเกง และสิ่งของ แล้วทายว่าสีอะไร ฝึกรู้จักสี 10 สี และชื่อสิ่งของในชีวิตประจำวัน", starred: true,  materials: [], interactive: "color" as const },
+  { id: 21, title: "ชี้รูปผลไม้",          category: "ภาษา",        duration: "10 นาที",   age: "2-6 ปี",  difficulty: "ง่าย",     emoji: "🍎", color: "from-green-400 to-emerald-500",  description: "ดูชื่อผลไม้แล้วแตะรูปที่ถูกต้อง เรียนรู้คำศัพท์ผลไม้ 15 ชนิด ทั้งไทยและสากล",                   starred: true,  materials: [], interactive: "quiz-fruits" as const },
+  { id: 22, title: "ชี้รูปสัตว์เลี้ยง",   category: "ภาษา",        duration: "10 นาที",   age: "2-6 ปี",  difficulty: "ง่าย",     emoji: "🐾", color: "from-amber-400 to-orange-500",   description: "ดูชื่อสัตว์เลี้ยงแล้วแตะรูปที่ถูกต้อง เรียนรู้คำศัพท์สัตว์ที่คนเลี้ยงในบ้าน 14 ชนิด",            starred: false, materials: [], interactive: "quiz-pets" as const },
+  { id: 23, title: "ชี้รูปของในบ้าน",      category: "ภาษา",        duration: "10 นาที",   age: "2-7 ปี",  difficulty: "ง่าย",     emoji: "🏠", color: "from-sky-400 to-blue-500",       description: "ดูชื่อของใช้ในบ้านแล้วแตะรูปที่ถูกต้อง ฝึกจำชื่อของในบ้านและลักษณะนามภาษาไทย",                    starred: false, materials: [], interactive: "quiz-household" as const },
+  { id: 24, title: "ชี้รูปอุปกรณ์การเรียน", category: "ภาษา",      duration: "10 นาที",   age: "3-8 ปี",  difficulty: "ง่าย",     emoji: "📚", color: "from-violet-400 to-purple-500",  description: "ดูชื่ออุปกรณ์การเรียนแล้วแตะรูปที่ถูกต้อง ฝึกรู้จักอุปกรณ์ที่ใช้ในโรงเรียน 14 ชนิด",            starred: true,  materials: [], interactive: "quiz-school" as const },
+  { id: 25, title: "ชี้รูปของใช้ส่วนตัว",  category: "ภาษา",        duration: "10 นาที",   age: "2-7 ปี",  difficulty: "ง่าย",     emoji: "🧴", color: "from-pink-400 to-rose-500",      description: "ดูชื่อของใช้ส่วนตัวแล้วแตะรูปที่ถูกต้อง เรียนรู้คำศัพท์ของที่ใช้ทุกวัน เสื้อผ้า ของล้างหน้า",   starred: false, materials: [], interactive: "quiz-personal" as const },
 ];
 
 const difficultyColor: Record<string, string> = {
@@ -223,6 +228,21 @@ function ActivitiesContent() {
   }
   if (selected?.interactive === "color") {
     return <ColorGame onBack={() => setSelected(null)} onComplete={(r) => handleComplete(selected, r)} />;
+  }
+  if (selected?.interactive === "quiz-fruits") {
+    return <PictureQuizGame category="fruits" onBack={() => setSelected(null)} onComplete={(r) => handleComplete(selected, r)} />;
+  }
+  if (selected?.interactive === "quiz-pets") {
+    return <PictureQuizGame category="pets" onBack={() => setSelected(null)} onComplete={(r) => handleComplete(selected, r)} />;
+  }
+  if (selected?.interactive === "quiz-household") {
+    return <PictureQuizGame category="household" onBack={() => setSelected(null)} onComplete={(r) => handleComplete(selected, r)} />;
+  }
+  if (selected?.interactive === "quiz-school") {
+    return <PictureQuizGame category="school" onBack={() => setSelected(null)} onComplete={(r) => handleComplete(selected, r)} />;
+  }
+  if (selected?.interactive === "quiz-personal") {
+    return <PictureQuizGame category="personal" onBack={() => setSelected(null)} onComplete={(r) => handleComplete(selected, r)} />;
   }
 
   if (selected) {
