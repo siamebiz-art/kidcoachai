@@ -128,10 +128,6 @@ export default function KidoPage() {
   const [dailyMinutes, setDailyMinutes] = useState(0);
   const [resumeCount, setResumeCount] = useState(0);
 
-  const [lastResult, setLastResult]       = useState<GameResult | null>(null);
-  const [nextSugg, setNextSugg]           = useState<typeof GAME_ITEMS[number] | null>(null);
-  const [nextCountdown, setNextCountdown] = useState(5);
-
   const synthRef     = useRef<SpeechSynthesis | null>(null);
   const typeTimer    = useRef<ReturnType<typeof setInterval> | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -140,9 +136,6 @@ export default function KidoPage() {
   const warned15      = useRef(false);
   const missionShown  = useRef(false);
   const playTimer     = useRef<ReturnType<typeof setInterval> | null>(null);
-  const nextSuggRef   = useRef<typeof GAME_ITEMS[number] | null>(null);
-  const nextTimerRef  = useRef<ReturnType<typeof setInterval> | null>(null);
-  const nextStarted   = useRef(false);
 
   /* ── speak ── */
   const speak = useCallback((text: string, em: KidoEmotion = "talking", onEnd?: () => void) => {
@@ -291,56 +284,12 @@ export default function KidoPage() {
     setResumeCount((c) => c + 1);
   }
 
-  /* ── next-game countdown ── */
-  useEffect(() => {
-    if (!nextSugg) return;
-    if (nextTimerRef.current) clearInterval(nextTimerRef.current);
-    nextStarted.current = false;
-    nextTimerRef.current = setInterval(() => {
-      setNextCountdown((c) => {
-        if (c <= 1) {
-          clearInterval(nextTimerRef.current!);
-          if (!nextStarted.current) {
-            nextStarted.current = true;
-            const ng = nextSuggRef.current;
-            setNextSugg(null);
-            setLastResult(null);
-            if (ng) speak(ng.say, "talking", () => setActiveGame(ng.game));
-          }
-          return 0;
-        }
-        return c - 1;
-      });
-    }, 1000);
-    return () => { if (nextTimerRef.current) clearInterval(nextTimerRef.current!); };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [nextSugg]);
-
-  function startNextGame() {
-    if (nextTimerRef.current) clearInterval(nextTimerRef.current!);
-    nextStarted.current = true;
-    const ng = nextSuggRef.current;
-    setNextSugg(null); setLastResult(null);
-    if (ng) speak(ng.say, "talking", () => setActiveGame(ng.game));
-  }
-  function skipToMenu() {
-    if (nextTimerRef.current) clearInterval(nextTimerRef.current!);
-    nextStarted.current = true;
-    nextSuggRef.current = null;
-    setNextSugg(null); setLastResult(null);
-    setPhase("menu");
-    speak("เลือกเกมใหม่ได้เลย!", "talking");
-  }
-
   /* ── game handlers ── */
   function handleGameSelect(item: typeof GAME_ITEMS[number]) {
     speak(item.say, "talking", () => setActiveGame(item.game));
   }
 
   function handleGameBack() {
-    if (nextTimerRef.current) clearInterval(nextTimerRef.current!);
-    nextSuggRef.current = null;
-    setNextSugg(null); setLastResult(null);
     setActiveGame(null);
     speak("กลับมาดีจัง! เลือกเกมใหม่ได้เลย!", "talking", () => setPhase("menu"));
     setPhase("menu");
@@ -350,7 +299,6 @@ export default function KidoPage() {
     const finished = activeGame!;
     const finishedInfo = GAME_ITEMS.find((g) => g.game === finished)!;
     setStats((prev) => recordPlay(finished, prev));
-    setActiveGame(null);
     clearRecCache();
 
     // persist session
@@ -370,18 +318,14 @@ export default function KidoPage() {
       } catch { /* ignore */ }
     }
 
-    // Pick next game and show next-game screen
+    // Go directly to next game — no intermediate screen
     const others = GAME_ITEMS.filter((g) => g.game !== finished);
     const next = others[Math.floor(Math.random() * others.length)];
     const accuracy = result ? Math.round((result.score / Math.max(result.total, 1)) * 100) : 0;
     const praise = PRAISE[Math.floor(Math.random() * PRAISE.length)];
-
-    nextSuggRef.current = next;
-    setNextSugg(next);
-    setLastResult(result ?? null);
-    setNextCountdown(5);
-
-    speak(`${praise} ${accuracy >= 80 ? "เจ๋งสุดๆ! " : ""}ต่อไปลองเล่น${next.label}กันเลยนะ!`, "celebrating");
+    speak(`${praise} ${accuracy >= 80 ? "เจ๋งสุดๆ! " : ""}ต่อไปลองเล่น${next.label}กันเลยนะ!`, "celebrating", () => {
+      setActiveGame(next.game);
+    });
   }
 
   async function fetchInsights() {
@@ -454,68 +398,6 @@ export default function KidoPage() {
     recog.onerror = () => { setIsListening(false); setPhase("menu"); speak("ไม่ได้ยินค่ะ ลองพูดอีกครั้งนะ 😊", "idle"); };
     recog.onend = () => { setIsListening(false); if (phase === "listening") setPhase("menu"); };
     recog.start();
-  }
-
-  /* ══ render next-game screen ══ */
-  if (!activeGame && nextSugg) {
-    const accuracy = lastResult ? Math.round((lastResult.score / Math.max(lastResult.total, 1)) * 100) : 0;
-    return (
-      <div className="fixed inset-0 z-[100] overflow-hidden"
-        style={{ background: "linear-gradient(135deg, #1e1b4b 0%, #312e81 30%, #4c1d95 60%, #be185d 100%)" }}>
-        <style dangerouslySetInnerHTML={{ __html: KIDO_CSS }} />
-
-        <div className="flex flex-col items-center justify-center h-full px-6 text-center gap-5">
-          {/* Kido avatar */}
-          <img src="/kido-celebrate.png" alt="Kido" className="w-36 h-36 object-contain"
-            style={{ animation: KIDO_ANIM.celebrating, filter: "drop-shadow(0 8px 24px rgba(139,92,246,0.5))" }} />
-
-          {/* Speech bubble */}
-          {displayed && (
-            <div className="bg-white/15 backdrop-blur-md border border-white/20 rounded-3xl px-5 py-3 max-w-xs">
-              <p className="text-white text-sm font-semibold leading-relaxed">{displayed}</p>
-            </div>
-          )}
-
-          {/* Score */}
-          {lastResult && (
-            <div>
-              <p className="text-white/60 text-sm mb-1">คะแนนของน้อง</p>
-              <div className="flex items-center justify-center gap-3">
-                <span className="text-5xl font-black text-white">{lastResult.score}/{lastResult.total}</span>
-                <span className={`text-3xl font-bold ${accuracy >= 80 ? "text-green-400" : accuracy >= 50 ? "text-amber-400" : "text-red-400"}`}>
-                  {accuracy}%
-                </span>
-              </div>
-              <div className="flex justify-center gap-1 mt-1">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <span key={i} className={`text-xl ${i < Math.round(accuracy / 20) ? "opacity-100" : "opacity-20"}`}>⭐</span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Next game card */}
-          <div className={`w-full max-w-xs rounded-3xl bg-gradient-to-br ${nextSugg.color} p-6 shadow-2xl`}>
-            <p className="text-white/70 text-xs mb-1">เกมถัดไป</p>
-            <div className="text-5xl mb-2">{nextSugg.emoji}</div>
-            <p className="text-white text-xl font-bold">{nextSugg.label}</p>
-          </div>
-
-          {/* Play button with countdown */}
-          <button onClick={startNextGame}
-            className="w-full max-w-xs bg-gradient-to-r from-pink-500 to-rose-600 text-white font-black text-lg rounded-2xl py-4 flex items-center justify-center gap-3 shadow-2xl active:scale-95 transition-transform">
-            เล่นเลย!
-            {nextCountdown > 0 && (
-              <span className="bg-white/20 rounded-full w-8 h-8 text-sm flex items-center justify-center">{nextCountdown}</span>
-            )}
-          </button>
-
-          <button onClick={skipToMenu} className="text-white/50 text-sm hover:text-white/80 transition-colors">
-            ดูเกมทั้งหมด
-          </button>
-        </div>
-      </div>
-    );
   }
 
   /* ══ render active game ══ */
