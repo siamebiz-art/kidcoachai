@@ -655,7 +655,7 @@ export default function DashboardPage() {
                   { href: "/dashboard/story",          emoji: "📖", title: "Story Time",    desc: "นิทาน AI",             isNew: false },
                   { href: "/dashboard/eq-coach",       emoji: "💛", title: "EQ Coach",      desc: "ฝึก EQ อารมณ์",       isNew: false },
                   { href: "/dashboard/life-skills",    emoji: "🌟", title: "Life Skills",   desc: "ภารกิจประจำวัน",      isNew: false },
-                  { href: "/dashboard/learning",       emoji: "🎓", title: "Learning",      desc: "ช่วยทำการบ้าน",       isNew: true  },
+                  { href: "/dashboard/learning",       emoji: "🎓", title: "Learning",      desc: "ช่วยสอนการบ้าน",       isNew: true  },
                   { href: "/dashboard/creativity",     emoji: "🎨", title: "Creativity",    desc: "วาด + สร้างตัวละคร",  isNew: true  },
                   { href: "/dashboard/social-skills",  emoji: "🤝", title: "Social Skills", desc: "ฝึกทักษะสังคม",       isNew: true  },
                   { href: "/dashboard/activities",     emoji: "📚", title: "Activities",    desc: "กิจกรรมทั้งหมด",      isNew: false },
