@@ -637,6 +637,41 @@ export default function DashboardPage() {
               </div>
             )}
 
+            {/* ── Kido Universe Modules ── */}
+            <div className="rounded-3xl overflow-hidden border border-purple-100 shadow-sm bg-white">
+              <div className="bg-gradient-to-r from-purple-600 via-indigo-600 to-pink-500 px-5 py-3 flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/kido-point.png" alt="Kido" className="w-9 h-9 object-contain" />
+                  <div>
+                    <div className="text-white font-black text-sm">Kido Universe™</div>
+                    <div className="text-white/60 text-[10px]">เลือกกิจกรรมที่ต้องการ</div>
+                  </div>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 divide-x divide-y divide-gray-100">
+                {[
+                  { href: "/dashboard/kido",        emoji: "🎮", title: "Kido Buddy",    desc: "เกมฝึกทักษะ",      isNew: false },
+                  { href: "/dashboard/story",        emoji: "📖", title: "Story Time",    desc: "นิทาน AI",          isNew: true  },
+                  { href: "/dashboard/eq-coach",     emoji: "💛", title: "EQ Coach",      desc: "ฝึก EQ อารมณ์",    isNew: true  },
+                  { href: "/dashboard/life-skills",  emoji: "🌟", title: "Life Skills",   desc: "ภารกิจประจำวัน",   isNew: true  },
+                  { href: "/dashboard/activities",   emoji: "📚", title: "Activities",    desc: "กิจกรรมทั้งหมด",   isNew: false },
+                  { href: "/dashboard/ai-coach",     emoji: "🤖", title: "AI Coach",      desc: "ปรึกษาผู้เชี่ยวชาญ", isNew: false },
+                ].map((mod) => (
+                  <Link key={mod.href} href={mod.href}>
+                    <div className="p-4 flex flex-col items-center text-center gap-1.5 hover:bg-purple-50/60 transition-colors cursor-pointer active:scale-95 relative">
+                      {mod.isNew && (
+                        <span className="absolute top-2 right-2 bg-pink-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded-full">NEW</span>
+                      )}
+                      <span className="text-3xl">{mod.emoji}</span>
+                      <div className="text-[11px] font-black text-gray-800 leading-tight">{mod.title}</div>
+                      <span className="text-[9px] text-gray-400 leading-tight">{mod.desc}</span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+
             {/* ── Game Stats ── */}
             <GameStatsCard gameSessions={gameSessions} compact />
 

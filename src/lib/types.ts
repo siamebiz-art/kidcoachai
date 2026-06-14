@@ -98,6 +98,10 @@ export interface UserMetadata {
   planGenResetDate?: string;   // "YYYY-MM"
   kidoRecCount?: number;
   kidoRecResetDate?: string;
+  kidoStoryCount?: number;
+  kidoStoryResetDate?: string;
+  kidoEqCount?: number;
+  kidoEqResetDate?: string;
   kidoSettings?: KidoSettings;
   familyPhotoUrl?: string;
   // Game sessions history
