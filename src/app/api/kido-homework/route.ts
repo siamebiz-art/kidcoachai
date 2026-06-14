@@ -25,17 +25,18 @@ function buildSystem(childName: string, age: number, subject: string): string {
     age <= 8  ? "ใช้ภาษาง่าย มีตัวอย่างใกล้ตัว ยกตัวอย่างในชีวิตประจำวัน" :
                 "อธิบายเชิงเหตุผลได้ แต่ยังคงเข้าใจง่าย ไม่ใช้ศัพท์ยาก";
 
-  return `คุณคือ Kido ครูพี่เลี้ยง AI สำหรับเด็กชื่อ "${childName}" อายุ ${age} ปี
+  return `คุณคือ Kido ครูพี่เลี้ยง AI ผู้เชี่ยวชาญสำหรับเด็กชื่อ "${childName}" อายุ ${age} ปี
 วิชา: ${subjectCtx}
 ระดับภาษา: ${ageGuidance}
 
-กฎสำคัญ:
-1. ห้ามเฉลยคำตอบตรงๆ ยกเว้นถูกขอโดยตรง — ช่วยให้เด็กคิดเอง
-2. อธิบายทีละขั้น ≤ 3 ขั้นต่อครั้ง
-3. ใช้ emoji เล็กน้อยเพื่อความสนุก
-4. ยกตัวอย่างที่เด็กเห็นในชีวิตประจำวัน
-5. ให้กำลังใจเสมอ ไม่ตำหนิ
-6. ตอบ ≤120 คำ`;
+หลักการตอบ (สำคัญที่สุด):
+1. **ความถูกต้อง** — ตรวจสอบคำตอบซ้ำก่อนส่งเสมอ โดยเฉพาะคณิตศาสตร์ ให้คิดทบทวนทีละขั้นก่อนตอบ
+2. **คณิตศาสตร์** — คำนวณให้ถูกต้อง 100% แสดง step-by-step เช่น 7+5 = 12 (ไม่ใช่ 11 หรือ 13)
+3. **ภาษา** — ตรวจสอบการสะกด ไวยากรณ์ และความหมายให้ถูกต้องตามพจนานุกรม
+4. **วิทยาศาสตร์/สังคม** — อ้างอิงความรู้ที่ถูกต้องตามหลักสูตรไทย
+5. **ช่วยให้เด็กคิดเอง** — อธิบายทีละขั้น ≤ 3 ขั้น ไม่เฉลยตรงๆ ยกเว้นถูกขอ
+6. ใช้ emoji เล็กน้อย ให้กำลังใจ ไม่ตำหนิ ตอบ ≤ 150 คำ
+7. ถ้าไม่แน่ใจ ให้บอกว่า "Kido ไม่แน่ใจ ลองถามคุณครูด้วยนะ" แทนการเดา`;
 }
 
 export async function POST(req: Request) {
@@ -72,7 +73,7 @@ export async function POST(req: Request) {
   /* ── Practice Generator ── */
   if (mode === "practice") {
     const result = streamText({
-      model: openai("gpt-4o-mini"),
+      model: openai("gpt-4o"),
       prompt: `สร้างแบบฝึกหัด 5 ข้อ วิชา${subjectCtx} สำหรับเด็กอายุ ${age} ปี${topic ? ` เรื่อง "${topic}"` : ""}
 
 รูปแบบ:
@@ -90,10 +91,10 @@ export async function POST(req: Request) {
   if (mode === "hint" && hintLevel) {
     const hintInstruction = HINT_PROMPTS[hintLevel] ?? HINT_PROMPTS[1];
     const result = streamText({
-      model: openai("gpt-4o-mini"),
+      model: openai("gpt-4o"),
       system: systemPrompt + historyBlock,
       prompt: hintInstruction,
-      maxOutputTokens: 200,
+      maxOutputTokens: 250,
     });
     return result.toTextStreamResponse();
   }
@@ -122,10 +123,10 @@ export async function POST(req: Request) {
 
   /* ── Regular Chat ── */
   const result = streamText({
-    model: openai("gpt-4o-mini"),
+    model: openai("gpt-4o"),
     system: systemPrompt + historyBlock,
     prompt: question ?? "",
-    maxOutputTokens: 280,
+    maxOutputTokens: 350,
   });
   return result.toTextStreamResponse();
 }

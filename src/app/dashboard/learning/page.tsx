@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useProfile } from "@/hooks/use-profile";
 import {
   ChevronLeft, Send, Loader2, RotateCcw, Camera, Mic, MicOff,
-  Lightbulb, BookOpen, X, Volume2,
+  Lightbulb, BookOpen, X, Volume2, Paperclip,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -69,6 +69,7 @@ export default function LearningPage() {
   const [imageBase64,  setImageBase64]  = useState<string | null>(null);
   const [imageType,    setImageType]    = useState("image/jpeg");
   /* voice */
+
   const [isListening, setIsListening] = useState(false);
   /* practice */
   const [showPractice, setShowPractice] = useState(false);
@@ -77,6 +78,7 @@ export default function LearningPage() {
   /* session timer */
   const sessionStart  = useRef(0);
   const fileInputRef  = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const recogRef = useRef<any>(null);
   const bottomRef     = useRef<HTMLDivElement>(null);
@@ -303,8 +305,8 @@ export default function LearningPage() {
               <div className="bg-blue-50 rounded-2xl rounded-tl-sm px-4 py-3 flex-1">
                 <p className="text-gray-800 text-sm font-semibold">สวัสดี{childName}! 🎓</p>
                 <p className="text-gray-500 text-xs mt-1 leading-relaxed">
-                  พิมพ์ถามหรือ <span className="font-bold text-blue-600">📷 ถ่ายรูปโจทย์</span> ได้เลย
-                  Kido จะสอนทีละขั้น ไม่เฉลยตรงๆ นะ 😊
+                  พิมพ์ถาม · <span className="font-bold text-blue-600">📷 ถ่ายรูป</span> · หรือ <span className="font-bold text-purple-600">📎 แนบไฟล์</span> ได้เลยนะ
+                  Kido จะสอนทีละขั้น ตอบถูกต้อง 100% 😊
                 </p>
               </div>
             </div>
@@ -459,19 +461,35 @@ export default function LearningPage() {
             </button>
           )}
           <div className="flex gap-2 items-end">
-            {/* Camera button */}
+            {/* Camera button — เปิดกล้องถ่ายรูปโดยตรง */}
             <button
-              onClick={() => fileInputRef.current?.click()}
+              onClick={() => cameraInputRef.current?.click()}
               className="w-10 h-10 shrink-0 rounded-xl bg-gray-100 text-gray-600 flex items-center justify-center hover:bg-blue-50 hover:text-blue-600 transition-colors"
               title="ถ่ายรูปโจทย์"
             >
               <Camera className="w-5 h-5" />
             </button>
             <input
-              ref={fileInputRef}
+              ref={cameraInputRef}
               type="file"
               accept="image/*"
               capture="environment"
+              className="hidden"
+              onChange={handleImageChange}
+            />
+
+            {/* File attach button — เลือกไฟล์จากเครื่อง/คลังภาพ */}
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="w-10 h-10 shrink-0 rounded-xl bg-gray-100 text-gray-600 flex items-center justify-center hover:bg-purple-50 hover:text-purple-600 transition-colors"
+              title="แนบไฟล์รูปภาพ"
+            >
+              <Paperclip className="w-5 h-5" />
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*,application/pdf,.jpg,.jpeg,.png,.gif,.webp,.heic,.heif"
               className="hidden"
               onChange={handleImageChange}
             />
