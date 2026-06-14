@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { Progress } from "@/components/ui/progress";
 import { useKidoVoice } from "@/hooks/use-kido-voice";
 import { KidoGameOverlay } from "@/components/kido/kido-game-overlay";
+import { useAutoNext } from "@/hooks/use-auto-next";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, Trophy, CheckCircle2, RotateCcw } from "lucide-react";
 import type { GameResult } from "@/lib/types";
@@ -50,6 +51,10 @@ export function CountingGame({ onBack, onComplete, nextGame }: { onBack: () => v
   const [done, setDone] = useState(false);
   const { emotion, message, speak } = useKidoVoice();
   const announcedDone = useRef(false);
+  const { countdown, cancel } = useAutoNext(
+    done && !!nextGame,
+    () => onComplete({ score, total: rounds.length }),
+  );
 
   useEffect(() => { speak("มาฝึกนับจำนวนกันเลย! เลือกระดับที่ชอบนะ 🔢"); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   // Kido asks each counting question
@@ -144,7 +149,7 @@ export function CountingGame({ onBack, onComplete, nextGame }: { onBack: () => v
           {score >= 8 ? "นับเลขเก่งมาก! 🌟" : score >= 5 ? "ดีมาก ฝึกต่อไปนะ" : "ลองอีกครั้งนะ 💪"}
         </p>
         <div className="flex gap-3">
-          <Button variant="outline" onClick={() => startGame(difficulty)} className="flex-1 rounded-xl gap-2">
+          <Button variant="outline" onClick={() => { cancel(); startGame(difficulty); }} className="flex-1 rounded-xl gap-2">
             <RotateCcw className="w-4 h-4" /> เล่นอีกครั้ง
           </Button>
           <Button
@@ -155,18 +160,25 @@ export function CountingGame({ onBack, onComplete, nextGame }: { onBack: () => v
           </Button>
         </div>
         {nextGame && (
-          <button
-            onClick={() => onComplete({ score, total: rounds.length })}
-            className={`w-full mt-5 rounded-3xl bg-gradient-to-br ${nextGame.color} p-5 flex items-center gap-4 shadow-lg active:scale-95 transition-transform text-left`}
-          >
-            <span className="text-5xl">{nextGame.emoji}</span>
-            <div className="flex-1">
-              <p className="text-white/70 text-xs mb-0.5">เกมถัดไป 🎯</p>
-              <p className="text-white font-bold text-xl">{nextGame.label}</p>
-              <p className="text-white/60 text-xs mt-0.5">แตะเพื่อเล่นเลย!</p>
+          <div className={`w-full mt-5 rounded-3xl bg-gradient-to-br ${nextGame.color} shadow-lg overflow-hidden`}>
+            <button
+              onClick={() => onComplete({ score, total: rounds.length })}
+              className="w-full p-5 flex items-center gap-4 active:scale-95 transition-transform text-left"
+            >
+              <span className="text-5xl">{nextGame.emoji}</span>
+              <div className="flex-1">
+                <p className="text-white/70 text-xs mb-0.5">เกมถัดไป 🎯</p>
+                <p className="text-white font-bold text-xl">{nextGame.label}</p>
+                <p className="text-white/60 text-xs mt-0.5">กำลังเริ่มอัตโนมัติ...</p>
+              </div>
+              <div className={`w-12 h-12 rounded-full bg-white/25 flex items-center justify-center shrink-0 ${countdown > 0 ? "animate-pulse" : ""}`}>
+                <span className="text-white font-black text-xl">{countdown > 0 ? countdown : "▶"}</span>
+              </div>
+            </button>
+            <div className="h-1.5 bg-white/20">
+              <div className="h-full bg-white/70 transition-all duration-1000 ease-linear" style={{ width: `${(countdown / 4) * 100}%` }} />
             </div>
-            <span className="text-white/80 text-3xl font-light">›</span>
-          </button>
+          </div>
         )}
       </div>
     );

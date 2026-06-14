@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, Trophy, RotateCcw, CheckCircle2 } from "lucide-react";
 import { useKidoVoice } from "@/hooks/use-kido-voice";
 import { KidoGameOverlay } from "@/components/kido/kido-game-overlay";
+import { useAutoNext } from "@/hooks/use-auto-next";
 import type { GameResult } from "@/lib/types";
 
 const EMOJI_SETS = {
@@ -39,6 +40,10 @@ export function MemoryMatchGame({
   const [done, setDone] = useState(false);
   const { emotion, message, speak, praise, encourage } = useKidoVoice();
   const announcedDone = useRef(false);
+  const { countdown, cancel } = useAutoNext(
+    done && !!nextGame,
+    () => onComplete({ score: EMOJI_SETS[difficulty!].length, total: moves }),
+  );
 
   useEffect(() => { speak("มาเล่นจับคู่ภาพกันเลย! เลือกระดับที่ชอบนะ 🃏"); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
@@ -144,7 +149,7 @@ export function MemoryMatchGame({
         <p className="text-gray-500 mb-1">จับคู่ครบทุกคู่แล้ว</p>
         <p className="text-purple-600 font-bold text-xl mb-6">{moves} ครั้ง</p>
         <div className="flex gap-3">
-          <Button variant="outline" onClick={() => startGame(difficulty)} className="flex-1 rounded-xl gap-2">
+          <Button variant="outline" onClick={() => { cancel(); startGame(difficulty); }} className="flex-1 rounded-xl gap-2">
             <RotateCcw className="w-4 h-4" /> เล่นอีกครั้ง
           </Button>
           <Button
@@ -155,18 +160,25 @@ export function MemoryMatchGame({
           </Button>
         </div>
         {nextGame && (
-          <button
-            onClick={() => onComplete({ score: EMOJI_SETS[difficulty!].length, total: moves })}
-            className={`w-full mt-5 rounded-3xl bg-gradient-to-br ${nextGame.color} p-5 flex items-center gap-4 shadow-lg active:scale-95 transition-transform text-left`}
-          >
-            <span className="text-5xl">{nextGame.emoji}</span>
-            <div className="flex-1">
-              <p className="text-white/70 text-xs mb-0.5">เกมถัดไป 🎯</p>
-              <p className="text-white font-bold text-xl">{nextGame.label}</p>
-              <p className="text-white/60 text-xs mt-0.5">แตะเพื่อเล่นเลย!</p>
+          <div className={`w-full mt-5 rounded-3xl bg-gradient-to-br ${nextGame.color} shadow-lg overflow-hidden`}>
+            <button
+              onClick={() => onComplete({ score: EMOJI_SETS[difficulty!].length, total: moves })}
+              className="w-full p-5 flex items-center gap-4 active:scale-95 transition-transform text-left"
+            >
+              <span className="text-5xl">{nextGame.emoji}</span>
+              <div className="flex-1">
+                <p className="text-white/70 text-xs mb-0.5">เกมถัดไป 🎯</p>
+                <p className="text-white font-bold text-xl">{nextGame.label}</p>
+                <p className="text-white/60 text-xs mt-0.5">กำลังเริ่มอัตโนมัติ...</p>
+              </div>
+              <div className={`w-12 h-12 rounded-full bg-white/25 flex items-center justify-center shrink-0 ${countdown > 0 ? "animate-pulse" : ""}`}>
+                <span className="text-white font-black text-xl">{countdown > 0 ? countdown : "▶"}</span>
+              </div>
+            </button>
+            <div className="h-1.5 bg-white/20">
+              <div className="h-full bg-white/70 transition-all duration-1000 ease-linear" style={{ width: `${(countdown / 4) * 100}%` }} />
             </div>
-            <span className="text-white/80 text-3xl font-light">›</span>
-          </button>
+          </div>
         )}
       </div>
     );
