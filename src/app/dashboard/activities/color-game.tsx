@@ -25,27 +25,31 @@ const COLORS = {
 
 type ColorKey = keyof typeof COLORS;
 
+// All items use emojis whose color is unambiguous — no colored background trick needed
 const ITEMS: { emoji: string; label: string; color: ColorKey }[] = [
-  { emoji: "👕", label: "เสื้อ",         color: "red"    },
-  { emoji: "👖", label: "กางเกง",        color: "blue"   },
-  { emoji: "🎒", label: "กระเป๋า",      color: "orange" },
-  { emoji: "👟", label: "รองเท้า",      color: "white"  },
-  { emoji: "🎩", label: "หมวก",          color: "black"  },
-  { emoji: "👗", label: "ชุดเดรส",      color: "pink"   },
-  { emoji: "🧥", label: "แจ็คเก็ต",    color: "brown"  },
-  { emoji: "🧤", label: "ถุงมือ",       color: "yellow" },
-  { emoji: "🧣", label: "ผ้าพันคอ",    color: "purple" },
-  { emoji: "🎈", label: "ลูกโป่ง",     color: "red"    },
-  { emoji: "🌂", label: "ร่ม",          color: "blue"   },
-  { emoji: "🚗", label: "รถยนต์",      color: "green"  },
-  { emoji: "📗", label: "หนังสือ",     color: "green"  },
-  { emoji: "🪑", label: "เก้าอี้",     color: "brown"  },
-  { emoji: "🎀", label: "ริบบิ้น",     color: "pink"   },
-  { emoji: "🧦", label: "ถุงเท้า",     color: "yellow" },
-  { emoji: "🎁", label: "กล่องของขวัญ", color: "red"   },
-  { emoji: "🎓", label: "หมวกวิชาการ", color: "black"  },
-  { emoji: "🧸", label: "ตุ๊กตาหมี",  color: "brown"  },
-  { emoji: "⛺", label: "เต็นท์",      color: "orange" },
+  { emoji: "🚗", label: "รถยนต์",        color: "red"    },  // red car
+  { emoji: "🍎", label: "แอปเปิ้ล",     color: "red"    },  // red apple
+  { emoji: "🎈", label: "ลูกโป่ง",      color: "red"    },  // red balloon
+  { emoji: "📘", label: "หนังสือ",       color: "blue"   },  // blue book
+  { emoji: "💧", label: "หยดน้ำ",        color: "blue"   },  // blue water drop
+  { emoji: "📗", label: "หนังสือ",       color: "green"  },  // green book
+  { emoji: "🥦", label: "บร็อคโคลี่",   color: "green"  },  // green broccoli
+  { emoji: "🐸", label: "กบ",            color: "green"  },  // green frog
+  { emoji: "🌻", label: "ดอกทานตะวัน",  color: "yellow" },  // yellow sunflower
+  { emoji: "⭐", label: "ดาว",           color: "yellow" },  // yellow star
+  { emoji: "🍋", label: "มะนาว",         color: "yellow" },  // yellow lemon
+  { emoji: "🍊", label: "ส้ม",           color: "orange" },  // orange fruit
+  { emoji: "🎃", label: "ฟักทอง",       color: "orange" },  // orange pumpkin
+  { emoji: "🍇", label: "องุ่น",         color: "purple" },  // purple grapes
+  { emoji: "🍆", label: "มะเขือม่วง",   color: "purple" },  // purple eggplant
+  { emoji: "🌸", label: "ดอกซากุระ",    color: "pink"   },  // pink cherry blossom
+  { emoji: "🐷", label: "หมู",           color: "pink"   },  // pink pig
+  { emoji: "🎩", label: "หมวก",          color: "black"  },  // black top hat
+  { emoji: "🎓", label: "หมวกวิชาการ",  color: "black"  },  // black graduation cap
+  { emoji: "🧸", label: "ตุ๊กตาหมี",   color: "brown"  },  // brown teddy bear
+  { emoji: "🍫", label: "ช็อกโกแลต",   color: "brown"  },  // brown chocolate
+  { emoji: "☁️", label: "เมฆ",           color: "white"  },  // white cloud
+  { emoji: "🥛", label: "นม",            color: "white"  },  // white milk
 ];
 
 function shuffle<T>(arr: T[]): T[] {
@@ -152,7 +156,6 @@ export function ColorGame({
   }
 
   const round = rounds[index];
-  const correctColor = COLORS[round.color];
 
   return (
     <div className="p-6 max-w-2xl mx-auto">
@@ -170,10 +173,10 @@ export function ColorGame({
         {round.label}สีอะไร?
       </p>
 
-      {/* Object on colored background */}
+      {/* Show the item clearly on neutral background so its own color is unambiguous */}
       <div className="flex justify-center mb-8">
-        <div className={`w-44 h-44 rounded-3xl ${correctColor.bg} border-4 ${correctColor.border} flex items-center justify-center shadow-xl`}>
-          <span className="text-8xl drop-shadow-md">{round.emoji}</span>
+        <div className="w-44 h-44 rounded-3xl bg-gray-100 border-2 border-gray-200 flex items-center justify-center shadow-md">
+          <span className="text-8xl">{round.emoji}</span>
         </div>
       </div>
 
