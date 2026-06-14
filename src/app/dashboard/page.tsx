@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useUser } from "@clerk/nextjs";
 import { loadDailyData, computeBalanceScore, completeMission, OFFLINE_MISSIONS, type DailyData } from "@/lib/daily-data";
 import { GameStatsCard } from "@/components/kido/game-stats-card";
 import Image from "next/image";
@@ -17,23 +18,23 @@ import {
 } from "recharts";
 import {
   Bell, ChevronRight, CheckCircle2, Circle, Info, Loader2, Sparkles,
-  Flame, Zap, Send, Mic, Camera, BarChart3, Volume2, Clock, Star, Trophy, BookOpen,
+  Flame, Zap, Send, Mic, Camera, BarChart3, Volume2, Clock, Star, Trophy, BookOpen, ShieldCheck,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
 const TICKER_ARTICLES = [
-  { emoji: "💬", title: "5 สัญญาณเตือนที่บ่งบอกว่าลูกอาจพูดช้า" },
-  { emoji: "🤝", title: "เทคนิค Floor Time: เล่นกับลูกอย่างมีความหมาย" },
-  { emoji: "🧩", title: "ABA Therapy คืออะไร ผู้ปกครองทำเองได้ไหม?" },
-  { emoji: "🌊", title: "วิธีจัดการลูกที่มีพฤติกรรม Meltdown" },
-  { emoji: "🎬", title: "สอนลูกพูด: 10 กิจกรรมที่ทำได้ทุกวัน" },
-  { emoji: "⭐", title: "ดาวน์ซินโดรม: แผนพัฒนาการตามอายุ" },
-  { emoji: "🎯", title: "ADHD ในเด็ก: ช่วยลูกโฟกัสโดยไม่ต้องตะโกน" },
-  { emoji: "📅", title: "วิธีสร้าง Routine ที่ได้ผลสำหรับเด็กพิเศษ" },
-  { emoji: "🥗", title: "โภชนาการสำหรับเด็กที่มีความต้องการพิเศษ" },
-  { emoji: "🌙", title: "การนอนหลับในเด็กออทิสติกและวิธีแก้ปัญหา" },
-  { emoji: "👨‍👩‍👧‍👦", title: "สร้างสัมพันธ์พี่น้องเมื่อน้องหรือพี่มีความต้องการพิเศษ" },
-  { emoji: "📱", title: "เทคโนโลยี AAC: เมื่อลูกสื่อสารด้วยการพูดไม่ได้" },
+  { id: 1,  emoji: "💬", title: "5 สัญญาณเตือนที่บ่งบอกว่าลูกอาจพูดช้า" },
+  { id: 2,  emoji: "🤝", title: "เทคนิค Floor Time: เล่นกับลูกอย่างมีความหมาย" },
+  { id: 3,  emoji: "🧩", title: "ABA Therapy คืออะไร ผู้ปกครองทำเองได้ไหม?" },
+  { id: 4,  emoji: "🌊", title: "วิธีจัดการลูกที่มีพฤติกรรม Meltdown" },
+  { id: 5,  emoji: "🎬", title: "สอนลูกพูด: 10 กิจกรรมที่ทำได้ทุกวัน" },
+  { id: 6,  emoji: "⭐", title: "ดาวน์ซินโดรม: แผนพัฒนาการตามอายุ" },
+  { id: 7,  emoji: "🎯", title: "ADHD ในเด็ก: ช่วยลูกโฟกัสโดยไม่ต้องตะโกน" },
+  { id: 8,  emoji: "📅", title: "วิธีสร้าง Routine ที่ได้ผลสำหรับเด็กพิเศษ" },
+  { id: 9,  emoji: "🥗", title: "โภชนาการสำหรับเด็กที่มีความต้องการพิเศษ" },
+  { id: 10, emoji: "🌙", title: "การนอนหลับในเด็กออทิสติกและวิธีแก้ปัญหา" },
+  { id: 11, emoji: "👨‍👩‍👧‍👦", title: "สร้างสัมพันธ์พี่น้องเมื่อน้องหรือพี่มีความต้องการพิเศษ" },
+  { id: 12, emoji: "📱", title: "เทคโนโลยี AAC: เมื่อลูกสื่อสารด้วยการพูดไม่ได้" },
 ];
 
 const KIDO_MESSAGES = [
@@ -104,6 +105,8 @@ function getStreakLevel(days: number) {
 
 export default function DashboardPage() {
   const router = useRouter();
+  const { user } = useUser();
+  const isAdmin = user?.primaryEmailAddress?.emailAddress === "siamebiz@gmail.com";
   const [chatInput, setChatInput] = useState("");
   const [missionDone, setMissionDone] = useState(false);
   const {
@@ -205,19 +208,19 @@ export default function DashboardPage() {
             <span className="text-white text-[11px] font-bold whitespace-nowrap">คลังความรู้</span>
           </div>
           <div className="overflow-hidden flex-1">
-            <Link href="/dashboard/knowledge">
-              <div
-                className="inline-flex gap-8 py-2 cursor-pointer hover:opacity-80 transition-opacity"
-                style={{ animation: "marquee 35s linear infinite", whiteSpace: "nowrap" }}
-              >
-                {[...TICKER_ARTICLES, ...TICKER_ARTICLES].map((a, i) => (
-                  <span key={i} className="text-white/90 text-[11px] font-medium">
+            <div
+              className="inline-flex gap-0 py-2"
+              style={{ animation: "marquee 35s linear infinite", whiteSpace: "nowrap" }}
+            >
+              {[...TICKER_ARTICLES, ...TICKER_ARTICLES].map((a, i) => (
+                <Link key={i} href={`/dashboard/knowledge?open=${a.id}`}>
+                  <span className="text-white/90 text-[11px] font-medium hover:text-white cursor-pointer px-0">
                     {a.emoji} {a.title}
-                    <span className="text-white/40 mx-3">•</span>
+                    <span className="text-white/30 mx-4">|</span>
                   </span>
-                ))}
-              </div>
-            </Link>
+                </Link>
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -312,8 +315,16 @@ export default function DashboardPage() {
             </div>
           )}
 
-          {/* Right: bell + avatar */}
+          {/* Right: admin + bell + avatar */}
           <div className="flex items-center gap-2 shrink-0">
+            {isAdmin && (
+              <Link href="/admin">
+                <button className="flex items-center gap-1.5 bg-gradient-to-r from-rose-500 to-pink-600 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-md hover:opacity-90 active:scale-95 transition-all">
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Admin</span>
+                </button>
+              </Link>
+            )}
             <div className="relative">
               <button
                 onClick={() => incompleteTodayCount > 0 && toast(`มีกิจกรรมวันนี้อีก ${incompleteTodayCount} รายการที่ยังไม่เสร็จ 📋`)}
