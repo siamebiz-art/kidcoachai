@@ -15,8 +15,9 @@ const STORY_TYPES = [
   { id: "inspiration", emoji: "🚀", title: "แรงบันดาลใจ",     desc: "ฝันใหญ่และกล้าลองใหม่",     color: "from-pink-400 to-rose-500"     },
 ];
 
-function pollinationsUrl(prompt: string, seed: number): string {
-  return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=768&height=512&nologo=true&model=flux-schnell&seed=${seed}`;
+function proxyUrl(prompt: string, seed: number): string {
+  const p = encodeURIComponent(prompt.slice(0, 300));
+  return `/api/story-image?prompt=${p}&seed=${seed}`;
 }
 
 function SceneCard({ scene, index, seed, activeColor }: {
@@ -27,7 +28,17 @@ function SceneCard({ scene, index, seed, activeColor }: {
 }) {
   const [imgLoaded, setImgLoaded] = useState(false);
   const [imgError, setImgError] = useState(false);
-  const imgUrl = pollinationsUrl(scene.imagePrompt, seed + index);
+  const [retries, setRetries] = useState(0);
+  const imgUrl = proxyUrl(scene.imagePrompt, seed + index);
+
+  function handleError() {
+    if (retries < 2) {
+      // retry once after 3s — Pollinations is sometimes slow to cold-start
+      setTimeout(() => setRetries((r) => r + 1), 3000);
+    } else {
+      setImgError(true);
+    }
+  }
 
   return (
     <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
@@ -37,23 +48,33 @@ function SceneCard({ scene, index, seed, activeColor }: {
           <>
             {!imgLoaded && (
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
-                <Loader2 className="w-6 h-6 text-purple-300 animate-spin" />
-                <p className="text-xs text-purple-300">กำลังวาดภาพ...</p>
+                <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center mb-1">
+                  <Loader2 className="w-6 h-6 text-purple-400 animate-spin" />
+                </div>
+                <p className="text-xs text-purple-400 font-medium">Kido กำลังวาดภาพ...</p>
+                <p className="text-[10px] text-purple-300">รอสักครู่นะ ~10 วิ</p>
               </div>
             )}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
+              key={retries}
               src={imgUrl}
               alt={`ฉากที่ ${index + 1}`}
-              className={`w-full h-full object-cover transition-opacity duration-500 ${imgLoaded ? "opacity-100" : "opacity-0"}`}
+              className={`w-full h-full object-cover transition-opacity duration-700 ${imgLoaded ? "opacity-100" : "opacity-0"}`}
               onLoad={() => setImgLoaded(true)}
-              onError={() => setImgError(true)}
+              onError={handleError}
             />
           </>
         ) : (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
-            <span className="text-4xl">🖼️</span>
-            <p className="text-xs text-gray-400">ไม่สามารถโหลดภาพได้</p>
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-4 text-center">
+            <span className="text-3xl">🎨</span>
+            <p className="text-xs text-gray-500 font-medium">วาดภาพไม่สำเร็จ</p>
+            <button
+              onClick={() => { setImgError(false); setImgLoaded(false); setRetries(0); }}
+              className="text-[10px] text-purple-500 underline mt-1"
+            >
+              ลองใหม่
+            </button>
           </div>
         )}
         {/* Scene number badge */}
