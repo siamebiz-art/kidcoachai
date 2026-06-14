@@ -102,6 +102,10 @@ export interface UserMetadata {
   kidoStoryResetDate?: string;
   kidoEqCount?: number;
   kidoEqResetDate?: string;
+  kidoHomeworkCount?: number;
+  kidoHomeworkResetDate?: string;
+  kidoCreativeCount?: number;
+  kidoCreativeResetDate?: string;
   kidoSettings?: KidoSettings;
   familyPhotoUrl?: string;
   // Game sessions history

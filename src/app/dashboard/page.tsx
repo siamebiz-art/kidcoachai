@@ -651,12 +651,15 @@ export default function DashboardPage() {
               </div>
               <div className="grid grid-cols-3 divide-x divide-y divide-gray-100">
                 {[
-                  { href: "/dashboard/kido",        emoji: "🎮", title: "Kido Buddy",    desc: "เกมฝึกทักษะ",      isNew: false },
-                  { href: "/dashboard/story",        emoji: "📖", title: "Story Time",    desc: "นิทาน AI",          isNew: true  },
-                  { href: "/dashboard/eq-coach",     emoji: "💛", title: "EQ Coach",      desc: "ฝึก EQ อารมณ์",    isNew: true  },
-                  { href: "/dashboard/life-skills",  emoji: "🌟", title: "Life Skills",   desc: "ภารกิจประจำวัน",   isNew: true  },
-                  { href: "/dashboard/activities",   emoji: "📚", title: "Activities",    desc: "กิจกรรมทั้งหมด",   isNew: false },
-                  { href: "/dashboard/ai-coach",     emoji: "🤖", title: "AI Coach",      desc: "ปรึกษาผู้เชี่ยวชาญ", isNew: false },
+                  { href: "/dashboard/kido",          emoji: "🎮", title: "Kido Buddy",    desc: "เกมฝึกทักษะ",         isNew: false },
+                  { href: "/dashboard/story",          emoji: "📖", title: "Story Time",    desc: "นิทาน AI",             isNew: false },
+                  { href: "/dashboard/eq-coach",       emoji: "💛", title: "EQ Coach",      desc: "ฝึก EQ อารมณ์",       isNew: false },
+                  { href: "/dashboard/life-skills",    emoji: "🌟", title: "Life Skills",   desc: "ภารกิจประจำวัน",      isNew: false },
+                  { href: "/dashboard/learning",       emoji: "🎓", title: "Learning",      desc: "ช่วยทำการบ้าน",       isNew: true  },
+                  { href: "/dashboard/creativity",     emoji: "🎨", title: "Creativity",    desc: "วาด + สร้างตัวละคร",  isNew: true  },
+                  { href: "/dashboard/social-skills",  emoji: "🤝", title: "Social Skills", desc: "ฝึกทักษะสังคม",       isNew: true  },
+                  { href: "/dashboard/activities",     emoji: "📚", title: "Activities",    desc: "กิจกรรมทั้งหมด",      isNew: false },
+                  { href: "/dashboard/ai-coach",       emoji: "🤖", title: "AI Coach",      desc: "ปรึกษาผู้เชี่ยวชาญ", isNew: false },
                 ].map((mod) => (
                   <Link key={mod.href} href={mod.href}>
                     <div className="p-4 flex flex-col items-center text-center gap-1.5 hover:bg-purple-50/60 transition-colors cursor-pointer active:scale-95 relative">
@@ -670,6 +673,17 @@ export default function DashboardPage() {
                   </Link>
                 ))}
               </div>
+              {/* Parent Report link */}
+              <Link href="/dashboard/parent-report">
+                <div className="px-5 py-3 border-t border-gray-100 flex items-center gap-3 hover:bg-indigo-50/50 transition-colors cursor-pointer">
+                  <span className="text-xl">👨‍👩‍👧</span>
+                  <div className="flex-1">
+                    <span className="text-[11px] font-black text-gray-800">รายงานผู้ปกครอง</span>
+                    <span className="text-[9px] text-gray-400 block">สรุปพัฒนาการประจำวัน</span>
+                  </div>
+                  <span className="text-[9px] bg-indigo-100 text-indigo-600 font-bold px-2 py-0.5 rounded-full">ดูรายงาน →</span>
+                </div>
+              </Link>
             </div>
 
             {/* ── Game Stats ── */}
