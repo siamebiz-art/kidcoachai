@@ -6,11 +6,17 @@ import type { GameSession } from "@/lib/types";
 type GameId =
   | "matching" | "picture-quiz" | "flashcard" | "counting" | "sorting"
   | "emotion" | "shapes" | "sequence" | "bubble-pop" | "opposite"
-  | "dialogue" | "needs" | "odd-one-out" | "rhythm" | "word-category" | "color";
+  | "dialogue" | "needs" | "odd-one-out" | "rhythm" | "word-category" | "color"
+  | "quiz-fruits" | "quiz-pets" | "quiz-household" | "quiz-school" | "quiz-personal";
 
 const GAME_DESCRIPTIONS: Record<GameId, string> = {
   "flashcard":       "บัตรคำ — ฝึกจำคำศัพท์ ภาษา การอ่าน",
-  "picture-quiz":    "ชี้รูปภาพ — จดจำรูปกับคำ ฝึกภาษาและความเข้าใจ",
+  "picture-quiz":    "ชี้รูปภาพ (คละ) — จดจำรูปกับคำ ฝึกภาษาและความเข้าใจ",
+  "quiz-fruits":     "ชี้รูปผลไม้ — จดจำชื่อผลไม้ 15 ชนิด ฝึกคำศัพท์ภาษาไทย",
+  "quiz-pets":       "ชี้สัตว์เลี้ยง — จดจำชื่อสัตว์เลี้ยง 14 ชนิด ฝึกคำศัพท์",
+  "quiz-household":  "ของในบ้าน — จดจำของใช้ในบ้าน 15 ชิ้น ฝึกคำศัพท์และลักษณนาม",
+  "quiz-school":     "อุปกรณ์การเรียน — จดจำอุปกรณ์โรงเรียน 14 ชิ้น ฝึกคำศัพท์",
+  "quiz-personal":   "ของใช้ส่วนตัว — จดจำของใช้ประจำวัน 14 ชิ้น ฝึกคำศัพท์",
   "sorting":         "จัดหมวดหมู่ — ฝึกคิดแยกประเภท ตรรกะ",
   "counting":        "นับจำนวน — ฝึกคณิตศาสตร์เบื้องต้น สมาธิ",
   "matching":        "จับคู่ภาพ — ฝึกความจำระยะสั้น สมาธิ จดจำ pattern",
@@ -27,27 +33,29 @@ const GAME_DESCRIPTIONS: Record<GameId, string> = {
   "color":           "ทายสีจากสิ่งของ — ดูเสื้อผ้า/ของใช้แล้วบอกสี ฝึกรู้จักสี 10 สีและชื่อสิ่งของ",
 };
 
+const ALL_GAME_IDS = Object.keys(GAME_DESCRIPTIONS) as GameId[];
+
 function getRuleBasedOrder(diagnosisKey: string, ageMonths: number): GameId[] {
   if (ageMonths > 0 && ageMonths < 30) {
-    return ["picture-quiz", "color", "shapes", "counting", "needs", "flashcard", "rhythm", "bubble-pop", "matching", "sorting", "emotion", "sequence", "word-category", "opposite", "dialogue", "odd-one-out"];
+    return ["quiz-fruits", "color", "shapes", "picture-quiz", "counting", "needs", "quiz-pets", "flashcard", "rhythm", "quiz-household", "bubble-pop", "matching", "sorting", "emotion", "sequence", "quiz-school", "word-category", "opposite", "dialogue", "odd-one-out", "quiz-personal"];
   }
   const key = diagnosisKey.toLowerCase();
   if (key.includes("speech") || key.includes("พูด") || key.includes("ภาษา")) {
-    return ["flashcard", "picture-quiz", "color", "needs", "opposite", "word-category", "emotion", "dialogue", "sorting", "counting", "shapes", "matching", "sequence", "bubble-pop", "odd-one-out", "rhythm"];
+    return ["flashcard", "picture-quiz", "quiz-fruits", "quiz-pets", "color", "needs", "opposite", "word-category", "quiz-household", "emotion", "dialogue", "sorting", "counting", "quiz-school", "shapes", "matching", "sequence", "bubble-pop", "odd-one-out", "rhythm", "quiz-personal"];
   }
   if (key.includes("adhd") || key.includes("สมาธิ")) {
-    return ["bubble-pop", "rhythm", "odd-one-out", "counting", "sorting", "matching", "color", "shapes", "sequence", "picture-quiz", "flashcard", "emotion", "word-category", "opposite", "dialogue", "needs"];
+    return ["bubble-pop", "rhythm", "odd-one-out", "counting", "sorting", "matching", "color", "shapes", "sequence", "picture-quiz", "flashcard", "quiz-fruits", "emotion", "word-category", "opposite", "quiz-pets", "dialogue", "needs", "quiz-household", "quiz-school", "quiz-personal"];
   }
   if (key.includes("autism") || key.includes("asd") || key.includes("ออทิ")) {
-    return ["emotion", "dialogue", "needs", "color", "sorting", "sequence", "matching", "shapes", "counting", "flashcard", "picture-quiz", "word-category", "odd-one-out", "opposite", "bubble-pop", "rhythm"];
+    return ["emotion", "dialogue", "needs", "color", "sorting", "sequence", "matching", "shapes", "counting", "flashcard", "picture-quiz", "quiz-fruits", "word-category", "odd-one-out", "opposite", "bubble-pop", "rhythm", "quiz-pets", "quiz-household", "quiz-school", "quiz-personal"];
   }
   if (key.includes("down") || key.includes("ดาวน์")) {
-    return ["color", "shapes", "picture-quiz", "counting", "needs", "flashcard", "sorting", "emotion", "word-category", "matching", "sequence", "dialogue", "bubble-pop", "opposite", "odd-one-out", "rhythm"];
+    return ["color", "shapes", "quiz-fruits", "picture-quiz", "counting", "needs", "flashcard", "sorting", "emotion", "quiz-pets", "word-category", "matching", "sequence", "dialogue", "quiz-household", "bubble-pop", "opposite", "odd-one-out", "rhythm", "quiz-school", "quiz-personal"];
   }
   if (key.includes("global") || key.includes("พัฒนาการช้า")) {
-    return ["color", "picture-quiz", "shapes", "counting", "needs", "flashcard", "emotion", "sorting", "matching", "bubble-pop", "word-category", "sequence", "odd-one-out", "dialogue", "opposite", "rhythm"];
+    return ["color", "quiz-fruits", "picture-quiz", "shapes", "counting", "needs", "flashcard", "emotion", "sorting", "matching", "quiz-pets", "bubble-pop", "word-category", "sequence", "odd-one-out", "dialogue", "opposite", "rhythm", "quiz-household", "quiz-school", "quiz-personal"];
   }
-  return ["picture-quiz", "color", "flashcard", "emotion", "dialogue", "shapes", "counting", "needs", "sorting", "bubble-pop", "opposite", "word-category", "matching", "sequence", "odd-one-out", "rhythm"];
+  return ["picture-quiz", "quiz-fruits", "color", "flashcard", "emotion", "dialogue", "shapes", "counting", "needs", "sorting", "quiz-pets", "bubble-pop", "opposite", "word-category", "matching", "sequence", "odd-one-out", "rhythm", "quiz-household", "quiz-school", "quiz-personal"];
 }
 
 export async function POST(req: Request) {
@@ -91,17 +99,17 @@ export async function POST(req: Request) {
 ผลการเล่นเกมล่าสุด:
 ${sessionSummary}
 
-เกมที่มี:
+เกมที่มีทั้งหมด 21 เกม:
 ${(Object.entries(GAME_DESCRIPTIONS) as [GameId, string][]).map(([id, desc]) => `- "${id}": ${desc}`).join("\n")}
 
-เรียงลำดับ 16 เกมจากเหมาะสมที่สุดไปน้อยสุด โดยพิจารณา:
+เรียงลำดับทุกเกม (21 เกม) จากเหมาะสมที่สุดไปน้อยสุด โดยพิจารณา:
 1. ความต้องการพิเศษของเด็ก (ฝึกด้านที่อ่อนแอก่อน)
 2. คะแนนที่ต่ำในประวัติ (ต้องฝึกซ้ำ)
 3. ความหลากหลาย (ไม่ซ้ำเกมเดิมทุกวัน)
 
 ตอบเป็น JSON เท่านั้น ไม่มีข้อความอื่น:
 {
-  "order": ["game-id-1","game-id-2",...,"game-id-16"],
+  "order": ["game-id-1","game-id-2",...,"game-id-21"],
   "highlight": "game-id-1",
   "reason": "ประโยคสั้นๆ บอก kido ว่าทำไมแนะนำเกมนี้ก่อน (ภาษาไทย ≤15 คำ)"
 }`;
@@ -122,14 +130,14 @@ ${(Object.entries(GAME_DESCRIPTIONS) as [GameId, string][]).map(([id, desc]) => 
       reason: string;
     };
 
-    // validate all game IDs are valid
-    const validIds = new Set(Object.keys(GAME_DESCRIPTIONS) as GameId[]);
+    // validate all game IDs are valid, merge with fallback to always cover all 21 games
+    const validIds = new Set(ALL_GAME_IDS);
     const safeOrder = data.order.filter((id) => validIds.has(id));
     const fallback = getRuleBasedOrder(diagnosisKey ?? "", ageMonths ?? 0);
     const finalOrder = [
       ...safeOrder,
       ...fallback.filter((id) => !safeOrder.includes(id)),
-    ].slice(0, 16) as GameId[];
+    ] as GameId[];
 
     return Response.json({
       order: finalOrder,

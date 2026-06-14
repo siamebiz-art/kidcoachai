@@ -111,6 +111,8 @@ type GameStat = { plays: number; lastPlayed: string };
 type StatsMap = Record<string, GameStat>;
 type RecCache = { order: GameId[]; highlight: GameId; reason: string; cachedAt: number };
 
+const GAME_COUNT = 21; // bump this whenever GAME_ITEMS grows to auto-bust old caches
+
 function loadRecCache(): RecCache | null {
   if (typeof window === "undefined") return null;
   try {
@@ -118,6 +120,8 @@ function loadRecCache(): RecCache | null {
     if (!raw) return null;
     const data = JSON.parse(raw) as RecCache;
     if (Date.now() - data.cachedAt > 24 * 60 * 60 * 1000) return null;
+    // Invalidate if cache was built before new games were added
+    if (data.order.length < GAME_COUNT) return null;
     return data;
   } catch { return null; }
 }
@@ -559,29 +563,29 @@ export default function KidoPage() {
             ) : (
               <p className="text-white/60 text-xs text-center mb-1.5 font-medium">เลือกกิจกรรม</p>
             )}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-3 gap-2">
               {recOrder
                 .map((id) => GAME_ITEMS.find((g) => g.game === id)!)
                 .filter(Boolean)
-                .slice(0, 4)
+                .slice(0, 6)
                 .map((item) => {
                   const s = stats[item.game];
                   const isHighlight = item.game === recHighlight;
                   return (
                     <button key={item.game} onClick={() => handleGameSelect(item)}
-                      className={`bg-gradient-to-br ${item.color} rounded-2xl p-3 flex flex-col items-center gap-1 shadow-lg active:scale-95 transition-transform relative ${isHighlight ? "ring-2 ring-white/70 mt-3" : ""}`}>
+                      className={`bg-gradient-to-br ${item.color} rounded-2xl p-2.5 flex flex-col items-center gap-1 shadow-lg active:scale-95 transition-transform relative ${isHighlight ? "ring-2 ring-white/70 mt-3" : ""}`}>
                       {isHighlight && (
                         <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber-400 text-gray-900 text-[9px] font-bold rounded-full px-2 py-0.5 whitespace-nowrap shadow">
-                          ⭐ แนะนำวันนี้
+                          ⭐ แนะนำ
                         </span>
                       )}
                       {s && !isHighlight && (
-                        <span className="absolute top-1.5 right-1.5 bg-black/30 text-white text-[9px] font-bold rounded-full px-1.5 py-0.5">
+                        <span className="absolute top-1 right-1 bg-black/30 text-white text-[9px] font-bold rounded-full px-1.5 py-0.5">
                           {s.plays}ครั้ง
                         </span>
                       )}
-                      <span className="text-3xl">{item.emoji}</span>
-                      <span className="text-white font-bold text-sm">{item.label}</span>
+                      <span className="text-2xl">{item.emoji}</span>
+                      <span className="text-white font-bold text-xs text-center leading-tight">{item.label}</span>
                     </button>
                   );
                 })}
