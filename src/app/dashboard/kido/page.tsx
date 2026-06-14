@@ -42,22 +42,32 @@ const KIDO_IMG: Record<KidoEmotion, string> = {
 
 /* ─── game registry ─── */
 const GAME_ITEMS = [
-  { game: "matching",     emoji: "🧩", label: "เกมจับคู่",    color: "from-violet-400 to-purple-500", say: "ไปหาคู่ที่เหมือนกันกันเถอะ! ฝึกความจำด้วยนะ 🧩" },
-  { game: "picture-quiz", emoji: "👆", label: "ชี้รูปภาพ",   color: "from-orange-400 to-amber-500",  say: "มาดูว่าน้องรู้จักคำศัพท์กี่คำแล้ว! 🌟" },
-  { game: "flashcard",    emoji: "🃏", label: "บัตรคำ",       color: "from-sky-400 to-blue-500",      say: "มาจำคำใหม่กันเลย! น้องจะเก่งมากเลย ✨" },
-  { game: "counting",     emoji: "🔢", label: "นับจำนวน",    color: "from-emerald-400 to-green-500", say: "หนึ่ง สอง สาม! มาฝึกนับด้วยกันเลย 🎯" },
-  { game: "sorting",      emoji: "🗂️", label: "จัดหมวดหมู่", color: "from-rose-400 to-pink-500",     say: "มาจัดหมวดหมู่กันเถอะ! ฝึกแยกประเภทด้วยนะ 🗂️" },
+  { game: "matching",      emoji: "🧩", label: "เกมจับคู่",       color: "from-violet-400 to-purple-500",  say: "ไปหาคู่ที่เหมือนกันกันเถอะ! ฝึกความจำด้วยนะ 🧩" },
+  { game: "picture-quiz",  emoji: "👆", label: "ชี้รูปภาพ",      color: "from-orange-400 to-amber-500",   say: "มาดูว่าน้องรู้จักคำศัพท์กี่คำแล้ว! 🌟" },
+  { game: "flashcard",     emoji: "🃏", label: "บัตรคำ",          color: "from-sky-400 to-blue-500",       say: "มาจำคำใหม่กันเลย! น้องจะเก่งมากเลย ✨" },
+  { game: "counting",      emoji: "🔢", label: "นับจำนวน",       color: "from-emerald-400 to-green-500",  say: "หนึ่ง สอง สาม! มาฝึกนับด้วยกันเลย 🎯" },
+  { game: "sorting",       emoji: "🗂️", label: "จัดหมวดหมู่",  color: "from-rose-400 to-pink-500",      say: "มาจัดหมวดหมู่กันเถอะ! ฝึกแยกประเภทด้วยนะ 🗂️" },
+  { game: "quiz-fruits",   emoji: "🍎", label: "ชี้รูปผลไม้",    color: "from-red-400 to-rose-500",       say: "มาชี้รูปผลไม้กัน! น้องรู้จักผลไม้อะไรบ้างนะ? 🍎" },
+  { game: "quiz-pets",     emoji: "🐾", label: "ชี้สัตว์เลี้ยง", color: "from-amber-400 to-orange-500",   say: "มาชี้สัตว์เลี้ยงกัน! น้องชอบสัตว์ตัวไหนนะ? 🐾" },
+  { game: "quiz-household",emoji: "🏠", label: "ของในบ้าน",       color: "from-teal-400 to-cyan-500",      say: "มาชี้ของในบ้านกัน! น้องรู้จักของพวกนี้ไหมนะ? 🏠" },
+  { game: "quiz-school",   emoji: "📚", label: "อุปกรณ์การเรียน", color: "from-blue-400 to-indigo-500",    say: "มาชี้อุปกรณ์การเรียนกัน! น้องใช้ของพวกนี้อยู่เลย! 📚" },
+  { game: "quiz-personal", emoji: "🧼", label: "ของใช้ส่วนตัว",  color: "from-pink-400 to-fuchsia-500",   say: "มาชี้ของใช้ส่วนตัวกัน! น้องใช้ของพวกนี้ทุกวันเลยนะ? 🧼" },
 ] as const;
 type GameId = typeof GAME_ITEMS[number]["game"];
 
 type KidoGameNextHint = { emoji: string; label: string; color: string };
 type KidoGameProps   = { onBack: () => void; onComplete: (result?: GameResult) => void; nextGame?: KidoGameNextHint };
-const GAME_MAP: Record<GameId, React.ComponentType<KidoGameProps>> = {
-  "matching":     MemoryMatchGame,
-  "picture-quiz": PictureQuizGame,
-  "flashcard":    FlashcardGame,
-  "counting":     CountingGame,
-  "sorting":      SortingGame,
+const GAME_MAP: Record<GameId, (props: KidoGameProps) => React.ReactElement> = {
+  "matching":       (p) => <MemoryMatchGame {...p} />,
+  "picture-quiz":   (p) => <PictureQuizGame {...p} />,
+  "flashcard":      (p) => <FlashcardGame {...p} />,
+  "counting":       (p) => <CountingGame {...p} />,
+  "sorting":        (p) => <SortingGame {...p} />,
+  "quiz-fruits":    (p) => <PictureQuizGame {...p} category="fruits" />,
+  "quiz-pets":      (p) => <PictureQuizGame {...p} category="pets" />,
+  "quiz-household": (p) => <PictureQuizGame {...p} category="household" />,
+  "quiz-school":    (p) => <PictureQuizGame {...p} category="school" />,
+  "quiz-personal":  (p) => <PictureQuizGame {...p} category="personal" />,
 };
 
 /* ─── stats + sessions + recommendation (localStorage) ─── */
@@ -413,7 +423,7 @@ export default function KidoPage() {
 
   /* ══ render active game ══ */
   if (activeGame) {
-    const GameComponent = GAME_MAP[activeGame];
+    const renderGame = GAME_MAP[activeGame];
     const gameInfo = GAME_ITEMS.find((g) => g.game === activeGame)!;
     return (
       <div className="fixed inset-0 z-[100] flex flex-col bg-gray-50">
@@ -443,11 +453,11 @@ export default function KidoPage() {
         </div>
         {/* Game */}
         <div className="flex-1 overflow-y-auto">
-          <GameComponent
-            onBack={handleGameBack}
-            onComplete={handleGameComplete}
-            nextGame={nextGameHint ?? undefined}
-          />
+          {renderGame({
+            onBack: handleGameBack,
+            onComplete: handleGameComplete,
+            nextGame: nextGameHint ?? undefined,
+          })}
         </div>
       </div>
     );
