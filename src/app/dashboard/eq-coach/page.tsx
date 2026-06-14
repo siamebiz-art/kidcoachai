@@ -16,6 +16,18 @@ const EMOTIONS = [
 
 type EmotionId = (typeof EMOTIONS)[number]["id"];
 
+const EMOTIONS_KEY = "kidocoachai-emotions";
+
+function saveEmotion(emotion: string) {
+  if (typeof window === "undefined") return;
+  const today = new Date().toISOString().slice(0, 10);
+  try {
+    const prev = JSON.parse(localStorage.getItem(EMOTIONS_KEY) ?? "[]");
+    prev.push({ date: today, emotion, timestamp: Date.now() });
+    localStorage.setItem(EMOTIONS_KEY, JSON.stringify(prev.slice(-200)));
+  } catch { /* ignore */ }
+}
+
 const KIDO_STARTERS = [
   "วันนี้หนูรู้สึกยังไงบ้าง? Kido อยากฟัง! 🌈",
   "มาบอก Kido หน่อยนะ วันนี้ใจหนูรู้สึกอะไรอยู่? 💛",
@@ -53,6 +65,7 @@ export default function EQCoachPage() {
       const data = (await res.json()) as { response: string };
       setResponse(data.response);
       setHistoryCount((n) => n + 1);
+      saveEmotion(emoId);
     } catch {
       toast.error("เกิดข้อผิดพลาด กรุณาลองใหม่");
     } finally {

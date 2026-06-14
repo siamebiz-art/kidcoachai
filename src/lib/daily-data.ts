@@ -36,12 +36,34 @@ export const BREAK_EXERCISES = [
   { emoji: "🦵", title: "เขย่งเท้า", action: "แตะทุกครั้งที่เขย่ง",  count: 8,  color: "#F97316" },
 ];
 
-const KEY = "kidocoachai-daily";
+const KEY         = "kidocoachai-daily";
+const HISTORY_KEY = "kidocoachai-daily-history";
+
+export interface DayHistory {
+  screen: number;
+  physical: number;
+  reading: number;
+  parent: number;
+}
 
 function todayStr() { return new Date().toISOString().slice(0, 10); }
 
 function empty(): DailyData {
   return { date: todayStr(), screenMinutes: 0, physicalMinutes: 0, readingMinutes: 0, parentMinutes: 0, completedMissions: [] };
+}
+
+export function loadDailyHistory(): Record<string, DayHistory> {
+  if (typeof window === "undefined") return {};
+  try { return JSON.parse(localStorage.getItem(HISTORY_KEY) ?? "{}"); }
+  catch { return {}; }
+}
+
+function archiveDay(d: DailyData) {
+  if (!d.date || typeof window === "undefined") return;
+  const hist = loadDailyHistory();
+  hist[d.date] = { screen: d.screenMinutes, physical: d.physicalMinutes, reading: d.readingMinutes, parent: d.parentMinutes };
+  const trimmed = Object.fromEntries(Object.entries(hist).sort().slice(-35));
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(trimmed));
 }
 
 export function loadDailyData(): DailyData {
@@ -50,7 +72,12 @@ export function loadDailyData(): DailyData {
     const raw = localStorage.getItem(KEY);
     if (!raw) return empty();
     const d = JSON.parse(raw);
-    if (d.date !== todayStr()) return empty();
+    if (d.date !== todayStr()) {
+      if (d.date) {
+        archiveDay({ date: d.date, screenMinutes: d.screenMinutes ?? d.minutes ?? 0, physicalMinutes: d.physicalMinutes ?? 0, readingMinutes: d.readingMinutes ?? 0, parentMinutes: d.parentMinutes ?? 0, completedMissions: d.completedMissions ?? [] });
+      }
+      return empty();
+    }
     return {
       date: d.date,
       screenMinutes:   d.screenMinutes   ?? d.minutes ?? 0,
