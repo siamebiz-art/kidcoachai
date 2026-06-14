@@ -6,7 +6,13 @@ import { useProfile } from "@/hooks/use-profile";
 import { loadDailyData, computeBalanceScore, OFFLINE_MISSIONS, type DailyData } from "@/lib/daily-data";
 import { ChevronLeft, Clock, Star, Trophy, BarChart3, Heart } from "lucide-react";
 
-const SESSIONS_KEY = "kidocoachai-sessions";
+const SESSIONS_KEY   = "kidocoachai-sessions";
+const LEARNING_KEY   = "kidocoachai-learning";
+
+const SUBJECT_LABEL: Record<string, string> = {
+  thai: "ภาษาไทย", english: "ภาษาอังกฤษ", math: "คณิตศาสตร์",
+  science: "วิทยาศาสตร์", social: "สังคมศึกษา", art: "ศิลปะ", general: "ทั่วไป",
+};
 
 interface LocalSession {
   gameName: string;
@@ -15,6 +21,8 @@ interface LocalSession {
   accuracy: number;
   date: string;
 }
+
+interface LearningLog { date: string; subject: string; minutes: number }
 
 function loadLocalSessions(): LocalSession[] {
   if (typeof window === "undefined") return [];
@@ -38,11 +46,17 @@ export default function ParentReportPage() {
   const [daily, setDaily] = useState<DailyData>({
     date: "", screenMinutes: 0, physicalMinutes: 0, readingMinutes: 0, parentMinutes: 0, completedMissions: [],
   });
-  const [localSessions, setLocalSessions] = useState<LocalSession[]>([]);
+  const [localSessions,  setLocalSessions]  = useState<LocalSession[]>([]);
+  const [learningToday,  setLearningToday]  = useState<LearningLog[]>([]);
 
   useEffect(() => {
     setDaily(loadDailyData());
     setLocalSessions(loadLocalSessions());
+    const today = new Date().toISOString().slice(0, 10);
+    try {
+      const all: LearningLog[] = JSON.parse(localStorage.getItem(LEARNING_KEY) ?? "[]");
+      setLearningToday(all.filter((l) => l.date === today));
+    } catch { /* ignore */ }
   }, []);
 
   const balance       = computeBalanceScore(daily);
@@ -145,6 +159,26 @@ export default function ParentReportPage() {
           </div>
           <p className="text-xs text-gray-400">ขีดจำกัดที่ตั้งไว้: {limitMinutes} นาที/วัน</p>
         </div>
+
+        {/* Learning today */}
+        {learningToday.length > 0 && (
+          <div className="bg-white rounded-3xl border border-blue-100 shadow-sm p-5 mb-4">
+            <h2 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
+              <span>🎓</span> เรียนกับ Kido วันนี้
+            </h2>
+            <div className="space-y-2">
+              {learningToday.map((l, i) => (
+                <div key={i} className="flex items-center gap-3 py-2 border-b border-gray-50 last:border-0">
+                  <span className="text-sm font-semibold text-gray-700 flex-1">{SUBJECT_LABEL[l.subject] ?? l.subject}</span>
+                  <span className="text-xs text-blue-600 font-bold bg-blue-50 px-2 py-0.5 rounded-full">{l.minutes} นาที</span>
+                </div>
+              ))}
+              <p className="text-xs text-gray-400 mt-1">
+                รวม {learningToday.reduce((s, l) => s + l.minutes, 0)} นาที
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Missions completed */}
         {completedMissions.length > 0 && (
