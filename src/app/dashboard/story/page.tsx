@@ -15,30 +15,20 @@ const STORY_TYPES = [
   { id: "inspiration", emoji: "🚀", title: "แรงบันดาลใจ",     desc: "ฝันใหญ่และกล้าลองใหม่",     color: "from-pink-400 to-rose-500"     },
 ];
 
-function proxyUrl(prompt: string, seed: number): string {
-  const p = encodeURIComponent(prompt.slice(0, 300));
-  return `/api/story-image?prompt=${p}&seed=${seed}`;
+function proxyUrl(prompt: string): string {
+  const p = encodeURIComponent(prompt.slice(0, 600));
+  return `/api/story-image?prompt=${p}`;
 }
 
-function SceneCard({ scene, index, seed, activeColor }: {
+function SceneCard({ scene, index, activeColor }: {
   scene: StoryScene;
   index: number;
-  seed: number;
   activeColor: string;
 }) {
   const [imgLoaded, setImgLoaded] = useState(false);
   const [imgError, setImgError] = useState(false);
-  const [retries, setRetries] = useState(0);
-  const imgUrl = proxyUrl(scene.imagePrompt, seed + index);
-
-  function handleError() {
-    if (retries < 2) {
-      // retry once after 3s — Pollinations is sometimes slow to cold-start
-      setTimeout(() => setRetries((r) => r + 1), 3000);
-    } else {
-      setImgError(true);
-    }
-  }
+  const [attempt, setAttempt] = useState(0);
+  const imgUrl = proxyUrl(scene.imagePrompt);
 
   return (
     <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
@@ -52,17 +42,17 @@ function SceneCard({ scene, index, seed, activeColor }: {
                   <Loader2 className="w-6 h-6 text-purple-400 animate-spin" />
                 </div>
                 <p className="text-xs text-purple-400 font-medium">Kido กำลังวาดภาพ...</p>
-                <p className="text-[10px] text-purple-300">รอสักครู่นะ ~10 วิ</p>
+                <p className="text-[10px] text-purple-300">รอสักครู่นะ ~5 วิ</p>
               </div>
             )}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              key={retries}
-              src={imgUrl}
+              key={attempt}
+              src={`${imgUrl}&t=${attempt}`}
               alt={`ฉากที่ ${index + 1}`}
               className={`w-full h-full object-cover transition-opacity duration-700 ${imgLoaded ? "opacity-100" : "opacity-0"}`}
               onLoad={() => setImgLoaded(true)}
-              onError={handleError}
+              onError={() => setImgError(true)}
             />
           </>
         ) : (
@@ -70,10 +60,10 @@ function SceneCard({ scene, index, seed, activeColor }: {
             <span className="text-3xl">🎨</span>
             <p className="text-xs text-gray-500 font-medium">วาดภาพไม่สำเร็จ</p>
             <button
-              onClick={() => { setImgError(false); setImgLoaded(false); setRetries(0); }}
-              className="text-[10px] text-purple-500 underline mt-1"
+              onClick={() => { setImgError(false); setImgLoaded(false); setAttempt((a) => a + 1); }}
+              className="text-[10px] bg-purple-100 text-purple-600 px-3 py-1.5 rounded-xl font-bold mt-1"
             >
-              ลองใหม่
+              ลองวาดใหม่
             </button>
           </div>
         )}
@@ -104,7 +94,6 @@ export default function StoryPage() {
   /* illustrated story state */
   const [illustrated, setIllustrated] = useState<IllustratedStory | null>(null);
   const [loadingIllustrated, setLoadingIllustrated] = useState(false);
-  const [storySeed, setStorySeed] = useState(0);
 
   const ageYears  = childAge ? parseInt(childAge) || 5 : 5;
   const childName = childProfile?.name ?? "น้อง";
@@ -152,7 +141,6 @@ export default function StoryPage() {
     setStory("");
     setSelectedType(typeId);
     setActiveType(type);
-    setStorySeed(Math.floor(Math.random() * 99999));
 
     try {
       const res = await fetch("/api/kido-story-illustrated", {
@@ -326,7 +314,6 @@ export default function StoryPage() {
                     key={i}
                     scene={scene}
                     index={i}
-                    seed={storySeed}
                     activeColor={activeType?.color ?? "from-indigo-400 to-purple-500"}
                   />
                 ))}
