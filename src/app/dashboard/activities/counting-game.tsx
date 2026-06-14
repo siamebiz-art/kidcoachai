@@ -17,7 +17,7 @@ const DOT_THEMES = [
   { emoji: "🚗", label: "รถยนต์",   classifier: "คัน"  },
   { emoji: "🎈", label: "ลูกโป่ง",  classifier: "ลูก"  },
   { emoji: "🦋", label: "ผีเสื้อ",  classifier: "ตัว"  },
-  { emoji: "📚", label: "หนังสือ",  classifier: "เล่ม" },
+  { emoji: "📖", label: "หนังสือ",  classifier: "เล่ม" },
 ];
 
 function shuffle<T>(arr: T[]): T[] {

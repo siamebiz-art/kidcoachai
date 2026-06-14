@@ -10,11 +10,22 @@ import { KidoBreakOverlay } from "@/components/kido/kido-break-overlay";
 import { KidoMissionOverlay } from "@/components/kido/kido-mission-overlay";
 import { addScreenMinute, loadDailyData, randomMission, type Mission } from "@/lib/daily-data";
 import toast from "react-hot-toast";
-import { MemoryMatchGame }  from "@/app/dashboard/activities/memory-game";
-import { PictureQuizGame }  from "@/app/dashboard/activities/picture-quiz";
-import { FlashcardGame }    from "@/app/dashboard/activities/flashcard-game";
-import { CountingGame }     from "@/app/dashboard/activities/counting-game";
-import { SortingGame }      from "@/app/dashboard/activities/sorting-game";
+import { MemoryMatchGame }   from "@/app/dashboard/activities/memory-game";
+import { PictureQuizGame }   from "@/app/dashboard/activities/picture-quiz";
+import { FlashcardGame }     from "@/app/dashboard/activities/flashcard-game";
+import { CountingGame }      from "@/app/dashboard/activities/counting-game";
+import { SortingGame }       from "@/app/dashboard/activities/sorting-game";
+import { EmotionGame }       from "@/app/dashboard/activities/emotion-game";
+import { ShapesGame }        from "@/app/dashboard/activities/shapes-game";
+import { SequenceGame }      from "@/app/dashboard/activities/sequence-game";
+import { BubblePopGame }     from "@/app/dashboard/activities/bubble-pop-game";
+import { OppositeGame }      from "@/app/dashboard/activities/opposite-game";
+import { DialogueGame }      from "@/app/dashboard/activities/dialogue-game";
+import { NeedsGame }         from "@/app/dashboard/activities/needs-game";
+import { OddOneOutGame }     from "@/app/dashboard/activities/odd-one-out-game";
+import { RhythmGame }        from "@/app/dashboard/activities/rhythm-game";
+import { WordCategoryGame }  from "@/app/dashboard/activities/word-category-game";
+import { ColorGame }         from "@/app/dashboard/activities/color-game";
 
 /* ─── animations ─── */
 const KIDO_CSS = `
@@ -42,16 +53,27 @@ const KIDO_IMG: Record<KidoEmotion, string> = {
 
 /* ─── game registry ─── */
 const GAME_ITEMS = [
-  { game: "matching",      emoji: "🧩", label: "เกมจับคู่",       color: "from-violet-400 to-purple-500",  say: "ไปหาคู่ที่เหมือนกันกันเถอะ! ฝึกความจำด้วยนะ 🧩" },
-  { game: "picture-quiz",  emoji: "👆", label: "ชี้รูปภาพ",      color: "from-orange-400 to-amber-500",   say: "มาดูว่าน้องรู้จักคำศัพท์กี่คำแล้ว! 🌟" },
-  { game: "flashcard",     emoji: "🃏", label: "บัตรคำ",          color: "from-sky-400 to-blue-500",       say: "มาจำคำใหม่กันเลย! น้องจะเก่งมากเลย ✨" },
-  { game: "counting",      emoji: "🔢", label: "นับจำนวน",       color: "from-emerald-400 to-green-500",  say: "หนึ่ง สอง สาม! มาฝึกนับด้วยกันเลย 🎯" },
-  { game: "sorting",       emoji: "🗂️", label: "จัดหมวดหมู่",  color: "from-rose-400 to-pink-500",      say: "มาจัดหมวดหมู่กันเถอะ! ฝึกแยกประเภทด้วยนะ 🗂️" },
-  { game: "quiz-fruits",   emoji: "🍎", label: "ชี้รูปผลไม้",    color: "from-red-400 to-rose-500",       say: "มาชี้รูปผลไม้กัน! น้องรู้จักผลไม้อะไรบ้างนะ? 🍎" },
-  { game: "quiz-pets",     emoji: "🐾", label: "ชี้สัตว์เลี้ยง", color: "from-amber-400 to-orange-500",   say: "มาชี้สัตว์เลี้ยงกัน! น้องชอบสัตว์ตัวไหนนะ? 🐾" },
-  { game: "quiz-household",emoji: "🏠", label: "ของในบ้าน",       color: "from-teal-400 to-cyan-500",      say: "มาชี้ของในบ้านกัน! น้องรู้จักของพวกนี้ไหมนะ? 🏠" },
-  { game: "quiz-school",   emoji: "📚", label: "อุปกรณ์การเรียน", color: "from-blue-400 to-indigo-500",    say: "มาชี้อุปกรณ์การเรียนกัน! น้องใช้ของพวกนี้อยู่เลย! 📚" },
-  { game: "quiz-personal", emoji: "🧼", label: "ของใช้ส่วนตัว",  color: "from-pink-400 to-fuchsia-500",   say: "มาชี้ของใช้ส่วนตัวกัน! น้องใช้ของพวกนี้ทุกวันเลยนะ? 🧼" },
+  { game: "matching",       emoji: "🧩", label: "เกมจับคู่",        color: "from-violet-400 to-purple-500",  say: "ไปหาคู่ที่เหมือนกันกันเถอะ! ฝึกความจำด้วยนะ 🧩" },
+  { game: "picture-quiz",   emoji: "👆", label: "ชี้รูปภาพ",       color: "from-orange-400 to-amber-500",   say: "มาดูว่าน้องรู้จักคำศัพท์กี่คำแล้ว! 🌟" },
+  { game: "flashcard",      emoji: "🃏", label: "บัตรคำ",           color: "from-sky-400 to-blue-500",       say: "มาจำคำใหม่กันเลย! น้องจะเก่งมากเลย ✨" },
+  { game: "counting",       emoji: "🔢", label: "นับจำนวน",        color: "from-emerald-400 to-green-500",  say: "หนึ่ง สอง สาม! มาฝึกนับด้วยกันเลย 🎯" },
+  { game: "sorting",        emoji: "🗂️", label: "จัดหมวดหมู่",   color: "from-rose-400 to-pink-500",      say: "มาจัดหมวดหมู่กันเถอะ! ฝึกแยกประเภทด้วยนะ 🗂️" },
+  { game: "quiz-fruits",    emoji: "🍎", label: "ชี้รูปผลไม้",     color: "from-red-400 to-rose-500",       say: "มาชี้รูปผลไม้กัน! น้องรู้จักผลไม้อะไรบ้างนะ? 🍎" },
+  { game: "quiz-pets",      emoji: "🐾", label: "ชี้สัตว์เลี้ยง",  color: "from-amber-400 to-orange-500",   say: "มาชี้สัตว์เลี้ยงกัน! น้องชอบสัตว์ตัวไหนนะ? 🐾" },
+  { game: "quiz-household", emoji: "🏠", label: "ของในบ้าน",        color: "from-teal-400 to-cyan-500",      say: "มาชี้ของในบ้านกัน! น้องรู้จักของพวกนี้ไหมนะ? 🏠" },
+  { game: "quiz-school",    emoji: "📚", label: "อุปกรณ์การเรียน",  color: "from-blue-400 to-indigo-500",    say: "มาชี้อุปกรณ์การเรียนกัน! น้องใช้ของพวกนี้อยู่เลย! 📚" },
+  { game: "quiz-personal",  emoji: "🧼", label: "ของใช้ส่วนตัว",   color: "from-pink-400 to-fuchsia-500",   say: "มาชี้ของใช้ส่วนตัวกัน! น้องใช้ของพวกนี้ทุกวันเลยนะ? 🧼" },
+  { game: "emotion",        emoji: "🫀", label: "รู้จักอารมณ์",    color: "from-pink-400 to-rose-500",      say: "มาดูว่าน้องรู้สึกอะไรอยู่! ฝึก EQ กันเลยนะ 😊" },
+  { game: "shapes",         emoji: "🔴", label: "รูปทรงและสี",     color: "from-blue-400 to-indigo-500",    say: "มาจับคู่รูปทรงและสีกัน! น้องจะชอบเลย 🔴" },
+  { game: "sequence",       emoji: "📋", label: "เรียงลำดับ",      color: "from-teal-400 to-cyan-500",      say: "มาเรียงเหตุการณ์ให้ถูกลำดับกัน! ฝึกการคิดนะ 📋" },
+  { game: "bubble-pop",     emoji: "🫧", label: "ป๊อปบับเบิล",    color: "from-yellow-400 to-orange-400",  say: "มาป๊อปฟองสบู่กัน! ฝึกสมาธิด้วยนะ 🫧" },
+  { game: "opposite",       emoji: "🔄", label: "คำตรงข้าม",       color: "from-indigo-400 to-purple-500",  say: "มาหาคำตรงข้ามกัน! น้องจะเก่งภาษาขึ้นเลย 🔄" },
+  { game: "dialogue",       emoji: "💬", label: "บทสนทนา",         color: "from-sky-400 to-blue-500",       say: "มาฝึกพูดคุยกัน! น้องจะรู้ว่าพูดอะไรดีในแต่ละสถานการณ์ 💬" },
+  { game: "needs",          emoji: "🙋", label: "บอกความต้องการ",  color: "from-emerald-400 to-teal-500",   say: "มาฝึกบอกสิ่งที่น้องต้องการกัน! พูดออกมาได้เลยนะ 🙋" },
+  { game: "odd-one-out",    emoji: "🔍", label: "หาตัวแปลก",       color: "from-amber-400 to-orange-500",   say: "มาหาตัวที่ไม่เข้าพวกกัน! ใช้สายตาดีๆ นะ 🔍" },
+  { game: "rhythm",         emoji: "🥁", label: "จับจังหวะสี",    color: "from-violet-400 to-purple-500",  say: "มาจำสีและกดตามลำดับกัน! ฝึกความจำด้วยนะ 🥁" },
+  { game: "word-category",  emoji: "🏷️", label: "เลือกหมวดคำ",   color: "from-lime-400 to-green-500",     say: "มาเลือกหมวดหมู่ของคำกัน! น้องรู้จักคำเยอะมากไหมนะ 🏷️" },
+  { game: "color",          emoji: "🎨", label: "เกมทายสี",        color: "from-pink-400 to-orange-400",    say: "มาทายสีกัน! น้องรู้จักสีอะไรบ้างนะ? 🎨" },
 ] as const;
 type GameId = typeof GAME_ITEMS[number]["game"];
 
@@ -68,6 +90,17 @@ const GAME_MAP: Record<GameId, (props: KidoGameProps) => React.ReactElement> = {
   "quiz-household": (p) => <PictureQuizGame {...p} category="household" />,
   "quiz-school":    (p) => <PictureQuizGame {...p} category="school" />,
   "quiz-personal":  (p) => <PictureQuizGame {...p} category="personal" />,
+  "emotion":        (p) => <EmotionGame      onBack={p.onBack} onComplete={p.onComplete} />,
+  "shapes":         (p) => <ShapesGame       onBack={p.onBack} onComplete={p.onComplete} />,
+  "sequence":       (p) => <SequenceGame     onBack={p.onBack} onComplete={p.onComplete} />,
+  "bubble-pop":     (p) => <BubblePopGame    onBack={p.onBack} onComplete={p.onComplete} />,
+  "opposite":       (p) => <OppositeGame     onBack={p.onBack} onComplete={p.onComplete} />,
+  "dialogue":       (p) => <DialogueGame     onBack={p.onBack} onComplete={p.onComplete} />,
+  "needs":          (p) => <NeedsGame        onBack={p.onBack} onComplete={p.onComplete} />,
+  "odd-one-out":    (p) => <OddOneOutGame    onBack={p.onBack} onComplete={p.onComplete} />,
+  "rhythm":         (p) => <RhythmGame       onBack={p.onBack} onComplete={p.onComplete} />,
+  "word-category":  (p) => <WordCategoryGame onBack={p.onBack} onComplete={p.onComplete} />,
+  "color":          (p) => <ColorGame        onBack={p.onBack} onComplete={p.onComplete} />,
 };
 
 /* ─── stats + sessions + recommendation (localStorage) ─── */
