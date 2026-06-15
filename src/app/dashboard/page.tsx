@@ -714,7 +714,7 @@ export default function DashboardPage() {
                   </Link>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {scoreConfig.map((s) => {
                     const score = (scores as unknown as Record<string, number>)[s.key] ?? 0;
                     const badge = getScoreBadge(score);
@@ -739,6 +739,37 @@ export default function DashboardPage() {
                       </Link>
                     );
                   })}
+
+                  {/* การ์ดที่ 6 — ภาพรวม */}
+                  <Link href="/dashboard/progress">
+                    <div className="bg-gradient-to-br from-amber-50 to-yellow-50 border border-amber-200 rounded-2xl p-3.5 text-center cursor-pointer hover:shadow-md transition-shadow h-full">
+                      <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-400 to-yellow-400 flex items-center justify-center shadow-sm mx-auto mb-2">
+                        <span className="text-2xl">⭐</span>
+                      </div>
+                      <div className="text-xs text-gray-500 font-semibold mb-0.5">ภาพรวม</div>
+                      <div className="text-2xl font-black text-amber-500 leading-none">
+                        {overall}<span className="text-xs font-semibold text-gray-400">/100</span>
+                      </div>
+                      <div className="w-full h-1.5 bg-white/80 rounded-full overflow-hidden my-2">
+                        <div
+                          className="h-full bg-gradient-to-r from-amber-400 to-yellow-400 rounded-full transition-all"
+                          style={{ width: `${overall}%` }}
+                        />
+                      </div>
+                      {progressChange !== null ? (
+                        <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-50 text-green-700">
+                          <span className="w-1.5 h-1.5 rounded-full bg-green-400" />
+                          {progressChange >= 0 ? "+" : ""}{progressChange}% จากครั้งก่อน
+                        </div>
+                      ) : (
+                        <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${getScoreBadge(overall).bg} ${getScoreBadge(overall).text}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${getScoreBadge(overall).dot}`} />
+                          {getScoreBadge(overall).label}
+                        </div>
+                      )}
+                      <div className="text-[9px] text-gray-400 mt-1">คะแนนเฉลี่ยทุกด้าน</div>
+                    </div>
+                  </Link>
                 </div>
               )}
             </Card>
