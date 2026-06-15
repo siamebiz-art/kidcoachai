@@ -651,18 +651,18 @@ export default function DashboardPage() {
               </div>
               <div className="grid grid-cols-3 divide-x divide-y divide-gray-100">
                 {[
-                  { href: "/dashboard/kido",           emoji: "🎮", title: "Kido Buddy",     desc: "เกมฝึกทักษะ",         isNew: false },
-                  { href: "/dashboard/story",           emoji: "📖", title: "Story Time",     desc: "นิทาน AI",             isNew: false },
-                  { href: "/dashboard/eq-coach",        emoji: "💛", title: "EQ Coach",       desc: "ฝึก EQ อารมณ์",       isNew: false },
-                  { href: "/dashboard/life-skills",     emoji: "🌟", title: "Life Skills",    desc: "ภารกิจประจำวัน",      isNew: false },
-                  { href: "/dashboard/learning",        emoji: "🎓", title: "Learning",       desc: "ช่วยสอนการบ้าน",       isNew: true  },
-                  { href: "/dashboard/creativity",      emoji: "🎨", title: "Creativity",     desc: "วาด + สร้างตัวละคร",  isNew: true  },
-                  { href: "/dashboard/reading-coach",   emoji: "🗣️", title: "Reading Coach",  desc: "ฝึกอ่านออกเสียง",     isNew: true  },
-                  { href: "/dashboard/spelling-coach",  emoji: "🔤", title: "Spelling Coach", desc: "ฝึกสะกดคำ",           isNew: true  },
-                  { href: "/dashboard/exam-prep",       emoji: "📝", title: "Exam Prep",      desc: "เตรียมสอบ + Quiz",     isNew: true  },
-                  { href: "/dashboard/social-skills",   emoji: "🤝", title: "Social Skills",  desc: "ฝึกทักษะสังคม",       isNew: true  },
-                  { href: "/dashboard/activities",      emoji: "📚", title: "Activities",     desc: "กิจกรรมทั้งหมด",      isNew: false },
-                  { href: "/dashboard/ai-coach",        emoji: "🤖", title: "AI Coach",       desc: "ปรึกษาผู้เชี่ยวชาญ", isNew: false },
+                  { href: "/dashboard/kido",           emoji: "🎮", title: "เล่นกับ Kido",    desc: "เกมฝึกทักษะ",         isNew: false },
+                  { href: "/dashboard/story",           emoji: "📖", title: "นิทาน AI",        desc: "ฟังนิทานออกเสียง",    isNew: false },
+                  { href: "/dashboard/eq-coach",        emoji: "💛", title: "ฝึก EQ",          desc: "รู้จักอารมณ์ตัวเอง",  isNew: false },
+                  { href: "/dashboard/life-skills",     emoji: "🌟", title: "ทักษะชีวิต",      desc: "ภารกิจประจำวัน",      isNew: false },
+                  { href: "/dashboard/learning",        emoji: "🎓", title: "ช่วยการบ้าน",     desc: "ถามได้ทุกวิชา",       isNew: true  },
+                  { href: "/dashboard/creativity",      emoji: "🎨", title: "ความคิดสร้างสรรค์", desc: "วาด + สร้างตัวละคร", isNew: true  },
+                  { href: "/dashboard/reading-coach",   emoji: "🗣️", title: "ฝึกอ่านออกเสียง", desc: "ไทย / อังกฤษ",       isNew: true  },
+                  { href: "/dashboard/spelling-coach",  emoji: "🔤", title: "ฝึกสะกดคำ",       desc: "ไทย / อังกฤษ",       isNew: true  },
+                  { href: "/dashboard/exam-prep",       emoji: "📝", title: "เตรียมสอบ",        desc: "Quiz + สรุปบทเรียน",  isNew: true  },
+                  { href: "/dashboard/social-skills",   emoji: "🤝", title: "ทักษะสังคม",      desc: "ฝึกการเข้าสังคม",     isNew: true  },
+                  { href: "/dashboard/activities",      emoji: "📚", title: "กิจกรรมทั้งหมด",  desc: "แผนฝึกรายวัน",        isNew: false },
+                  { href: "/dashboard/ai-coach",        emoji: "🤖", title: "AI ที่ปรึกษา",    desc: "ถามผู้เชี่ยวชาญ",    isNew: false },
                 ].map((mod) => (
                   <Link key={mod.href} href={mod.href}>
                     <div className="p-4 flex flex-col items-center text-center gap-1.5 hover:bg-purple-50/60 transition-colors cursor-pointer active:scale-95 relative">
