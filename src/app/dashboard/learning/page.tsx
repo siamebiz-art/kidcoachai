@@ -155,7 +155,7 @@ export default function LearningPage() {
     opts: { text?: string; isHint?: boolean; hintLevel?: number } = {}
   ) => {
     const q = (opts.text ?? input).trim();
-    if ((!q && !imageBase64) || !subject || loading) return;
+    if ((!opts.isHint && !q && !imageBase64) || !subject || loading) return;
     if (!opts.isHint) setInput("");
 
     const history = messages;
