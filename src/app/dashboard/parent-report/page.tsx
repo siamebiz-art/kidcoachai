@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useProfile } from "@/hooks/use-profile";
 import {
-  loadDailyData, computeBalanceScore, OFFLINE_MISSIONS, loadDailyHistory,
+  loadDailyData, computeBalanceScore, OFFLINE_MISSIONS, loadDailyHistory, initDailyDataFromServer,
   type DailyData, type DayHistory,
 } from "@/lib/daily-data";
 import { ChevronLeft, Clock, Star, Trophy, BarChart3, Heart, BookOpen, Smile, Shield, Flame } from "lucide-react";
@@ -80,6 +80,8 @@ export default function ParentReportPage() {
     setLifeSkills(loadLS<Record<string, string[]>>(LIFESKILLS_KEY, {}));
     setEmotions(loadLS<EmotionLog[]>(EMOTIONS_KEY, []));
     setHistory(loadDailyHistory());
+    // Merge server-synced data so parent sees combined data from all devices
+    initDailyDataFromServer().then(setDaily).catch(() => {});
   }, []);
 
   const today     = new Date().toISOString().slice(0, 10);

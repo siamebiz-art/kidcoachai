@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { Mission } from "@/lib/daily-data";
-import { completeMission } from "@/lib/daily-data";
+import { completeMission, syncDailyData } from "@/lib/daily-data";
 
 const ANIM_CSS = `
 @keyframes missionFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
@@ -33,7 +33,8 @@ export function KidoMissionOverlay({
   const [done, setDone] = useState(false);
 
   function handleComplete() {
-    completeMission(mission);
+    const updated = completeMission(mission);
+    syncDailyData(updated);
     setDone(true);
     setTimeout(onComplete, 2000);
   }

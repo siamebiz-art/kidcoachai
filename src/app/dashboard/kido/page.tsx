@@ -8,7 +8,7 @@ import type { GameResult, GameSession } from "@/lib/types";
 import { useProfile } from "@/hooks/use-profile";
 import { KidoBreakOverlay } from "@/components/kido/kido-break-overlay";
 import { KidoMissionOverlay } from "@/components/kido/kido-mission-overlay";
-import { addScreenMinute, loadDailyData, randomMission, type Mission } from "@/lib/daily-data";
+import { addScreenMinute, loadDailyData, randomMission, syncDailyData, beaconDailyData, type Mission } from "@/lib/daily-data";
 import toast from "react-hot-toast";
 import { MemoryMatchGame }   from "@/app/dashboard/activities/memory-game";
 import { PictureQuizGame }   from "@/app/dashboard/activities/picture-quiz";
@@ -232,6 +232,13 @@ export default function KidoPage() {
     recogRef.current?.abort();
   }, []);
 
+  /* ── sync screen-time to server on page unload (beacon = fire-and-forget) ── */
+  useEffect(() => {
+    const handler = () => beaconDailyData();
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, []);
+
   /* ── game recommendation (AI or rule-based, cached 24h) ── */
   useEffect(() => {
     if (!childProfile) return;
@@ -299,6 +306,7 @@ export default function KidoPage() {
     playTimer.current = setInterval(() => {
       const updated = addScreenMinute();
       setDailyMinutes(updated.screenMinutes);
+      if (updated.screenMinutes % 5 === 0) syncDailyData(updated);
       const lim = kidoSettings.dailyLimitMinutes;
       if (lim > 0 && updated.screenMinutes >= lim) {
         speak("หยุดพักก่อนนะ! ไปเล่นของเล่นจริงๆ หรืออ่านนิทานกับคุณพ่อคุณแม่นะ 😊", "talking");

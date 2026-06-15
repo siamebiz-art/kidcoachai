@@ -116,6 +116,15 @@ export interface UserMetadata {
   familyPhotoUrl?: string;
   // Game sessions history
   gameSessions?: GameSession[];
+  // Cross-device daily activity sync (screen time, missions)
+  kidoDailySync?: {
+    date: string;
+    screenMinutes: number;
+    physicalMinutes: number;
+    readingMinutes: number;
+    parentMinutes: number;
+    completedMissions: string[];
+  };
   // PromptPay payment
   pendingPayment?: PendingPayment;
 }

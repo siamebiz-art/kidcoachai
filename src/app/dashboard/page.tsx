@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
-import { loadDailyData, computeBalanceScore, completeMission, OFFLINE_MISSIONS, type DailyData } from "@/lib/daily-data";
+import { loadDailyData, computeBalanceScore, completeMission, OFFLINE_MISSIONS, initDailyDataFromServer, type DailyData } from "@/lib/daily-data";
 import { GameStatsCard } from "@/components/kido/game-stats-card";
 import Image from "next/image";
 import { Card } from "@/components/ui/card";
@@ -121,6 +121,8 @@ export default function DashboardPage() {
   useEffect(() => {
     setDailyData(loadDailyData());
     const t = setInterval(() => setDailyData(loadDailyData()), 30_000);
+    // Pull server data once on mount and merge with localStorage
+    initDailyDataFromServer().then(setDailyData).catch(() => {});
     return () => clearInterval(t);
   }, []);
 

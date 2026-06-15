@@ -126,3 +126,46 @@ export function randomMission(exclude: string[] = []): Mission {
   const pool = OFFLINE_MISSIONS.filter((m) => !exclude.includes(m.id));
   return pool[Math.floor(Math.random() * pool.length)] ?? OFFLINE_MISSIONS[0];
 }
+
+// Cross-device sync helpers — push local data to server, pull and merge on load
+
+export function beaconDailyData(): void {
+  if (typeof navigator === "undefined" || !navigator.sendBeacon) return;
+  const d = loadDailyData();
+  const blob = new Blob([JSON.stringify(d)], { type: "application/json" });
+  navigator.sendBeacon("/api/daily-sync", blob);
+}
+
+export async function syncDailyData(data?: DailyData): Promise<void> {
+  const d = data ?? loadDailyData();
+  try {
+    await fetch("/api/daily-sync", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(d),
+    });
+  } catch { /* silent — sync is best-effort */ }
+}
+
+export async function initDailyDataFromServer(): Promise<DailyData> {
+  try {
+    const res = await fetch("/api/daily-sync");
+    if (!res.ok) return loadDailyData();
+    const server = (await res.json()) as DailyData;
+    const local = loadDailyData();
+    if (!server.date || server.date !== local.date) return local;
+
+    const merged: DailyData = {
+      date: local.date,
+      screenMinutes:   Math.max(local.screenMinutes,   server.screenMinutes   ?? 0),
+      physicalMinutes: Math.max(local.physicalMinutes, server.physicalMinutes ?? 0),
+      readingMinutes:  Math.max(local.readingMinutes,  server.readingMinutes  ?? 0),
+      parentMinutes:   Math.max(local.parentMinutes,   server.parentMinutes   ?? 0),
+      completedMissions: Array.from(new Set([...local.completedMissions, ...(server.completedMissions ?? [])])),
+    };
+    saveDailyData(merged);
+    return merged;
+  } catch {
+    return loadDailyData();
+  }
+}
