@@ -1,7 +1,7 @@
 import { currentUser, clerkClient } from "@clerk/nextjs/server";
 import type { UserMetadata } from "./types";
 
-type RouteId = "ai-coach" | "kido-chat" | "generate-plan" | "kido-recommendation" | "kido-story" | "kido-eq" | "kido-homework" | "kido-creative" | "kido-reading" | "kido-spelling" | "kido-exam";
+type RouteId = "ai-coach" | "kido-chat" | "generate-plan" | "kido-recommendation" | "kido-story" | "kido-eq" | "kido-homework" | "kido-creative" | "kido-reading" | "kido-spelling" | "kido-exam" | "kido-wordsearch";
 type Tier = "free" | "premium" | "pro";
 
 interface RouteConfig {
@@ -78,6 +78,12 @@ const CONFIGS: Record<RouteId, RouteConfig> = {
     resetField:  "kidoExamResetDate",
     period:      "day",
     limits:      { free: 3, premium: 20, pro: -1 },
+  },
+  "kido-wordsearch": {
+    countField: "kidoWordSearchCount",
+    resetField:  "kidoWordSearchResetDate",
+    period:      "day",
+    limits:      { free: 5, premium: 30, pro: -1 },
   },
 };
 

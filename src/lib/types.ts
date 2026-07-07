@@ -112,6 +112,8 @@ export interface UserMetadata {
   kidoSpellingResetDate?: string;
   kidoExamCount?: number;
   kidoExamResetDate?: string;
+  kidoWordSearchCount?: number;
+  kidoWordSearchResetDate?: string;
   kidoSettings?: KidoSettings;
   familyPhotoUrl?: string;
   // Game sessions history

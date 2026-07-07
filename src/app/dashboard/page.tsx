@@ -663,6 +663,7 @@ export default function DashboardPage() {
                   { href: "/dashboard/spelling-coach",  emoji: "🔤", title: "ฝึกสะกดคำ",       desc: "ไทย / อังกฤษ",       isNew: true  },
                   { href: "/dashboard/exam-prep",       emoji: "📝", title: "เตรียมสอบ",        desc: "Quiz + สรุปบทเรียน",  isNew: true  },
                   { href: "/dashboard/social-skills",   emoji: "🤝", title: "ทักษะสังคม",      desc: "ฝึกการเข้าสังคม",     isNew: true  },
+                  { href: "/dashboard/word-search",     emoji: "🔍", title: "Word Search",      desc: "หาคำศัพท์ 8 หมวด",    isNew: true  },
                   { href: "/dashboard/activities",      emoji: "📚", title: "กิจกรรมทั้งหมด",  desc: "แผนฝึกรายวัน",        isNew: false },
                   { href: "/dashboard/ai-coach",        emoji: "🤖", title: "AI ที่ปรึกษา",    desc: "ถามผู้เชี่ยวชาญ",    isNew: false },
                 ].map((mod) => (
