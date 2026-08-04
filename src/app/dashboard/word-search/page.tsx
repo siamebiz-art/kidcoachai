@@ -96,7 +96,6 @@ export default function WordSearchPage() {
   const [selEnd,   setSelEnd]   = useState<Cell | null>(null);
   const [hintCell, setHintCell] = useState<Cell | null>(null);
 
-  // Refs for event handlers (avoid stale closures in passive touch listeners)
   const gridRef      = useRef<HTMLDivElement>(null);
   const dragStartRef = useRef<Cell | null>(null);
   const dragEndRef   = useRef<Cell | null>(null);
@@ -161,55 +160,9 @@ export default function WordSearchPage() {
     });
   }, []);
 
-  // ── Register non-passive touch events ───────────────────────────────────
-  useEffect(() => {
-    if (phase !== "game") return;
-    const el = gridRef.current;
-    if (!el) return;
-
-    const onTouchStart = (e: TouchEvent) => {
-      e.preventDefault();
-      const touch = e.touches[0];
-      const cell = getCellFromCoords(touch.clientX, touch.clientY);
-      if (!cell) return;
-      isDragging.current = true;
-      dragStartRef.current = cell;
-      dragEndRef.current   = cell;
-      setSelStart(cell);
-      setSelEnd(cell);
-    };
-    const onTouchMove = (e: TouchEvent) => {
-      e.preventDefault();
-      if (!isDragging.current) return;
-      const touch = e.touches[0];
-      const cell = getCellFromCoords(touch.clientX, touch.clientY);
-      if (!cell) return;
-      dragEndRef.current = cell;
-      setSelEnd(cell);
-    };
-    const onTouchEnd = (e: TouchEvent) => {
-      e.preventDefault();
-      if (!isDragging.current) return;
-      isDragging.current = false;
-      submitSelection();
-      dragStartRef.current = null;
-      dragEndRef.current   = null;
-      setSelStart(null);
-      setSelEnd(null);
-    };
-
-    el.addEventListener("touchstart", onTouchStart, { passive: false });
-    el.addEventListener("touchmove",  onTouchMove,  { passive: false });
-    el.addEventListener("touchend",   onTouchEnd,   { passive: false });
-    return () => {
-      el.removeEventListener("touchstart", onTouchStart);
-      el.removeEventListener("touchmove",  onTouchMove);
-      el.removeEventListener("touchend",   onTouchEnd);
-    };
-  }, [phase, getCellFromCoords, submitSelection]);
-
-  // ── Mouse events (desktop) ───────────────────────────────────────────────
-  function onMouseDown(e: React.MouseEvent) {
+  // ── Pointer events (works on both mobile touch and desktop mouse) ────────
+  function onPointerDown(e: React.PointerEvent<HTMLDivElement>) {
+    e.currentTarget.setPointerCapture(e.pointerId);
     const cell = getCellFromCoords(e.clientX, e.clientY);
     if (!cell) return;
     isDragging.current   = true;
@@ -218,17 +171,24 @@ export default function WordSearchPage() {
     setSelStart(cell);
     setSelEnd(cell);
   }
-  function onMouseMove(e: React.MouseEvent) {
+  function onPointerMove(e: React.PointerEvent) {
     if (!isDragging.current) return;
     const cell = getCellFromCoords(e.clientX, e.clientY);
     if (!cell) return;
     dragEndRef.current = cell;
     setSelEnd(cell);
   }
-  function endMouse() {
+  function onPointerUp() {
     if (!isDragging.current) return;
     isDragging.current = false;
     submitSelection();
+    dragStartRef.current = null;
+    dragEndRef.current   = null;
+    setSelStart(null);
+    setSelEnd(null);
+  }
+  function onPointerCancel() {
+    isDragging.current   = false;
     dragStartRef.current = null;
     dragEndRef.current   = null;
     setSelStart(null);
@@ -306,10 +266,8 @@ export default function WordSearchPage() {
       <div className="max-w-md mx-auto">
 
         <div className="flex items-center gap-3 mb-6 pt-2">
-          <Link href="/dashboard">
-            <button className="w-9 h-9 rounded-full bg-white border border-gray-100 shadow-sm flex items-center justify-center hover:bg-gray-50 transition-colors">
-              <ChevronLeft className="w-5 h-5 text-gray-600" />
-            </button>
+          <Link href="/dashboard" className="w-9 h-9 rounded-full bg-white border border-gray-100 shadow-sm flex items-center justify-center hover:bg-gray-50 transition-colors">
+            <ChevronLeft className="w-5 h-5 text-gray-600" />
           </Link>
           <div>
             <h1 className="font-black text-xl text-gray-900">🔍 Kido Word Search</h1>
@@ -416,14 +374,14 @@ export default function WordSearchPage() {
   );
 
   // ── GAME ────────────────────────────────────────────────────────────────────
-  const gridSizePx = Math.min(360, typeof window !== "undefined" ? window.innerWidth - 32 : 360);
+  const gridSizePx = Math.min(360, typeof window !== "undefined" ? window.innerWidth - 40 : 340);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex flex-col">
 
       {/* Header */}
       <div className="flex items-center justify-between px-4 pt-4 pb-2 shrink-0">
-        <button onClick={resetGame} className="w-9 h-9 rounded-full bg-white border border-gray-100 shadow-sm flex items-center justify-center">
+        <button onClick={resetGame} className="w-9 h-9 rounded-full bg-white border border-gray-100 shadow-sm flex items-center justify-center active:scale-95 transition-transform">
           <ChevronLeft className="w-5 h-5 text-gray-600" />
         </button>
         <div className="text-center">
@@ -464,12 +422,13 @@ export default function WordSearchPage() {
             display: "grid",
             gridTemplateColumns: `repeat(${levelCfg.size}, 1fr)`,
             userSelect: "none",
+            touchAction: "none",
             cursor: "crosshair",
           }}
-          onMouseDown={onMouseDown}
-          onMouseMove={onMouseMove}
-          onMouseUp={endMouse}
-          onMouseLeave={endMouse}
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerUp}
+          onPointerCancel={onPointerCancel}
         >
           {grid.map((row, r) =>
             row.map((letter, c) => {
@@ -501,7 +460,10 @@ export default function WordSearchPage() {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/kido-point.png" alt="Kido" className="w-8 h-8 object-contain" />
             <span className="text-xs text-gray-500 font-medium">
-              {foundCount === 0 ? "ลากนิ้วเพื่อเลือกคำ" : foundCount === words.length ? "เก่งมากเลย! 🎉" : `หาได้ ${foundCount} คำแล้ว 🔥`}
+              {foundCount === 0
+                ? <span className="animate-pulse font-bold text-purple-600">👆 ลากนิ้วเลือกตัวอักษร</span>
+                : foundCount === words.length ? "เก่งมากเลย! 🎉"
+                : `หาได้ ${foundCount} คำแล้ว 🔥`}
             </span>
           </div>
           <div className="flex gap-1">
