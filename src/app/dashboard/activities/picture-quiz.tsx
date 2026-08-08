@@ -59,7 +59,8 @@ const VOCAB_FRUITS: VocabItem[] = [
   { emoji: "🥝", word: "กีวี",            classifier: "ลูก" },
   { emoji: "🍐", word: "ลูกแพร์",         classifier: "ลูก" },
   { emoji: "🥥", word: "มะพร้าว",         classifier: "ลูก" },
-  { emoji: "🍈", word: "แตงกวา",          classifier: "ลูก" },
+  { emoji: "🥒", word: "แตงกวา",          classifier: "ลูก" },
+  { emoji: "🍈", word: "แตงไทย",          classifier: "ลูก" },
 ];
 
 const VOCAB_PETS: VocabItem[] = [
