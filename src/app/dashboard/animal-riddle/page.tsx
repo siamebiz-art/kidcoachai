@@ -81,16 +81,16 @@ export default function AnimalRiddlePage() {
   const [autoCorrect, setAutoCorrect] = useState<boolean | null>(null);
   const [hasStt,      setHasStt]      = useState(false);
 
-  const recRef  = useRef<SpeechRecognition | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const recRef  = useRef<any>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const q = qs[idx];
 
   useEffect(() => {
-    const SR = (typeof window !== "undefined") &&
-      ((window as unknown as { SpeechRecognition?: typeof SpeechRecognition }).SpeechRecognition ||
-       (window as unknown as { webkitSpeechRecognition?: typeof SpeechRecognition }).webkitSpeechRecognition);
-    setHasStt(!!SR);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const w = window as any;
+    setHasStt(!!(w.SpeechRecognition || w.webkitSpeechRecognition));
   }, []);
 
   // ── TTS ───────────────────────────────────────────────────────────────────
@@ -128,8 +128,9 @@ export default function AnimalRiddlePage() {
   // ── STT ───────────────────────────────────────────────────────────────────
   function startListening() {
     if (!q) return;
-    const SR = (window as unknown as { SpeechRecognition?: typeof SpeechRecognition }).SpeechRecognition ||
-               (window as unknown as { webkitSpeechRecognition?: typeof SpeechRecognition }).webkitSpeechRecognition;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const w = window as any;
+    const SR = w.SpeechRecognition || w.webkitSpeechRecognition;
     if (!SR) {
       // fallback → self-score
       setListenState("result");
@@ -141,13 +142,14 @@ export default function AnimalRiddlePage() {
     window.speechSynthesis.cancel(); // stop TTS if still going
     setSpeaking(false);
 
-    const rec = new SR() as SpeechRecognition;
+    const rec = new SR();
     rec.lang             = "th-TH";
     rec.continuous       = false;
     rec.interimResults   = false;
     rec.maxAlternatives  = 3;
 
-    rec.onresult = (e: SpeechRecognitionEvent) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    rec.onresult = (e: any) => {
       const heard = e.results[0][0].transcript;
       const correct = isCorrect(heard, q);
       setRecognized(heard);
