@@ -1,3 +1,15 @@
+/** อายุในหน่วยเดือน — ใช้สำหรับ filter เกมตามวัย */
+export function calculateAgeMonths(birthdate: string): number {
+  if (!birthdate) return 60; // default 5 ปี ถ้าไม่รู้อายุ
+  const birth = new Date(birthdate);
+  if (isNaN(birth.getTime())) return 60;
+  const now = new Date();
+  const months = (now.getFullYear() - birth.getFullYear()) * 12
+    + (now.getMonth() - birth.getMonth())
+    - (now.getDate() < birth.getDate() ? 1 : 0);
+  return Math.max(0, months);
+}
+
 export function calculateAge(birthdate: string): string {
   if (!birthdate) return "";
   const birth = new Date(birthdate);

@@ -9,6 +9,7 @@ import { KidoGameOverlay } from "@/components/kido/kido-game-overlay";
 import { CorrectEffect } from "@/components/kido/correct-effect";
 import { useCorrectEffect } from "@/hooks/use-correct-effect";
 import { useAutoNext } from "@/hooks/use-auto-next";
+import { playSound } from "@/lib/sounds";
 import type { GameResult } from "@/lib/types";
 
 type VocabItem = { emoji: string; word: string; classifier: string };
@@ -236,9 +237,13 @@ export function PictureQuizGame({
       };
       if (emoji === questions[index].correct) {
         setScore((s) => s + 1);
+        playSound("correct");
+        if (navigator.vibrate) navigator.vibrate(40);
         trigger();
         speak(`ใช่เลย! นั่นแหละ${word}${cl}นั้น เก่งมากเลย!`, "celebrating", advance);
       } else {
+        playSound("wrong");
+        if (navigator.vibrate) navigator.vibrate([60, 30, 60]);
         speak(`ยังไม่ใช่นะ ลองหา${word}สัก${cl}อีกครั้งนะ!`, "thinking", advance);
       }
     },

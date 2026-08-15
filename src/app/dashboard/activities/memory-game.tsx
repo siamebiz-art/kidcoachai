@@ -6,6 +6,7 @@ import { ChevronLeft, Trophy, RotateCcw, CheckCircle2 } from "lucide-react";
 import { useKidoVoice } from "@/hooks/use-kido-voice";
 import { KidoGameOverlay } from "@/components/kido/kido-game-overlay";
 import { useAutoNext } from "@/hooks/use-auto-next";
+import { playSound } from "@/lib/sounds";
 import type { GameResult } from "@/lib/types";
 
 const EMOJI_SETS = {
@@ -86,8 +87,12 @@ export function MemoryMatchGame({
         setSelected([]);
         setLocked(false);
         const allDone = matched.every((c) => c.isMatched);
+        playSound(allDone ? "celebrate" : "correct");
+        if (navigator.vibrate) navigator.vibrate(40);
         praise(allDone ? () => setDone(true) : undefined);
       } else {
+        playSound("wrong");
+        if (navigator.vibrate) navigator.vibrate([60, 30, 60]);
         encourage();
         setTimeout(() => {
           setCards((prev) =>

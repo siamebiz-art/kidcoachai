@@ -8,6 +8,7 @@ import { CorrectEffect } from "@/components/kido/correct-effect";
 import { useCorrectEffect } from "@/hooks/use-correct-effect";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, Trophy, CheckCircle2, RotateCcw } from "lucide-react";
+import { playSound } from "@/lib/sounds";
 import type { GameResult } from "@/lib/types";
 
 const COLORS = {
@@ -109,9 +110,13 @@ export function ColorGame({
       };
       if (colorKey === correct) {
         setScore((s) => s + 1);
+        playSound("correct");
+        if (navigator.vibrate) navigator.vibrate(40);
         trigger();
         speak(`ถูกต้อง! ${round.label}${colorName}เลย เก่งมาก!`, "celebrating", advance);
       } else {
+        playSound("wrong");
+        if (navigator.vibrate) navigator.vibrate([60, 30, 60]);
         speak(`ยังไม่ใช่นะ ${round.label}${colorName}นะ ลองดูอีกครั้ง!`, "thinking", advance);
       }
     },

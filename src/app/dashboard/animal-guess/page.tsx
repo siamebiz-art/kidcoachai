@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { ChevronLeft, RefreshCcw } from "lucide-react";
 import { useProfile } from "@/hooks/use-profile";
+import { useGameDifficulty } from "@/hooks/use-game-difficulty";
+import { playSound } from "@/lib/sounds";
 
 // ── Animal database ───────────────────────────────────────────────────────────
 
@@ -101,18 +103,46 @@ function buildRound(level: Level): Question[] {
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function AnimalGuessPage() {
-  const { childProfile } = useProfile();
+  const { childProfile, saveGameSession } = useProfile();
   const childName = childProfile?.name ?? "น้อง";
+  const { difficulty, diffLabel, recordResult, justPromoted, promotedToLabel, clearJustPromoted } = useGameDifficulty("animal-guess");
+  // map difficulty → level: easy→easy, medium→medium, hard→hard (ตรงกันพอดี)
+  const diffToLevel: Record<string, Level> = { easy: "easy", medium: "medium", hard: "hard" };
 
   const [phase,      setPhase]      = useState<Phase>("setup");
   const [level,      setLevel]      = useState<Level>("easy");
   const [qs,         setQs]         = useState<Question[]>([]);
   const [idx,        setIdx]        = useState(0);
   const [score,      setScore]      = useState(0);
+  const [correctCount, setCorrectCount] = useState(0); // track จำนวนถูกจริงๆ (ไม่รวม streak bonus)
   const [streak,     setStreak]     = useState(0);
   const [bestStreak, setBestStreak] = useState(0);
-  const [chosen,     setChosen]     = useState<string | null>(null); // emoji
+  const [chosen,     setChosen]     = useState<string | null>(null);
   const [animKey,    setAnimKey]    = useState(0);
+
+  // Sync level จาก difficulty hook
+  useEffect(() => {
+    setLevel(diffToLevel[difficulty] ?? "easy");
+  }, [difficulty]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // บันทึก session เมื่อเกมจบ
+  useEffect(() => {
+    if (phase === "done" && qs.length > 0) {
+      const accuracy = Math.round((correctCount / qs.length) * 100);
+      const { promoted } = recordResult(accuracy);
+      if (promoted) { playSound("levelUp"); }
+      else if (accuracy >= 80) { playSound("celebrate"); }
+      saveGameSession({
+        gameId: "animal-guess",
+        gameName: "ทายรูปสัตว์",
+        date: new Date().toISOString().split("T")[0],
+        score: correctCount,
+        total: qs.length,
+        accuracy,
+        ts: Date.now(),
+      }).catch(console.error);
+    }
+  }, [phase]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const cfg = CFG[level];
   const q   = qs[idx];
@@ -121,7 +151,7 @@ export default function AnimalGuessPage() {
 
   function startGame() {
     setQs(buildRound(level));
-    setIdx(0); setScore(0); setStreak(0); setBestStreak(0);
+    setIdx(0); setScore(0); setCorrectCount(0); setStreak(0); setBestStreak(0);
     setChosen(null); setAnimKey(k => k + 1); setPhase("game");
   }
 
@@ -131,10 +161,13 @@ export default function AnimalGuessPage() {
     const correct = animal.emoji === q.animal.emoji;
 
     if (correct) {
+      playSound("correct");
       if (navigator.vibrate) navigator.vibrate(40);
       setScore(s => s + (streak >= 2 ? 2 : 1));
+      setCorrectCount(c => c + 1); // track ถูก/ผิดจริงๆ
       setStreak(s => { const n = s + 1; setBestStreak(b => Math.max(b, n)); return n; });
     } else {
+      playSound("wrong");
       if (navigator.vibrate) navigator.vibrate([70, 30, 70]);
       setStreak(0);
     }
@@ -148,7 +181,7 @@ export default function AnimalGuessPage() {
 
   function reset() {
     setPhase("setup"); setQs([]); setIdx(0);
-    setScore(0); setStreak(0); setBestStreak(0); setChosen(null);
+    setScore(0); setCorrectCount(0); setStreak(0); setBestStreak(0); setChosen(null);
   }
 
   // ── Choice styling ────────────────────────────────────────────────────────
@@ -207,7 +240,7 @@ export default function AnimalGuessPage() {
               const border = sel ? { easy: "border-green-300 bg-green-50", medium: "border-yellow-300 bg-yellow-50", hard: "border-red-300 bg-red-50" }[lv] : "border-gray-100 bg-gray-50";
               const txt   = sel ? { easy: "text-green-700",               medium: "text-yellow-700",               hard: "text-red-700"               }[lv] : "text-gray-500";
               return (
-                <button key={lv} onClick={() => setLevel(lv)}
+                <button key={lv} onClick={() => { playSound("tap"); setLevel(lv); }}
                   className={`rounded-2xl p-4 border-2 flex items-center gap-4 active:scale-[0.97] transition-all ${border}`}>
                   <span className="text-2xl">{c.icon}</span>
                   <div className="text-left flex-1">
@@ -221,7 +254,7 @@ export default function AnimalGuessPage() {
           </div>
         </div>
 
-        <button onClick={startGame}
+        <button onClick={() => { playSound("tap"); startGame(); }}
           className="w-full py-4 rounded-3xl font-black text-lg text-white shadow-lg bg-gradient-to-r from-orange-400 to-amber-500 active:scale-[0.98] transition-transform">
           🐾 เริ่มเลย!
         </button>
@@ -233,19 +266,33 @@ export default function AnimalGuessPage() {
   // DONE
   // ──────────────────────────────────────────────────────────────────────────
   if (phase === "done") {
-    const pct = score / qs.length;
+    const pct = correctCount / qs.length;
     return (
       <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-orange-50 flex flex-col items-center justify-center p-6 text-center">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/kido-celebrate.png" alt="Kido" className="w-32 h-32 object-contain mb-3 animate-bounce" />
+
+        {/* 🎉 Promotion banner */}
+        {justPromoted && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-2xl px-4 py-2.5 mb-3 flex items-center gap-2 w-full max-w-xs">
+            <span className="text-xl">🏆</span>
+            <div className="text-left">
+              <div className="text-sm font-black text-yellow-800">เลื่อนระดับแล้ว!</div>
+              <div className="text-xs text-yellow-600">ตอนนี้เล่นระดับ &quot;{promotedToLabel}&quot; แล้วนะ</div>
+            </div>
+            <button onClick={clearJustPromoted} className="ml-auto text-yellow-400 text-lg leading-none">×</button>
+          </div>
+        )}
+
         <h2 className="text-3xl font-black text-gray-900 mb-2">
           {pct >= 0.8 ? "เก่งมากเลย! 🎉" : pct >= 0.5 ? "ทำได้ดี! 👏" : "ลองอีกครั้งนะ 💪"}
         </h2>
+        <p className="text-sm text-gray-400 mb-1">ระดับ: {diffLabel}</p>
         <div className="flex items-baseline gap-1 mb-1">
-          <span className="text-5xl font-black text-orange-500">{score}</span>
+          <span className="text-5xl font-black text-orange-500">{correctCount}</span>
           <span className="text-xl text-gray-400">/ {qs.length}</span>
         </div>
-        <p className="text-gray-400 text-sm mb-2">คะแนน</p>
+        <p className="text-gray-400 text-sm mb-2">ถูก</p>
         {bestStreak >= 3 && (
           <p className="text-orange-500 font-bold text-sm mb-4">🔥 สตรีคสูงสุด {bestStreak} ข้อ!</p>
         )}

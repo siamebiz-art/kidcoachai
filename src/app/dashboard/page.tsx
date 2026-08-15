@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
@@ -11,7 +11,9 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useProfile } from "@/hooks/use-profile";
-import { DAY_KEYS } from "@/lib/profile-utils";
+import { DAY_KEYS, calculateAgeMonths } from "@/lib/profile-utils";
+import { GAME_CATALOG } from "@/lib/game-catalog";
+import { getGameDisplayInfo } from "@/lib/game-stats";
 import type { DayKey, PlanActivity } from "@/lib/types";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
@@ -114,6 +116,27 @@ export default function DashboardPage() {
     latestAssessment, assessmentHistory, weeklyPlan, activityLog, toggleActivity,
     isPremium, kidoSettings, gameSessions,
   } = useProfile();
+
+  // ── เกมที่เหมาะกับอายุเด็ก ─────────────────────────────────────────────────
+  const childAgeMonths = useMemo(() => {
+    if (!childProfile?.birthdate) return null; // ไม่รู้อายุ → แสดงทุกเกม
+    return calculateAgeMonths(childProfile.birthdate);
+  }, [childProfile?.birthdate]);
+
+  const kidoModules = useMemo(() => {
+    return GAME_CATALOG.map((game) => {
+      const info =
+        childAgeMonths !== null
+          ? getGameDisplayInfo(game.id, childAgeMonths, game.minAgeMonths, gameSessions)
+          : { status: "ready" as const, avgAccuracy: -1, sessions: 0, monthsUntilReady: 0 };
+      return { ...game, info };
+    }).filter((m) => {
+      if (m.info.status === "locked" || m.info.status === "too-hard") return false;
+      // ซ่อนเกมที่ต้องอ่านออกจากเด็กที่ยังไม่พร้อม (< 54 เดือน)
+      if (m.requiresReading && m.info.status === "unlock-soon" && (childAgeMonths ?? 99) < 54) return false;
+      return true;
+    });
+  }, [childAgeMonths, gameSessions]);
 
   const [dailyData, setDailyData] = useState<DailyData>({
     date: "", screenMinutes: 0, physicalMinutes: 0, readingMinutes: 0, parentMinutes: 0, completedMissions: [],
@@ -652,34 +675,50 @@ export default function DashboardPage() {
                 </div>
               </div>
               <div className="grid grid-cols-3 divide-x divide-y divide-gray-100">
-                {[
-                  { href: "/dashboard/kido",           emoji: "🎮", title: "เล่นกับ Kido",    desc: "เกมฝึกทักษะ",         isNew: false },
-                  { href: "/dashboard/story",           emoji: "📖", title: "นิทาน AI",        desc: "ฟังนิทานออกเสียง",    isNew: false },
-                  { href: "/dashboard/eq-coach",        emoji: "💛", title: "ฝึก EQ",          desc: "รู้จักอารมณ์ตัวเอง",  isNew: false },
-                  { href: "/dashboard/life-skills",     emoji: "🌟", title: "ทักษะชีวิต",      desc: "ภารกิจประจำวัน",      isNew: false },
-                  { href: "/dashboard/learning",        emoji: "🎓", title: "ช่วยการบ้าน",     desc: "ถามได้ทุกวิชา",       isNew: true  },
-                  { href: "/dashboard/creativity",      emoji: "🎨", title: "ความคิดสร้างสรรค์", desc: "วาด + สร้างตัวละคร", isNew: true  },
-                  { href: "/dashboard/reading-coach",   emoji: "🗣️", title: "ฝึกอ่านออกเสียง", desc: "ไทย / อังกฤษ",       isNew: true  },
-                  { href: "/dashboard/spelling-coach",  emoji: "🔤", title: "ฝึกสะกดคำ",       desc: "ไทย / อังกฤษ",       isNew: true  },
-                  { href: "/dashboard/exam-prep",       emoji: "📝", title: "เตรียมสอบ",        desc: "Quiz + สรุปบทเรียน",  isNew: true  },
-                  { href: "/dashboard/social-skills",   emoji: "🤝", title: "ทักษะสังคม",      desc: "ฝึกการเข้าสังคม",     isNew: true  },
-                  { href: "/dashboard/word-search",     emoji: "🔍", title: "Word Search",      desc: "หาคำศัพท์ 8 หมวด",    isNew: true  },
-                  { href: "/dashboard/animal-guess",    emoji: "🐾", title: "ทายรูปสัตว์",      desc: "จำชื่อสัตว์ 40+ ชนิด", isNew: true  },
-                  { href: "/dashboard/animal-riddle",   emoji: "🎭", title: "อะไรเอ่ย?",        desc: "ปริศนาสัตว์ไทย 16 ชนิด", isNew: true },
-                  { href: "/dashboard/activities",      emoji: "📚", title: "กิจกรรมทั้งหมด",  desc: "แผนฝึกรายวัน",        isNew: false },
-                  { href: "/dashboard/ai-coach",        emoji: "🤖", title: "AI ที่ปรึกษา",    desc: "ถามผู้เชี่ยวชาญ",    isNew: false },
-                ].map((mod) => (
-                  <Link key={mod.href} href={mod.href}>
-                    <div className="p-4 flex flex-col items-center text-center gap-1.5 hover:bg-purple-50/60 transition-colors cursor-pointer active:scale-95 relative">
-                      {mod.isNew && (
-                        <span className="absolute top-2 right-2 bg-pink-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded-full">NEW</span>
-                      )}
-                      <span className="text-3xl">{mod.emoji}</span>
-                      <div className="text-[11px] font-black text-gray-800 leading-tight">{mod.title}</div>
-                      <span className="text-[9px] text-gray-400 leading-tight">{mod.desc}</span>
-                    </div>
-                  </Link>
-                ))}
+                {kidoModules.map((mod) => {
+                  const isUnlockSoon = mod.info.status === "unlock-soon";
+                  const isMastered   = mod.info.status === "mastered";
+
+                  if (isUnlockSoon) {
+                    // แสดงแบบ greyed-out — ไม่กดได้
+                    return (
+                      <div key={mod.id}
+                        className="p-4 flex flex-col items-center text-center gap-1.5 relative opacity-40 select-none">
+                        <span className="text-3xl grayscale">{mod.emoji}</span>
+                        <div className="text-[11px] font-black text-gray-500 leading-tight">{mod.title}</div>
+                        <span className="text-[9px] text-indigo-400 font-bold leading-tight">
+                          อีก {mod.info.monthsUntilReady} เดือน
+                        </span>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <Link key={mod.id} href={mod.href}>
+                      <div className="p-4 flex flex-col items-center text-center gap-1.5 hover:bg-purple-50/60 transition-colors cursor-pointer active:scale-95 relative">
+                        {/* ⭐ mastered badge */}
+                        {isMastered && (
+                          <span className="absolute top-1.5 left-2 text-[11px]" title="เก่งแล้ว!">⭐</span>
+                        )}
+                        {/* difficulty badge — แสดงถ้าเคยเล่นแล้ว */}
+                        {mod.info.sessions > 0 && (
+                          <span className={`absolute top-1.5 right-1.5 text-[7px] font-black px-1 py-0.5 rounded-full ${
+                            isMastered
+                              ? "bg-yellow-100 text-yellow-700"
+                              : mod.info.avgAccuracy >= 60
+                              ? "bg-emerald-100 text-emerald-700"
+                              : "bg-gray-100 text-gray-500"
+                          }`}>
+                            {mod.info.avgAccuracy >= 0 ? `${mod.info.avgAccuracy}%` : ""}
+                          </span>
+                        )}
+                        <span className="text-3xl">{mod.emoji}</span>
+                        <div className="text-[11px] font-black text-gray-800 leading-tight">{mod.title}</div>
+                        <span className="text-[9px] text-gray-400 leading-tight">{mod.desc}</span>
+                      </div>
+                    </Link>
+                  );
+                })}
               </div>
               {/* Parent Report link */}
               <Link href="/dashboard/parent-report">

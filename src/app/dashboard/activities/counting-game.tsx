@@ -7,6 +7,7 @@ import { KidoGameOverlay } from "@/components/kido/kido-game-overlay";
 import { useAutoNext } from "@/hooks/use-auto-next";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, Trophy, CheckCircle2, RotateCcw } from "lucide-react";
+import { playSound } from "@/lib/sounds";
 import type { GameResult } from "@/lib/types";
 
 const DOT_THEMES = [
@@ -92,8 +93,12 @@ export function CountingGame({ onBack, onComplete, nextGame }: { onBack: () => v
       const { classifier } = rounds[index];
       if (n === correct) {
         setScore((s) => s + 1);
+        playSound("correct");
+        if (navigator.vibrate) navigator.vibrate(40);
         speak(`ถูกต้องเลย! มี ${correct} ${classifier} เก่งมากเลย!`, "celebrating", advance);
       } else {
+        playSound("wrong");
+        if (navigator.vibrate) navigator.vibrate([60, 30, 60]);
         speak(`ยังไม่ใช่นะ มี ${correct} ${classifier}นะ ลองดูอีกครั้งนะ!`, "thinking", advance);
       }
     },

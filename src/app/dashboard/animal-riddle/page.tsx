@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { ChevronLeft, RefreshCcw, Volume2, Mic, MicOff } from "lucide-react";
 import { useProfile } from "@/hooks/use-profile";
+import { useGameDifficulty } from "@/hooks/use-game-difficulty";
+import { playSound } from "@/lib/sounds";
 
 // ── Riddle database ───────────────────────────────────────────────────────────
 interface Riddle { answer: string; answerEn: string; verse: string; emoji: string; aliases?: string[] }
@@ -66,9 +68,13 @@ function speakRiddle(verse: string) {
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
+// difficulty → rounds: easy=6, medium=10, hard=16
+const DIFF_TO_ROUNDS: Record<string, RoundsOption> = { easy: 6, medium: 10, hard: 16 };
+
 export default function AnimalRiddlePage() {
-  const { childProfile } = useProfile();
+  const { childProfile, saveGameSession } = useProfile();
   const childName = childProfile?.name ?? "น้อง";
+  const { difficulty, diffLabel, recordResult, justPromoted, promotedToLabel, clearJustPromoted } = useGameDifficulty("animal-riddle");
 
   const [phase,       setPhase]       = useState<Phase>("setup");
   const [rounds,      setRounds]      = useState<RoundsOption>(6);
@@ -92,6 +98,30 @@ export default function AnimalRiddlePage() {
     const w = window as any;
     setHasStt(!!(w.SpeechRecognition || w.webkitSpeechRecognition));
   }, []);
+
+  // ── Sync rounds จาก difficulty hook ────────────────────────────────────────
+  useEffect(() => {
+    setRounds(DIFF_TO_ROUNDS[difficulty] ?? 6);
+  }, [difficulty]);
+
+  // ── บันทึก session เมื่อเกมจบ ─────────────────────────────────────────────
+  useEffect(() => {
+    if (phase === "done" && qs.length > 0) {
+      const accuracy = Math.round((score / qs.length) * 100);
+      const { promoted } = recordResult(accuracy);
+      if (promoted) { playSound("levelUp"); }
+      else if (accuracy >= 80) { playSound("celebrate"); }
+      saveGameSession({
+        gameId: "animal-riddle",
+        gameName: "อะไรเอ่ย?",
+        date: new Date().toISOString().split("T")[0],
+        score,
+        total: qs.length,
+        accuracy,
+        ts: Date.now(),
+      }).catch(console.error);
+    }
+  }, [phase]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── TTS ───────────────────────────────────────────────────────────────────
   const speak = useCallback((verse: string) => {
@@ -156,9 +186,11 @@ export default function AnimalRiddlePage() {
       setAutoCorrect(correct);
       setListenState("result");
       if (correct) {
+        playSound("correct");
         setScore(s => s + 1);
         if (navigator.vibrate) navigator.vibrate(40);
       } else {
+        playSound("wrong");
         if (navigator.vibrate) navigator.vibrate([70, 30, 70]);
       }
     };
@@ -253,7 +285,7 @@ export default function AnimalRiddlePage() {
             {ROUNDS_OPTIONS.map(n => {
               const sel = rounds === n;
               return (
-                <button key={n} onClick={() => setRounds(n)}
+                <button key={n} onClick={() => { playSound("tap"); setRounds(n); }}
                   className={`rounded-2xl p-4 border-2 flex items-center gap-4 active:scale-[0.97] transition-all
                     ${sel ? "border-pink-300 bg-pink-50" : "border-gray-100 bg-gray-50"}`}>
                   <span className="text-2xl">{n === 6 ? "⚡" : n === 10 ? "🌸" : "🎯"}</span>
@@ -268,7 +300,7 @@ export default function AnimalRiddlePage() {
           </div>
         </div>
 
-        <button onClick={startGame}
+        <button onClick={() => { playSound("tap"); startGame(); }}
           className="w-full py-4 rounded-3xl font-black text-lg text-white shadow-lg bg-gradient-to-r from-pink-500 to-purple-500 active:scale-[0.98] transition-transform">
           🎭 เริ่มเลย!
         </button>
@@ -445,11 +477,11 @@ export default function AnimalRiddlePage() {
                       <p className="font-black text-xl text-gray-800">{q.answer} <span className="text-base font-semibold text-indigo-400">{q.answerEn}</span></p>
                       <p className="text-xs text-gray-400 font-medium">ทายถูกไหม?</p>
                       <div className="flex gap-3 w-full">
-                        <button onClick={() => { setScore(s => s + 1); advance(); }}
+                        <button onClick={() => { playSound("correct"); setScore(s => s + 1); advance(); }}
                           className="flex-1 py-3 rounded-2xl font-black text-sm text-white bg-gradient-to-r from-emerald-500 to-green-500 active:scale-95 transition-transform">
                           ✅ ถูกต้อง!
                         </button>
-                        <button onClick={() => advance()}
+                        <button onClick={() => { playSound("wrong"); advance(); }}
                           className="flex-1 py-3 rounded-2xl font-black text-sm text-gray-600 bg-gray-100 active:scale-95 transition-transform">
                           😅 ยังไม่รู้
                         </button>
