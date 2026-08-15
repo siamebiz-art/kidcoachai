@@ -112,10 +112,11 @@ export default function ListenPointPage() {
   const { childProfile, saveGameSession } = useProfile();
   const childName = childProfile?.name ?? "น้อง";
   const { difficulty, diffLabel, recordResult, justPromoted, promotedToLabel, clearJustPromoted } = useGameDifficulty("listen-point");
-  const { markRoundStarted } = useGameExitTracker("listen-point", phase);
 
   // map difficulty → numChoice: easy=2, medium/hard=4
   const [phase,     setPhase]    = useState<Phase>("setup");
+
+  const { markRoundStarted } = useGameExitTracker("listen-point", phase);
   const [category,  setCategory] = useState<Category>("animals");
   // Pre-select choices from stored difficulty
   const [numChoice, setNumChoice]= useState<Choices>(2);

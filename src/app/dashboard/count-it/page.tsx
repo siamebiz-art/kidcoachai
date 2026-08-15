@@ -60,10 +60,11 @@ export default function CountItPage() {
   const { childProfile, saveGameSession } = useProfile();
   const childName = childProfile?.name ?? "น้อง";
   const { difficulty, diffLabel, recordResult, justPromoted, promotedToLabel, clearJustPromoted } = useGameDifficulty("count-it");
-  const { markRoundStarted } = useGameExitTracker("count-it", phase);
 
   const [phase,    setPhase]  = useState<Phase>("setup");
   const [diff,     setDiff]   = useState<Difficulty>("easy");
+
+  const { markRoundStarted } = useGameExitTracker("count-it", phase);
   const [questions,setQs]     = useState<Question[]>([]);
   const [idx,      setIdx]    = useState(0);
   const [score,    setScore]  = useState(0);

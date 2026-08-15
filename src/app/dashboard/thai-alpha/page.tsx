@@ -76,9 +76,10 @@ export default function ThaiAlphaPage() {
   const { childProfile, saveGameSession } = useProfile();
   const childName = childProfile?.name ?? "น้อง";
   const { difficulty, diffLabel, recordResult, justPromoted, promotedToLabel, clearJustPromoted } = useGameDifficulty("thai-alpha");
-  const { markRoundStarted } = useGameExitTracker("thai-alpha", phase);
 
   const [phase,      setPhase]    = useState<Phase>("setup");
+
+  const { markRoundStarted } = useGameExitTracker("thai-alpha", phase);
   const [numChoice,  setNumChoice]= useState<Choices>(2);
   const [questions,  setQs]       = useState<Question[]>([]);
   const [idx,        setIdx]      = useState(0);
