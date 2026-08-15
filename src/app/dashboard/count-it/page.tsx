@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ChevronLeft, RefreshCcw } from "lucide-react";
 import { useProfile } from "@/hooks/use-profile";
 import { useGameDifficulty } from "@/hooks/use-game-difficulty";
+import { useGameExitTracker } from "@/hooks/use-game-exit-tracker";
 import { playSound } from "@/lib/sounds";
 
 // ── ชุด emoji สำหรับนับ ────────────────────────────────────────────────────────
@@ -59,6 +60,7 @@ export default function CountItPage() {
   const { childProfile, saveGameSession } = useProfile();
   const childName = childProfile?.name ?? "น้อง";
   const { difficulty, diffLabel, recordResult, justPromoted, promotedToLabel, clearJustPromoted } = useGameDifficulty("count-it");
+  const { markRoundStarted } = useGameExitTracker("count-it", phase);
 
   const [phase,    setPhase]  = useState<Phase>("setup");
   const [diff,     setDiff]   = useState<Difficulty>("easy");
@@ -130,6 +132,7 @@ export default function CountItPage() {
     const qs = buildQs(diff, ROUNDS);
     setQs(qs); setIdx(0); setScore(0); setPicked(null); setAnimKey(0);
     setPhase("game");
+    markRoundStarted();
     playSound("tap");
     speak("มานับเลขกันเลย!", 0.82, 1.2);
   }

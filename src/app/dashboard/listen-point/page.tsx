@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ChevronLeft, RefreshCcw } from "lucide-react";
 import { useProfile } from "@/hooks/use-profile";
 import { useGameDifficulty } from "@/hooks/use-game-difficulty";
+import { useGameExitTracker } from "@/hooks/use-game-exit-tracker";
 import { playSound } from "@/lib/sounds";
 
 // ── Item database ─────────────────────────────────────────────────────────────
@@ -111,6 +112,7 @@ export default function ListenPointPage() {
   const { childProfile, saveGameSession } = useProfile();
   const childName = childProfile?.name ?? "น้อง";
   const { difficulty, diffLabel, recordResult, justPromoted, promotedToLabel, clearJustPromoted } = useGameDifficulty("listen-point");
+  const { markRoundStarted } = useGameExitTracker("listen-point", phase);
 
   // map difficulty → numChoice: easy=2, medium/hard=4
   const [phase,     setPhase]    = useState<Phase>("setup");
@@ -204,6 +206,7 @@ export default function ListenPointPage() {
     const qs = buildQuestions(cat.items, numChoice, rounds);
     setQuestions(qs); setIdx(0); setScore(0); setPicked(null); setAnimKey(0);
     setPhase("game");
+    markRoundStarted();
     speak(`มาเล่น${cat.label}กันนะ!`, 0.82, 1.2);
   }
 

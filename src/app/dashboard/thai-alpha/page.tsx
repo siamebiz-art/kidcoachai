@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ChevronLeft, RefreshCcw } from "lucide-react";
 import { useProfile } from "@/hooks/use-profile";
 import { useGameDifficulty } from "@/hooks/use-game-difficulty";
+import { useGameExitTracker } from "@/hooks/use-game-exit-tracker";
 import { playSound } from "@/lib/sounds";
 
 // ── ข้อมูลตัวอักษร ────────────────────────────────────────────────────────────
@@ -75,6 +76,7 @@ export default function ThaiAlphaPage() {
   const { childProfile, saveGameSession } = useProfile();
   const childName = childProfile?.name ?? "น้อง";
   const { difficulty, diffLabel, recordResult, justPromoted, promotedToLabel, clearJustPromoted } = useGameDifficulty("thai-alpha");
+  const { markRoundStarted } = useGameExitTracker("thai-alpha", phase);
 
   const [phase,      setPhase]    = useState<Phase>("setup");
   const [numChoice,  setNumChoice]= useState<Choices>(2);
@@ -150,6 +152,7 @@ export default function ThaiAlphaPage() {
     const qs = buildQs(numChoice, ROUNDS);
     setQs(qs); setIdx(0); setScore(0); setPicked(null); setAnimKey(0);
     setPhase("game");
+    markRoundStarted();
     playSound("tap");
     speak("มาทาย ก ข ค กันเลย!", 0.82, 1.2);
   }

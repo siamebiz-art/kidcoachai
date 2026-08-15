@@ -14,6 +14,7 @@ import { useProfile } from "@/hooks/use-profile";
 import { DAY_KEYS, calculateAgeMonths } from "@/lib/profile-utils";
 import { GAME_CATALOG } from "@/lib/game-catalog";
 import { getGameDisplayInfo } from "@/lib/game-stats";
+import { loadBehavior, shouldHideGame } from "@/lib/game-behavior";
 import type { DayKey, PlanActivity } from "@/lib/types";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
@@ -124,6 +125,7 @@ export default function DashboardPage() {
   }, [childProfile?.birthdate]);
 
   const kidoModules = useMemo(() => {
+    const behavior = loadBehavior(); // fresh per-render (dashboard remounts on nav-back)
     return GAME_CATALOG.map((game) => {
       const info =
         childAgeMonths !== null
@@ -132,8 +134,10 @@ export default function DashboardPage() {
       return { ...game, info };
     }).filter((m) => {
       if (m.info.status === "locked" || m.info.status === "too-hard") return false;
-      // ซ่อนเกมที่ต้องอ่านออกจากเด็กที่ยังไม่พร้อม (< 54 เดือน)
+      // ซ่อนเกมอ่านจากเด็กที่ยังอ่านไม่ออก (< 54 เดือน) แม้อยู่ใน unlock-soon
       if (m.requiresReading && m.info.status === "unlock-soon" && (childAgeMonths ?? 99) < 54) return false;
+      // ซ่อนตามพฤติกรรม: เด็กกดย้อนเร็วซ้ำ = ไม่สนใจ/เกินวัย
+      if (shouldHideGame(m.id, m.requiresReading ?? false, behavior)) return false;
       return true;
     });
   }, [childAgeMonths, gameSessions]);
