@@ -157,7 +157,7 @@ type Phase = "greeting" | "menu" | "listening" | "thinking" | "responding";
 
 /* ══════════════════════════════════════════════════ */
 export default function KidoPage() {
-  const { childProfile, childAge, isLoaded, kidoSettings } = useProfile();
+  const { childProfile, childAge, isLoaded, kidoSettings, saveGameSession } = useProfile();
 
   const [emotion, setEmotion]       = useState<KidoEmotion>("idle");
   const [displayed, setDisplayed]   = useState("");
@@ -367,21 +367,24 @@ export default function KidoPage() {
     setStats((prev) => recordPlay(finished, prev));
     clearRecCache();
 
-    // persist session
+    // persist session — บันทึกทั้ง localStorage (สำหรับ AI rec) และ Clerk (สำหรับ dashboard)
     if (result && typeof window !== "undefined") {
+      const session: GameSession = {
+        gameId: finished,
+        gameName: finishedInfo.label,
+        date: new Date().toISOString().slice(0, 10),
+        score: result.score,
+        total: result.total,
+        accuracy: Math.round((result.score / Math.max(result.total, 1)) * 100),
+        ts: Date.now(),
+      };
+      // 1) localStorage — ใช้โดย AI recommendation ใน kido page
       try {
-        const session: GameSession = {
-          gameId: finished,
-          gameName: finishedInfo.label,
-          date: new Date().toISOString().slice(0, 10),
-          score: result.score,
-          total: result.total,
-          accuracy: Math.round((result.score / Math.max(result.total, 1)) * 100),
-          ts: Date.now(),
-        };
         const prev: GameSession[] = JSON.parse(localStorage.getItem(SESSIONS_KEY) ?? "[]");
         localStorage.setItem(SESSIONS_KEY, JSON.stringify([session, ...prev].slice(0, 50)));
       } catch { /* ignore */ }
+      // 2) Clerk unsafeMetadata — ใช้โดย dashboard + behavioral filter
+      saveGameSession(session).catch(console.error);
     }
 
     // Go directly to next game — use the pre-computed hint so it matches what was shown
