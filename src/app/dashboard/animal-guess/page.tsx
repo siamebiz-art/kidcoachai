@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ChevronLeft, RefreshCcw } from "lucide-react";
 import { useProfile } from "@/hooks/use-profile";
 import { useGameDifficulty } from "@/hooks/use-game-difficulty";
+import { useGameExitTracker } from "@/hooks/use-game-exit-tracker";
 import { playSound } from "@/lib/sounds";
 
 // ── Animal database ───────────────────────────────────────────────────────────
@@ -110,6 +111,9 @@ export default function AnimalGuessPage() {
   const diffToLevel: Record<string, Level> = { easy: "easy", medium: "medium", hard: "hard" };
 
   const [phase,      setPhase]      = useState<Phase>("setup");
+
+  const { markRoundStarted } = useGameExitTracker("animal-guess", phase);
+
   const [level,      setLevel]      = useState<Level>("easy");
   const [qs,         setQs]         = useState<Question[]>([]);
   const [idx,        setIdx]        = useState(0);
@@ -153,6 +157,7 @@ export default function AnimalGuessPage() {
     setQs(buildRound(level));
     setIdx(0); setScore(0); setCorrectCount(0); setStreak(0); setBestStreak(0);
     setChosen(null); setAnimKey(k => k + 1); setPhase("game");
+    markRoundStarted();
   }
 
   function pick(animal: Animal) {

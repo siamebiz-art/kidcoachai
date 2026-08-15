@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ChevronLeft, Volume2 } from "lucide-react";
 import { useProfile } from "@/hooks/use-profile";
 import { useGameDifficulty } from "@/hooks/use-game-difficulty";
+import { useGameExitTracker } from "@/hooks/use-game-exit-tracker";
 import { playSound } from "@/lib/sounds";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -242,6 +243,9 @@ export default function BodyTapPage() {
   const { recordResult, justPromoted, promotedToLabel, clearJustPromoted } = useGameDifficulty("body-tap");
 
   const [phase,      setPhase]     = useState<Phase>("intro");
+
+  const { markRoundStarted } = useGameExitTracker("body-tap", phase);
+
   const [queue,      setQueue]     = useState<Question[]>([]);
   const [idx,        setIdx]       = useState(0);
   const [revealed,   setRevealed]  = useState<Set<string>>(new Set());
@@ -285,6 +289,7 @@ export default function BodyTapPage() {
     setIdx(0); setRevealed(new Set());
     setWrongCount(0); setTotalWrong(0);
     setLocked(false); setPhase("game");
+    markRoundStarted();
   }
 
   function handleTap(e: React.PointerEvent<SVGSVGElement>) {
