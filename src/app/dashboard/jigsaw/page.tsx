@@ -32,21 +32,11 @@ const ROUNDS      = 3;  // จำนวนภาพต่อ session
 
 // ── SVG ภายในของแต่ละภาพ ──────────────────────────────────────────────────────
 function PuzzleContent({ p }: { p: PuzzleDef }) {
-  const a = p.accent;
   return (
     <>
-      <rect width="200" height="200" fill={p.bg} rx="4"/>
-      {/* ลวดลายมุม */}
-      <circle cx="24"  cy="24"  r="14" fill={a} opacity="0.22"/>
-      <circle cx="176" cy="24"  r="14" fill={a} opacity="0.22"/>
-      <circle cx="24"  cy="176" r="14" fill={a} opacity="0.22"/>
-      <circle cx="176" cy="176" r="14" fill={a} opacity="0.22"/>
-      <circle cx="100" cy="21"  r="9"  fill={a} opacity="0.12"/>
-      <circle cx="100" cy="179" r="9"  fill={a} opacity="0.12"/>
-      <circle cx="21"  cy="100" r="9"  fill={a} opacity="0.12"/>
-      <circle cx="179" cy="100" r="9"  fill={a} opacity="0.12"/>
-      {/* emoji กลาง */}
-      <text x="100" y="127" textAnchor="middle" fontSize="108"
+      <rect width="200" height="200" fill={p.bg}/>
+      {/* emoji เต็มภาพ — ใหญ่สุด ไม่มีองค์ประกอบรอบข้าง */}
+      <text x="100" y="158" textAnchor="middle" fontSize="172"
         fontFamily="Segoe UI Emoji, Apple Color Emoji, Noto Color Emoji, sans-serif">
         {p.emoji}
       </text>
