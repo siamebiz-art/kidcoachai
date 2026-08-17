@@ -28,6 +28,7 @@ export const GAME_CATALOG: GameEntry[] = [
   { id: "eng-alpha",     href: "/dashboard/eng-alpha",     emoji: "🔤", title: "ทาย A B C",           desc: "ฟัง A-Z · แตะตัวอักษรอังกฤษ",     minAgeMonths: 36, maxAgeMonths: 84  },
   { id: "animal-guess",  href: "/dashboard/animal-guess",  emoji: "🐾", title: "ทายรูปสัตว์",          desc: "จำชื่อสัตว์ 40+ ชนิด",             minAgeMonths: 36, maxAgeMonths: 84  },
   { id: "animal-riddle", href: "/dashboard/animal-riddle", emoji: "🎭", title: "อะไรเอ่ย?",            desc: "ปริศนาสัตว์ไทย 16 ชนิด",           minAgeMonths: 48, maxAgeMonths: 96  },
+  { id: "jigsaw",        href: "/dashboard/jigsaw",        emoji: "🧩", title: "ต่อจิ๊กซอ",             desc: "วางชิ้นส่วน · ต่อภาพให้ครบ",       minAgeMonths: 24, maxAgeMonths: 84  },
 
   // ── เกม AI ทุกวัย ────────────────────────────────────────────────────────────
   { id: "story",         href: "/dashboard/story",         emoji: "📖", title: "นิทาน AI",             desc: "ฟังนิทานออกเสียง",                 minAgeMonths: 24, maxAgeMonths: 144 },
