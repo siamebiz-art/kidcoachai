@@ -125,7 +125,9 @@ export default function DashboardPage() {
   }, [childProfile?.birthdate]);
 
   const kidoModules = useMemo(() => {
-    const behavior = loadBehavior(); // fresh per-render (dashboard remounts on nav-back)
+    const behavior      = loadBehavior(); // fresh per-render (dashboard remounts on nav-back)
+    const readingLevel  = childProfile?.readingLevel ?? null;
+
     return GAME_CATALOG.map((game) => {
       const info =
         childAgeMonths !== null
@@ -134,13 +136,25 @@ export default function DashboardPage() {
       return { ...game, info };
     }).filter((m) => {
       if (m.info.status === "locked" || m.info.status === "too-hard") return false;
-      // ซ่อนเกมอ่านจากเด็กที่ยังอ่านไม่ออก (< 54 เดือน) แม้อยู่ใน unlock-soon
-      if (m.requiresReading && m.info.status === "unlock-soon" && (childAgeMonths ?? 99) < 54) return false;
+
+      // ── กรองเกมที่ต้องอ่านด้วย readingLevel ────────────────────────────────
+      if (m.requiresReading) {
+        if (readingLevel === "pre") {
+          // พ่อแม่บอกว่ายังอ่านไม่ได้ → ซ่อนทุกเกมอ่านเสมอ
+          return false;
+        } else if (readingLevel === "emerging" || readingLevel === "fluent") {
+          // พ่อแม่ตั้งค่าแล้วว่าอ่านได้ → ไม่ filter ด้วยอายุ (ผ่านไปถึง behavioral filter)
+        } else {
+          // ยังไม่ได้ตั้งค่า → ใช้ age-based เดิม (< 54 เดือน = ซ่อน unlock-soon)
+          if (m.info.status === "unlock-soon" && (childAgeMonths ?? 99) < 54) return false;
+        }
+      }
+
       // ซ่อนตามพฤติกรรม: เด็กกดย้อนเร็วซ้ำ = ไม่สนใจ/เกินวัย
       if (shouldHideGame(m.id, m.requiresReading ?? false, behavior)) return false;
       return true;
     });
-  }, [childAgeMonths, gameSessions]);
+  }, [childAgeMonths, childProfile?.readingLevel, gameSessions]);
 
   const [dailyData, setDailyData] = useState<DailyData>({
     date: "", screenMinutes: 0, physicalMinutes: 0, readingMinutes: 0, parentMinutes: 0, completedMissions: [],

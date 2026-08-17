@@ -24,6 +24,8 @@ export interface AssessmentScores {
   กล้ามเนื้อ: number;
 }
 
+export type ReadingLevel = "pre" | "emerging" | "fluent";
+
 export interface ChildProfile {
   name: string;
   birthdate: string;
@@ -31,6 +33,8 @@ export interface ChildProfile {
   diagnosisKey: string;
   diagnosisLabel: string;
   avatar?: string;
+  /** ระดับการอ่านของเด็ก — ใช้กรองเกมที่ต้องอ่าน */
+  readingLevel?: ReadingLevel;
 }
 
 export interface ParentProfile {

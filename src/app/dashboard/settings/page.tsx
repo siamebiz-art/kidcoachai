@@ -76,6 +76,7 @@ function SettingsContent() {
   const [childBirthdate, setChildBirthdate] = useState("");
   const [childGender, setChildGender] = useState<"ชาย" | "หญิง" | "">("");
   const [childDiagnosisKey, setChildDiagnosisKey] = useState("");
+  const [childReadingLevel, setChildReadingLevel] = useState<"pre" | "emerging" | "fluent" | "">("");
   const [childAvatar, setChildAvatar] = useState("");
   const [childAvatarUploading, setChildAvatarUploading] = useState(false);
   const childAvatarInputRef = useRef<HTMLInputElement>(null);
@@ -127,6 +128,7 @@ function SettingsContent() {
       setChildBirthdate(childProfile.birthdate || "");
       setChildGender(childProfile.gender || "");
       setChildDiagnosisKey(childProfile.diagnosisKey || "");
+      setChildReadingLevel(childProfile.readingLevel || "");
       setChildAvatar(childProfile.avatar || "");
     }
   }, [isLoaded, parentProfile, childProfile]);
@@ -216,6 +218,7 @@ function SettingsContent() {
         diagnosisKey: childDiagnosisKey,
         diagnosisLabel: diagnosisOption?.label || "ไม่ระบุ",
         avatar: childAvatar,
+        ...(childReadingLevel ? { readingLevel: childReadingLevel as "pre" | "emerging" | "fluent" } : {}),
       });
       toast.success("บันทึกข้อมูลเด็กสำเร็จ!");
     } catch {
@@ -469,6 +472,64 @@ function SettingsContent() {
                       <option key={d.key} value={d.key}>{d.label}</option>
                     ))}
                   </select>
+                </div>
+
+                {/* ── ระดับการอ่าน ─────────────────────────────────────────── */}
+                <div>
+                  <label className="text-sm font-medium text-gray-700 block mb-1">
+                    ระดับการอ่านของลูก
+                  </label>
+                  <p className="text-xs text-gray-400 mb-3">
+                    ใช้กำหนดว่าเกมประเภทไหนที่เหมาะกับลูกในตอนนี้
+                  </p>
+                  <div className="space-y-2">
+                    {([
+                      {
+                        value: "pre",
+                        icon: "🍼",
+                        label: "ยังอ่านไม่ได้",
+                        desc: "ซ่อนเกมที่ต้องอ่านข้อความออก — แสดงเฉพาะเกมภาพ เสียง และตัวเลข",
+                      },
+                      {
+                        value: "emerging",
+                        icon: "📖",
+                        label: "เริ่มอ่านได้บ้าง",
+                        desc: "กำลังเรียนอ่าน — แสดงเกมฝึกอ่านง่ายๆ ควบคู่กับเกมภาพ",
+                      },
+                      {
+                        value: "fluent",
+                        icon: "🎓",
+                        label: "อ่านได้คล่อง",
+                        desc: "อ่านออกเขียนได้ — เปิดทุกเกมรวมถึงการช่วยการบ้าน",
+                      },
+                    ] as const).map((opt) => {
+                      const sel = childReadingLevel === opt.value;
+                      return (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => setChildReadingLevel(opt.value)}
+                          className={`w-full text-left flex items-start gap-3 px-4 py-3 rounded-2xl border-2 transition-all active:scale-[0.99]
+                            ${sel
+                              ? "border-purple-400 bg-purple-50"
+                              : "border-gray-200 bg-white hover:border-gray-300"}`}
+                        >
+                          <span className="text-2xl mt-0.5 shrink-0">{opt.icon}</span>
+                          <div className="flex-1 min-w-0">
+                            <p className={`text-sm font-bold ${sel ? "text-purple-700" : "text-gray-800"}`}>
+                              {opt.label}
+                            </p>
+                            <p className="text-xs text-gray-400 mt-0.5 leading-snug">{opt.desc}</p>
+                          </div>
+                          {sel && (
+                            <div className="w-5 h-5 rounded-full bg-purple-500 flex items-center justify-center shrink-0 mt-0.5">
+                              <Check className="w-3 h-3 text-white"/>
+                            </div>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
 
