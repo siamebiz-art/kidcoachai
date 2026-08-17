@@ -53,11 +53,10 @@ const KIDO_IMG: Record<KidoEmotion, string> = {
 
 /* ─── game registry ─── */
 const GAME_ITEMS = [
+  // ── เกมภาพ / เสียง (ไม่ต้องอ่านข้อความ) ─────────────────────────────────
   { game: "matching",       emoji: "🧩", label: "เกมจับคู่",        color: "from-violet-400 to-purple-500",  say: "ไปหาคู่ที่เหมือนกันกันเถอะ! ฝึกความจำด้วยนะ 🧩" },
   { game: "picture-quiz",   emoji: "👆", label: "ชี้รูปภาพ",       color: "from-orange-400 to-amber-500",   say: "มาดูว่าน้องรู้จักคำศัพท์กี่คำแล้ว! 🌟" },
-  { game: "flashcard",      emoji: "🃏", label: "บัตรคำ",           color: "from-sky-400 to-blue-500",       say: "มาจำคำใหม่กันเลย! น้องจะเก่งมากเลย ✨" },
   { game: "counting",       emoji: "🔢", label: "นับจำนวน",        color: "from-emerald-400 to-green-500",  say: "หนึ่ง สอง สาม! มาฝึกนับด้วยกันเลย 🎯" },
-  { game: "sorting",        emoji: "🗂️", label: "จัดหมวดหมู่",   color: "from-rose-400 to-pink-500",      say: "มาจัดหมวดหมู่กันเถอะ! ฝึกแยกประเภทด้วยนะ 🗂️" },
   { game: "quiz-fruits",    emoji: "🍎", label: "ชี้รูปผลไม้",     color: "from-red-400 to-rose-500",       say: "มาชี้รูปผลไม้กัน! น้องรู้จักผลไม้อะไรบ้างนะ? 🍎" },
   { game: "quiz-pets",      emoji: "🐾", label: "ชี้สัตว์เลี้ยง",  color: "from-amber-400 to-orange-500",   say: "มาชี้สัตว์เลี้ยงกัน! น้องชอบสัตว์ตัวไหนนะ? 🐾" },
   { game: "quiz-household", emoji: "🏠", label: "ของในบ้าน",        color: "from-teal-400 to-cyan-500",      say: "มาชี้ของในบ้านกัน! น้องรู้จักของพวกนี้ไหมนะ? 🏠" },
@@ -65,15 +64,18 @@ const GAME_ITEMS = [
   { game: "quiz-personal",  emoji: "🧼", label: "ของใช้ส่วนตัว",   color: "from-pink-400 to-fuchsia-500",   say: "มาชี้ของใช้ส่วนตัวกัน! น้องใช้ของพวกนี้ทุกวันเลยนะ? 🧼" },
   { game: "emotion",        emoji: "🫀", label: "รู้จักอารมณ์",    color: "from-pink-400 to-rose-500",      say: "มาดูว่าน้องรู้สึกอะไรอยู่! ฝึก EQ กันเลยนะ 😊" },
   { game: "shapes",         emoji: "🔴", label: "รูปทรงและสี",     color: "from-blue-400 to-indigo-500",    say: "มาจับคู่รูปทรงและสีกัน! น้องจะชอบเลย 🔴" },
-  { game: "sequence",       emoji: "📋", label: "เรียงลำดับ",      color: "from-teal-400 to-cyan-500",      say: "มาเรียงเหตุการณ์ให้ถูกลำดับกัน! ฝึกการคิดนะ 📋" },
   { game: "bubble-pop",     emoji: "🫧", label: "ป๊อปบับเบิล",    color: "from-yellow-400 to-orange-400",  say: "มาป๊อปฟองสบู่กัน! ฝึกสมาธิด้วยนะ 🫧" },
-  { game: "opposite",       emoji: "🔄", label: "คำตรงข้าม",       color: "from-indigo-400 to-purple-500",  say: "มาหาคำตรงข้ามกัน! น้องจะเก่งภาษาขึ้นเลย 🔄" },
-  { game: "dialogue",       emoji: "💬", label: "บทสนทนา",         color: "from-sky-400 to-blue-500",       say: "มาฝึกพูดคุยกัน! น้องจะรู้ว่าพูดอะไรดีในแต่ละสถานการณ์ 💬" },
-  { game: "needs",          emoji: "🙋", label: "บอกความต้องการ",  color: "from-emerald-400 to-teal-500",   say: "มาฝึกบอกสิ่งที่น้องต้องการกัน! พูดออกมาได้เลยนะ 🙋" },
   { game: "odd-one-out",    emoji: "🔍", label: "หาตัวแปลก",       color: "from-amber-400 to-orange-500",   say: "มาหาตัวที่ไม่เข้าพวกกัน! ใช้สายตาดีๆ นะ 🔍" },
   { game: "rhythm",         emoji: "🥁", label: "จับจังหวะสี",    color: "from-violet-400 to-purple-500",  say: "มาจำสีและกดตามลำดับกัน! ฝึกความจำด้วยนะ 🥁" },
-  { game: "word-category",  emoji: "🏷️", label: "เลือกหมวดคำ",   color: "from-lime-400 to-green-500",     say: "มาเลือกหมวดหมู่ของคำกัน! น้องรู้จักคำเยอะมากไหมนะ 🏷️" },
   { game: "color",          emoji: "🎨", label: "เกมทายสี",        color: "from-pink-400 to-orange-400",    say: "มาทายสีกัน! น้องรู้จักสีอะไรบ้างนะ? 🎨" },
+  // ── เกมที่ต้องอ่านข้อความ — ซ่อนเมื่อ readingLevel = "pre" ──────────────
+  { game: "flashcard",      emoji: "🃏", label: "บัตรคำ",           color: "from-sky-400 to-blue-500",       say: "มาจำคำใหม่กันเลย! น้องจะเก่งมากเลย ✨",                  requiresReading: true as const },
+  { game: "sorting",        emoji: "🗂️", label: "จัดหมวดหมู่",   color: "from-rose-400 to-pink-500",      say: "มาจัดหมวดหมู่กันเถอะ! ฝึกแยกประเภทด้วยนะ 🗂️",            requiresReading: true as const },
+  { game: "sequence",       emoji: "📋", label: "เรียงลำดับ",      color: "from-teal-400 to-cyan-500",      say: "มาเรียงเหตุการณ์ให้ถูกลำดับกัน! ฝึกการคิดนะ 📋",          requiresReading: true as const },
+  { game: "opposite",       emoji: "🔄", label: "คำตรงข้าม",       color: "from-indigo-400 to-purple-500",  say: "มาหาคำตรงข้ามกัน! น้องจะเก่งภาษาขึ้นเลย 🔄",              requiresReading: true as const },
+  { game: "dialogue",       emoji: "💬", label: "บทสนทนา",         color: "from-sky-400 to-blue-500",       say: "มาฝึกพูดคุยกัน! น้องจะรู้ว่าพูดอะไรดีในแต่ละสถานการณ์ 💬", requiresReading: true as const },
+  { game: "needs",          emoji: "🙋", label: "บอกความต้องการ",  color: "from-emerald-400 to-teal-500",   say: "มาฝึกบอกสิ่งที่น้องต้องการกัน! พูดออกมาได้เลยนะ 🙋",       requiresReading: true as const },
+  { game: "word-category",  emoji: "🏷️", label: "เลือกหมวดคำ",   color: "from-lime-400 to-green-500",     say: "มาเลือกหมวดหมู่ของคำกัน! น้องรู้จักคำเยอะมากไหมนะ 🏷️",   requiresReading: true as const },
 ] as const;
 type GameId = typeof GAME_ITEMS[number]["game"];
 
@@ -169,6 +171,13 @@ export default function KidoPage() {
   const [showStats, setShowStats]   = useState(false);
   const [insights, setInsights]     = useState("");
   const [loadingInsights, setLoadingInsights] = useState(false);
+  // กรองเกมตาม readingLevel — "pre" = ซ่อนเกมที่ต้องอ่าน
+  const visibleItems = GAME_ITEMS.filter((g) => {
+    if (!("requiresReading" in g)) return true;
+    const level = childProfile?.readingLevel;
+    return level !== "pre";
+  });
+
   const [recOrder, setRecOrder]     = useState<GameId[]>(GAME_ITEMS.map((g) => g.game));
   const [recHighlight, setRecHighlight] = useState<GameId | null>(null);
   const [recReason, setRecReason]   = useState("");
@@ -345,7 +354,7 @@ export default function KidoPage() {
   /* ── pre-compute next game whenever active game changes ── */
   useEffect(() => {
     if (!activeGame) { setNextGameHint(null); return; }
-    const others = GAME_ITEMS.filter((g) => g.game !== activeGame);
+    const others = visibleItems.filter((g) => g.game !== activeGame);
     setNextGameHint(others[Math.floor(Math.random() * others.length)]);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeGame]);
@@ -388,7 +397,7 @@ export default function KidoPage() {
     }
 
     // Go directly to next game — use the pre-computed hint so it matches what was shown
-    const others = GAME_ITEMS.filter((g) => g.game !== finished);
+    const others = visibleItems.filter((g) => g.game !== finished);
     const next = nextGameHint ?? others[Math.floor(Math.random() * others.length)];
     const accuracy = result ? Math.round((result.score / Math.max(result.total, 1)) * 100) : 0;
     const praise = PRAISE[Math.floor(Math.random() * PRAISE.length)];
@@ -576,8 +585,8 @@ export default function KidoPage() {
             )}
             <div className="grid grid-cols-3 gap-2">
               {recOrder
-                .map((id) => GAME_ITEMS.find((g) => g.game === id)!)
-                .filter(Boolean)
+                .map((id) => visibleItems.find((g) => g.game === id))
+                .filter((x): x is NonNullable<typeof x> => x != null)
                 .slice(0, 6)
                 .map((item) => {
                   const s = stats[item.game];
@@ -666,7 +675,7 @@ export default function KidoPage() {
               </button>
             </div>
             <div className="space-y-2">
-              {GAME_ITEMS.map((item) => {
+              {visibleItems.map((item) => {
                 const s = stats[item.game];
                 return (
                   <div key={item.game} className="flex items-center gap-3 p-3 bg-gray-50 rounded-2xl">
